@@ -11,8 +11,16 @@ func main() {
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 
-		rl.ClearBackground(rl.RayWhite)
-		rl.DrawText("Congrats! You created your first window!", 190, 200, 20, rl.LightGray)
+		rl.MaximizeWindow()
+		rl.ClearBackground(rl.NewColor(51, 51, 51, 255))
+
+		rl.DrawText(
+			"Congrats! You created your first window!",
+			190,
+			200,
+			20,
+			rl.NewColor(255, 248, 231, 255),
+		)
 
 		rl.EndDrawing()
 	}
