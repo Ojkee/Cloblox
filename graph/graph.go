@@ -23,6 +23,24 @@ func NewGraph(blocksSlice *[]blocks.Block) *Graph {
 	}
 }
 
+// Checks if is fully connected
+// doesn't check if it's completly transitive
+// E.G. doens't detect if infinite loop exists
+func (g *Graph) IsFullyConnected() bool {
+	if len(*g.blocksSlice) < 2 {
+		return false
+	}
+	if idx, found := g.findStartIdx(); found {
+		visitedIds := make([]int, 0)
+		return depthFirstSearchStop(&(*g.blocksSlice)[idx], &visitedIds)
+	}
+	return false
+}
+
+func (g *Graph) GetAllBlocks() *[]blocks.Block {
+	return g.blocksSlice
+}
+
 func (g *Graph) findStartIdx() (int, bool) {
 	for i, block := range *g.blocksSlice {
 		if isStart(&block) {
@@ -72,6 +90,7 @@ func depthFirstSearchStop(node *blocks.Block, visitedIds *[]int) bool {
 	if isStop(node) {
 		return true
 	}
+
 	if manyOutBlock, ok := (*node).(blocks.ManyOutBlock); ok {
 		trueBlock := manyOutBlock.GetNextTrue()
 		falseBlock := manyOutBlock.GetNextFalse()
@@ -80,22 +99,4 @@ func depthFirstSearchStop(node *blocks.Block, visitedIds *[]int) bool {
 	}
 	next := (*node).GetNext()
 	return depthFirstSearchStop(next, visitedIds)
-}
-
-// Checks if is fully connected
-// doesn't check if it's completly transitive
-// E.G. doens't detect if infinite loop exists
-func (g *Graph) IsFullyConnected() bool {
-	if len(*g.blocksSlice) < 2 {
-		return false
-	}
-	if idx, found := g.findStartIdx(); found {
-		visitedIds := make([]int, 0)
-		return depthFirstSearchStop(&(*g.blocksSlice)[idx], &visitedIds)
-	}
-	return false
-}
-
-func (g *Graph) GetAllBlocks() *[]blocks.Block {
-	return g.blocksSlice
 }

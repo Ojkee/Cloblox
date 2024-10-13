@@ -1,27 +1,8 @@
 package main
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import "Cloblox/window"
 
 func main() {
-	rl.InitWindow(800, 450, "raylib [core] example - basic window")
-	defer rl.CloseWindow()
-
-	rl.SetTargetFPS(60)
-
-	for !rl.WindowShouldClose() {
-		rl.BeginDrawing()
-
-		rl.MaximizeWindow()
-		rl.ClearBackground(rl.NewColor(51, 51, 51, 255))
-
-		rl.DrawText(
-			"Congrats! You created your first window!",
-			190,
-			200,
-			20,
-			rl.NewColor(255, 248, 231, 255),
-		)
-
-		rl.EndDrawing()
-	}
+	mainWindow := window.NewWindow("Cloblox ", 900, 1800)
+	mainWindow.MainLoop()
 }
