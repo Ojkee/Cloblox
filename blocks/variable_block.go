@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type VariablesBlock[T BlockType] struct {
 	BlockDefault
-	vars map[string]T // Variables with values on declarations, values can't change
+	vars map[string]T // Variables with values on declarations, values should't change
 	next *Block
 }
 
@@ -24,12 +25,22 @@ func NewVariableBlock[T BlockType](id int) *VariablesBlock[T] {
 	}
 }
 
-func (b *VariablesBlock[T]) GetContent() string {
-	return b.varsFormatted()
+func (b *VariablesBlock[T]) GetNext(args ...any) *Block {
+	return b.next
+}
+
+func (b *VariablesBlock[T]) SetNext(next Block) {
+	b.next = &next
+}
+
+func (b *VariablesBlock[T]) UpdateContent() {
+	b.content = b.varsFormatted()
 }
 
 func (b *VariablesBlock[T]) AddVariable(name string, value T) {
-	b.vars[name] = value
+	if len(strings.TrimSpace(name)) != 0 {
+		b.vars[name] = value
+	}
 }
 
 func (b *VariablesBlock[T]) GetValue(variableName string) (string, error) {
@@ -37,14 +48,6 @@ func (b *VariablesBlock[T]) GetValue(variableName string) (string, error) {
 		return b.valueToString(val), nil
 	}
 	return "", errors.New(b.content + " fail:\t\nNo such variable")
-}
-
-func (b *VariablesBlock[T]) ClearNext() {
-	b.next = nil
-}
-
-func (b *VariablesBlock[T]) GetNext(args ...any) *Block {
-	return b.next
 }
 
 func (b *VariablesBlock[T]) varsFormatted() string {

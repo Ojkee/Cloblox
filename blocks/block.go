@@ -5,8 +5,23 @@ type BlockType interface {
 }
 
 type Block interface {
+	GetId() int
+	GetName() string
 	GetContent() string
 	GetNext(args ...any) *Block
+}
+
+type SingleOutBlock interface {
+	Block
+	SetNext(next Block)
+}
+
+type ManyOutBlock interface {
+	Block
+	GetNextTrue() *Block
+	GetNextFalse() *Block
+	SetNextTrue(next Block)
+	SetNextFalse(next Block)
 }
 
 type BlockDefault struct {
@@ -15,6 +30,14 @@ type BlockDefault struct {
 	content string
 }
 
+func (b BlockDefault) GetId() int {
+	return b.id
+}
+
 func (b *BlockDefault) GetName() string {
 	return b.name
+}
+
+func (b *BlockDefault) GetContent() string {
+	return b.content
 }
