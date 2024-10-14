@@ -12,6 +12,7 @@ type PrintShape struct {
 func NewPrintShape(x, y float32) *PrintShape {
 	return &PrintShape{
 		ShapeDefault: ShapeDefault{
+			shapeType: PRINT,
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,

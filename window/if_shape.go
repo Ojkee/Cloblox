@@ -11,6 +11,7 @@ type IfShape struct {
 func NewIfShape(x, y float32) *IfShape {
 	return &IfShape{
 		ShapeDefault: ShapeDefault{
+			shapeType: IF,
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,

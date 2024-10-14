@@ -11,6 +11,7 @@ type VariableShape struct {
 func NewVariableShape(x, y float32) *VariableShape {
 	return &VariableShape{
 		ShapeDefault: ShapeDefault{
+			shapeType: VARIABLE,
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,

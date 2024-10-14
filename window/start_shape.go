@@ -11,6 +11,7 @@ type StartShape struct {
 func NewStartShape(x, y float32) *StartShape {
 	return &StartShape{
 		ShapeDefault: ShapeDefault{
+			shapeType: START,
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,

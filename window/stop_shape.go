@@ -11,6 +11,7 @@ type StopShape struct {
 func NewStopShape(x, y float32) *StopShape {
 	return &StopShape{
 		ShapeDefault: ShapeDefault{
+			shapeType: STOP,
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,
