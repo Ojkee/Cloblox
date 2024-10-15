@@ -12,10 +12,12 @@ func NewStartShape(x, y float32) *StartShape {
 	return &StartShape{
 		ShapeDefault: ShapeDefault{
 			shapeType: START,
+			content:   []string{"Start"},
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,
 			width:     SHAPE_WIDTH,
+			visible:   true,
 			color:     START_STOP_COLOR,
 			fontColor: FONT_COLOR,
 			fontSize:  FONT_SIZE,
@@ -30,9 +32,10 @@ func (shape *StartShape) Draw() {
 		shape.width/2,
 		shape.height/2,
 		shape.color)
+	contentWidth := float32(shape.getContentSize(0))
 	rl.DrawText(
-		"Start",
-		int32(shape.x+shape.width/2-32),
+		shape.content[0],
+		int32(shape.x+(shape.width-contentWidth)/2.0),
 		int32(shape.y+shape.height/2-8),
 		shape.fontSize,
 		shape.fontColor,

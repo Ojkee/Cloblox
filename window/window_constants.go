@@ -2,12 +2,18 @@ package window
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
+// WINDOW
 const (
-	WINDOW_HEIGHT = 1000
-	WINDOW_WIDTH  = 500
-	FONT_SIZE     = 16
+	WINDOW_HEIGHT = 800
+	WINDOW_WIDTH  = 1600
 )
 
+var (
+	FONT      rl.Font
+	FONT_SIZE int32 = 16
+)
+
+// COLORS
 var (
 	BACKGROUND_COLOR       = rl.NewColor(51, 51, 51, 255)
 	FONT_COLOR             = rl.NewColor(255, 248, 231, 255)
@@ -20,7 +26,9 @@ var (
 	CONNECTION_COLOR       = rl.NewColor(77, 74, 77, 255)
 )
 
+// SHAPES
 var (
-	SHAPE_WIDTH  float32 = 96
-	SHAPE_HEIGHT float32 = 32
+	SHAPE_WIDTH    float32 = 96
+	SHAPE_HEIGHT   float32 = 32
+	SHAPE_TEXT_GAP float32 = 10
 )

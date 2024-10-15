@@ -12,10 +12,12 @@ func NewIfShape(x, y float32) *IfShape {
 	return &IfShape{
 		ShapeDefault: ShapeDefault{
 			shapeType: IF,
+			content:   []string{"If"},
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,
 			width:     SHAPE_WIDTH,
+			visible:   true,
 			color:     IF_COLOR,
 			fontColor: FONT_COLOR,
 			fontSize:  FONT_SIZE,
@@ -31,7 +33,7 @@ func (shape *IfShape) Draw() {
 	rl.DrawTriangle(up, left, down, shape.color)
 	rl.DrawTriangle(right, up, down, shape.color)
 	rl.DrawText(
-		"If",
+		shape.content[0],
 		int32(shape.x+shape.width/2),
 		int32(shape.y+shape.height/2-8),
 		shape.fontSize,

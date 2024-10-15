@@ -7,7 +7,7 @@ import (
 )
 
 type Graph struct {
-	blocksSlice *[]blocks.Block
+	blocksSlice []blocks.Block
 	head        *blocks.Block
 	current     *blocks.Block
 
@@ -16,7 +16,7 @@ type Graph struct {
 
 func NewGraph(blocksSlice *[]blocks.Block) *Graph {
 	return &Graph{
-		blocksSlice: blocksSlice,
+		blocksSlice: *blocksSlice,
 		head:        nil,
 		current:     nil,
 		lengthLimit: 100,
@@ -27,22 +27,26 @@ func NewGraph(blocksSlice *[]blocks.Block) *Graph {
 // doesn't check if it's completly transitive
 // E.G. doens't detect if infinite loop exists
 func (g *Graph) IsFullyConnected() bool {
-	if len(*g.blocksSlice) < 2 {
+	if len(g.blocksSlice) < 2 {
 		return false
 	}
 	if idx, found := g.findStartIdx(); found {
 		visitedIds := make([]int, 0)
-		return depthFirstSearchStop(&(*g.blocksSlice)[idx], &visitedIds)
+		return depthFirstSearchStop(&(g.blocksSlice)[idx], &visitedIds)
 	}
 	return false
 }
 
-func (g *Graph) GetAllBlocks() *[]blocks.Block {
+func (g *Graph) GetAllBlocks() []blocks.Block {
 	return g.blocksSlice
 }
 
+func (g *Graph) AddBlock(block blocks.Block) {
+	g.blocksSlice = append(g.blocksSlice, block)
+}
+
 func (g *Graph) findStartIdx() (int, bool) {
-	for i, block := range *g.blocksSlice {
+	for i, block := range g.blocksSlice {
 		if isStart(&block) {
 			return i, true
 		}

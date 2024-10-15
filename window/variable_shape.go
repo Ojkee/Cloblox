@@ -12,10 +12,12 @@ func NewVariableShape(x, y float32) *VariableShape {
 	return &VariableShape{
 		ShapeDefault: ShapeDefault{
 			shapeType: VARIABLE,
+			content:   []string{"Variable"},
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,
 			width:     SHAPE_WIDTH,
+			visible:   true,
 			color:     VARIABLE_COLOR,
 			fontColor: FONT_COLOR,
 			fontSize:  FONT_SIZE,
@@ -24,18 +26,26 @@ func NewVariableShape(x, y float32) *VariableShape {
 }
 
 func (shape *VariableShape) Draw() {
+	nLines := len(shape.content)
+	if nLines == 0 {
+		nLines = 1
+	}
+	shapeHeight := int32(shape.height+SHAPE_TEXT_GAP) * int32(nLines)
 	rl.DrawRectangle(
 		int32(shape.x),
 		int32(shape.y),
 		int32(shape.width),
-		int32(shape.height),
+		shapeHeight,
 		shape.color,
 	)
-	rl.DrawText(
-		"Variables",
-		int32(shape.x+shape.width/2-32),
-		int32(shape.y+shape.height/2-8),
-		shape.fontSize,
-		shape.fontColor,
-	)
+	for i, text := range shape.content {
+		textWidth := float32(shape.getContentSize(i))
+		rl.DrawText(
+			text,
+			int32(shape.x+(shape.width-textWidth)/2.0),
+			int32(shape.y+float32(i*int(FONT_SIZE))),
+			shape.fontSize,
+			shape.fontColor,
+		)
+	}
 }

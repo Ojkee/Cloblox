@@ -5,7 +5,8 @@ import rl "github.com/gen2brain/raylib-go/raylib"
 type SHAPE_TYPE int
 
 const (
-	START SHAPE_TYPE = iota
+	NONE SHAPE_TYPE = iota
+	START
 	VARIABLE
 	IF
 	PRINT
@@ -17,36 +18,53 @@ type Shape interface {
 	GetType() SHAPE_TYPE
 	GetRect() rl.Rectangle
 	MoveTo(x, y float32)
+	TranslateCenter()
 	Resize(height, width float32)
+	SetContent(content *[]string)
 }
 
 type ShapeDefault struct {
 	shapeType SHAPE_TYPE
+	content   []string
 
 	y      float32
 	x      float32
 	width  float32
 	height float32
 
+	visible   bool
 	color     rl.Color
 	fontColor rl.Color
 	fontSize  int32
 }
 
-func (s *ShapeDefault) MoveTo(x, y float32) {
-	s.x = x
-	s.y = y
+func (shape *ShapeDefault) GetType() SHAPE_TYPE {
+	return shape.shapeType
 }
 
-func (s *ShapeDefault) Resize(height, width float32) {
-	s.height = height
-	s.width = width
+func (shape *ShapeDefault) GetRect() rl.Rectangle {
+	return rl.NewRectangle(shape.x, shape.y, shape.width, shape.height)
 }
 
-func (s *ShapeDefault) GetType() SHAPE_TYPE {
-	return s.shapeType
+func (shape *ShapeDefault) MoveTo(x, y float32) {
+	shape.x = x
+	shape.y = y
 }
 
-func (s *ShapeDefault) GetRect() rl.Rectangle {
-	return rl.NewRectangle(s.x, s.y, s.width, s.height)
+func (shape *ShapeDefault) TranslateCenter() {
+	shape.x -= shape.width / 2
+	shape.y -= shape.height / 2
+}
+
+func (shape *ShapeDefault) Resize(height, width float32) {
+	shape.height = height
+	shape.width = width
+}
+
+func (shape *ShapeDefault) SetContent(content *[]string) {
+	shape.content = *content
+}
+
+func (shape *ShapeDefault) getContentSize(idx int) int32 {
+	return rl.MeasureText(shape.content[idx], shape.fontSize)
 }

@@ -13,6 +13,7 @@ func NewPrintShape(x, y float32) *PrintShape {
 	return &PrintShape{
 		ShapeDefault: ShapeDefault{
 			shapeType: PRINT,
+			content:   []string{},
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,
