@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"errors"
+	"fmt"
 	"slices"
 
 	"Cloblox/blocks"
@@ -41,8 +43,61 @@ func (g *Graph) GetAllBlocks() []blocks.Block {
 	return g.blocksSlice
 }
 
-func (g *Graph) AddBlock(block blocks.Block) {
+func (g *Graph) AppendBlock(block blocks.Block) {
 	g.blocksSlice = append(g.blocksSlice, block)
+}
+
+func (g *Graph) ConnectByIds(idFrom, idTo int, isNextTrue ...bool) error {
+	if idFrom == idTo {
+		return errors.New("graph/ConnectByIDs fail:\n\tCan't connect to itself")
+	}
+	sliceIdFrom, sliceIdTo := g.findIdsInSlice(idFrom, idTo)
+	if sliceIdFrom == -1 || sliceIdTo == -1 {
+		return errors.New(fmt.Sprintf(
+			"graph/ConnectByIDs fail:\n\tId doesn't exist\n\tFrom: %d To: %d",
+			sliceIdFrom, sliceIdTo,
+		))
+	}
+	if err := g.connectBlocks(sliceIdFrom, sliceIdTo, isNextTrue...); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g *Graph) IsConnectedByIds(idFrom, idTo int) bool {
+	// TODO
+	return false
+}
+
+func (g *Graph) findIdsInSlice(idFrom, idTo int) (int, int) {
+	sliceIdFrom := -1
+	sliceIdTo := -1
+	for i, block := range g.blocksSlice {
+		if idFrom == block.GetId() {
+			sliceIdFrom = i
+		} else if idTo == block.GetId() {
+			sliceIdTo = i
+		}
+	}
+	return sliceIdFrom, sliceIdTo
+}
+
+func (g *Graph) connectBlocks(src, dst int, isNextTrue ...bool) error {
+	if manyBlock, ok := g.blocksSlice[src].(blocks.ManyOutBlock); ok {
+		if len(isNextTrue) == 0 {
+			return errors.New(
+				"graph/ConnectByIDs fail:\n\tTrying connect to ManyOut without path specified",
+			)
+		}
+		if isNextTrue[0] {
+			manyBlock.SetNextTrue(g.blocksSlice[dst])
+		} else {
+			manyBlock.SetNextFalse(g.blocksSlice[dst])
+		}
+	} else if singleBlock, ok := g.blocksSlice[src].(blocks.SingleOutBlock); ok {
+		singleBlock.SetNext(g.blocksSlice[dst])
+	}
+	return nil
 }
 
 func (g *Graph) findStartIdx() (int, bool) {

@@ -8,9 +8,9 @@ import (
 )
 
 func TestValid_1(t *testing.T) {
-	b1 := blocks.NewStartBlock(0)
-	b2 := blocks.NewPrintBlock(1)
-	b3 := blocks.NewStopBlock(2)
+	b1 := blocks.NewStartBlock()
+	b2 := blocks.NewPrintBlock()
+	b3 := blocks.NewStopBlock()
 
 	b1.SetNext(b2)
 	b2.SetNext(b3)
@@ -23,10 +23,10 @@ func TestValid_1(t *testing.T) {
 }
 
 func TestValid_2(t *testing.T) {
-	b1 := blocks.NewStartBlock(0)
-	b2 := blocks.NewVariableBlock[float32](1)
-	b3 := blocks.NewIfBlock[int](2)
-	b4 := blocks.NewStopBlock(3)
+	b1 := blocks.NewStartBlock()
+	b2 := blocks.NewVariableBlock[float32]()
+	b3 := blocks.NewIfBlock[int]()
+	b4 := blocks.NewStopBlock()
 
 	b1.SetNext(b2)
 	b2.SetNext(b3)
@@ -41,9 +41,9 @@ func TestValid_2(t *testing.T) {
 }
 
 func TestValid_3(t *testing.T) {
-	b1 := blocks.NewStartBlock(0)
-	b2 := blocks.NewVariableBlock[int](1)
-	b3 := blocks.NewStopBlock(2)
+	b1 := blocks.NewStartBlock()
+	b2 := blocks.NewVariableBlock[int]()
+	b3 := blocks.NewStopBlock()
 
 	b1.SetNext(b2)
 
@@ -55,10 +55,10 @@ func TestValid_3(t *testing.T) {
 }
 
 func TestValid_4(t *testing.T) {
-	b1 := blocks.NewPrintBlock(0)
-	b2 := blocks.NewVariableBlock[int](1)
-	b3 := blocks.NewStopBlock(2)
-	b4 := blocks.NewStartBlock(3)
+	b1 := blocks.NewPrintBlock()
+	b2 := blocks.NewVariableBlock[int]()
+	b3 := blocks.NewStopBlock()
+	b4 := blocks.NewStartBlock()
 
 	b1.SetNext(b2)
 	b2.SetNext(b3)
@@ -71,11 +71,11 @@ func TestValid_4(t *testing.T) {
 }
 
 func TestValid_5(t *testing.T) {
-	b1 := blocks.NewStartBlock(0)
-	b2 := blocks.NewVariableBlock[int](1)
-	b3 := blocks.NewIfBlock[int](2)
-	b4 := blocks.NewVariableBlock[int](3)
-	b5 := blocks.NewStopBlock(4)
+	b1 := blocks.NewStartBlock()
+	b2 := blocks.NewVariableBlock[int]()
+	b3 := blocks.NewIfBlock[int]()
+	b4 := blocks.NewVariableBlock[int]()
+	b5 := blocks.NewStopBlock()
 
 	b1.SetNext(b2)
 	b2.SetNext(b3)
@@ -91,10 +91,10 @@ func TestValid_5(t *testing.T) {
 }
 
 func TestValid_6(t *testing.T) {
-	b1 := blocks.NewStartBlock(0)
-	b2 := blocks.NewVariableBlock[int](1)
-	b3 := blocks.NewIfBlock[int](2)
-	b4 := blocks.NewVariableBlock[int](3)
+	b1 := blocks.NewStartBlock()
+	b2 := blocks.NewVariableBlock[int]()
+	b3 := blocks.NewIfBlock[int]()
+	b4 := blocks.NewVariableBlock[int]()
 
 	b1.SetNext(b2)
 	b2.SetNext(b3)

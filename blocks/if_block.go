@@ -7,16 +7,18 @@ type IfBlock[T BlockType] struct {
 	conditionFunction func(x T) bool
 }
 
-func NewIfBlock[T BlockType](id int) *IfBlock[T] {
-	return &IfBlock[T]{
+func NewIfBlock[T BlockType]() *IfBlock[T] {
+	retVal := IfBlock[T]{
 		BlockDefault: BlockDefault{
-			id:      id,
+			id:      blockCounter,
 			name:    "if block",
 			content: "if",
 		},
 		nextTrue:  nil,
 		nextFalse: nil,
 	}
+	blockCounter += 1
+	return &retVal
 }
 
 func (b *IfBlock[T]) GetNext(args ...any) *Block {

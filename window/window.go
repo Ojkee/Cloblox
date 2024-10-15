@@ -3,6 +3,7 @@ package window
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"Cloblox/blocks"
 	"Cloblox/graph"
 )
 
@@ -21,7 +22,8 @@ type Window struct {
 	currentShape     Shape
 	currentShapeType SHAPE_TYPE
 
-	diagram graph.Graph
+	idCounter int
+	diagram   graph.Graph
 }
 
 func NewWindow(name string, height, width int32) *Window {
@@ -90,29 +92,34 @@ func (window *Window) checkEvent() {
 }
 
 func (window *Window) placeCurrent(mx, my float32) {
-	var s Shape
+	var cShapes Shape
+	var cBlock blocks.Block
 	switch window.currentShapeType {
 	case START:
-		s = NewStartShape(mx, my)
+		cBlock = blocks.NewStartBlock(window.idCounter)
+		cShapes = NewStartShape(mx, my)
 		break
 	case VARIABLE:
-		s = NewVariableShape(mx, my)
+		cShapes = NewVariableShape(mx, my)
 		break
 	case IF:
-		s = NewIfShape(mx, my)
+		cShapes = NewIfShape(mx, my)
 		break
 	case PRINT:
-		s = NewPrintShape(mx, my)
+		cShapes = NewPrintShape(mx, my)
 		break
 	case STOP:
-		s = NewStopShape(mx, my)
+		cBlock = blocks.NewStopBlock(window.idCounter)
+		cShapes = NewStopShape(mx, my)
 		break
 	default:
 		window.resetClickedShape()
 		panic("window.go/makeCurrentClicked fail:\n\tNot implemented shape type")
 	}
-	s.TranslateCenter()
-	window.shapes = append(window.shapes, s)
+	window.idCounter += 1
+	window.diagram.AppendBlock(cBlock)
+	cShapes.TranslateCenter()
+	window.shapes = append(window.shapes, cShapes)
 }
 
 func (window *Window) draw() {

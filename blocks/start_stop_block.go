@@ -5,15 +5,17 @@ type StartBlock struct {
 	next *Block
 }
 
-func NewStartBlock(id int) *StartBlock {
-	return &StartBlock{
+func NewStartBlock() *StartBlock {
+	retVal := StartBlock{
 		BlockDefault: BlockDefault{
-			id:      id,
+			id:      blockCounter,
 			name:    "start block",
 			content: "Start",
 		},
 		next: nil,
 	}
+	blockCounter += 1
+	return &retVal
 }
 
 func (b *StartBlock) GetNext(args ...any) *Block {
@@ -29,15 +31,17 @@ type StopBlock struct {
 	next *Block
 }
 
-func NewStopBlock(id int) *StopBlock {
-	return &StopBlock{
+func NewStopBlock() *StopBlock {
+	retVal := StopBlock{
 		BlockDefault: BlockDefault{
-			id:      id,
+			id:      blockCounter,
 			name:    "stop block",
 			content: "Stop",
 		},
 		next: nil,
 	}
+	blockCounter += 1
+	return &retVal
 }
 
 func (b *StopBlock) GetNext(args ...any) *Block {
