@@ -157,10 +157,7 @@ func isStop(block *blocks.Block) bool {
 
 func isIf(block *blocks.Block) bool {
 	switch (*block).(type) {
-	case
-		*blocks.IfBlock[float32],
-		*blocks.IfBlock[int],
-		*blocks.IfBlock[string]:
+	case *blocks.IfBlock:
 		return true
 	}
 	return false
@@ -173,13 +170,11 @@ func depthFirstSearchStop(node *blocks.Block, visitedIds *[]int) bool {
 	if slices.Contains(*visitedIds, (*node).GetId()) {
 		return false
 	}
-
-	visited := append(*visitedIds, (*node).GetId())
-	visitedIds = &visited
 	if isStop(node) {
 		return true
 	}
-
+	visited := append(*visitedIds, (*node).GetId())
+	visitedIds = &visited
 	if manyOutBlock, ok := (*node).(blocks.ManyOutBlock); ok {
 		trueBlock := manyOutBlock.GetNextTrue()
 		falseBlock := manyOutBlock.GetNextFalse()

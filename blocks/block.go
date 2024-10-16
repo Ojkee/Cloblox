@@ -1,15 +1,14 @@
 package blocks
 
 type BlockType interface {
-	int | float32 | string
+	float32 | []float32
 }
 
 type Block interface {
 	GetId() int
 	SetId(id int)
 	GetName() string
-	GetContent() string
-	GetNext(args ...any) *Block
+	GetNext(args ...float32) *Block
 }
 
 type SingleOutBlock interface {
@@ -26,9 +25,8 @@ type ManyOutBlock interface {
 }
 
 type BlockDefault struct {
-	id      int
-	name    string
-	content string
+	id   int
+	name string
 }
 
 func (b *BlockDefault) GetId() int {
@@ -41,8 +39,4 @@ func (b *BlockDefault) SetId(id int) {
 
 func (b *BlockDefault) GetName() string {
 	return b.name
-}
-
-func (b *BlockDefault) GetContent() string {
-	return b.content
 }

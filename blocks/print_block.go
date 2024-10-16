@@ -8,15 +8,14 @@ type PrintBlock struct {
 func NewPrintBlock() *PrintBlock {
 	return &PrintBlock{
 		BlockDefault: BlockDefault{
-			id:      -1,
-			name:    "print block",
-			content: "print",
+			id:   -1,
+			name: "Print Block",
 		},
 		next: nil,
 	}
 }
 
-func (b *PrintBlock) GetNext(args ...any) *Block {
+func (b *PrintBlock) GetNext(args ...float32) *Block {
 	return b.next
 }
 

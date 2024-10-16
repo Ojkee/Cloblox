@@ -1,58 +1,98 @@
 package blocks
 
-type IfBlock[T BlockType] struct {
+import (
+	"errors"
+	"strings"
+)
+
+type IfBlock struct {
 	BlockDefault
-	nextTrue          *Block
-	nextFalse         *Block
-	conditionFunction func(x T) bool
+	nextTrue  *Block
+	nextFalse *Block
+
+	keyLHS string
+	keyRHS string
+
+	conditionFunc func(lhs, rhs float32) bool
 }
 
-func NewIfBlock[T BlockType]() *IfBlock[T] {
-	return &IfBlock[T]{
+func NewIfBlock() *IfBlock {
+	return &IfBlock{
 		BlockDefault: BlockDefault{
-			id:      -1,
-			name:    "if block",
-			content: "if",
+			id:   -1,
+			name: "If Block",
 		},
 		nextTrue:  nil,
 		nextFalse: nil,
 	}
 }
 
-func (b *IfBlock[T]) GetNext(args ...any) *Block {
-	if len(args) == 0 {
-		return b.nextFalse
+func (b *IfBlock) GetNext(args ...float32) *Block {
+	if len(args) <= 2 {
+		panic("IfBlock/GetNext fail:\n\tToo little arguments provided")
 	}
-	if val, ok := args[0].(T); ok {
-		if b.conditionFunction(val) {
-			return b.nextTrue
-		}
-		return b.nextFalse
+	if b.conditionFunc(args[0], args[1]) {
+		return b.nextTrue
 	}
-	return nil
-}
-
-func (b *IfBlock[T]) GetNextTrue() *Block {
-	return b.nextTrue
-}
-
-func (b *IfBlock[T]) GetNextFalse() *Block {
 	return b.nextFalse
 }
 
-func (b *IfBlock[T]) SetNextTrue(next Block) {
+func (b *IfBlock) GetNextTrue() *Block {
+	return b.nextTrue
+}
+
+func (b *IfBlock) GetNextFalse() *Block {
+	return b.nextFalse
+}
+
+func (b *IfBlock) SetNextTrue(next Block) {
 	b.nextTrue = &next
 }
 
-func (b *IfBlock[T]) SetNextFalse(next Block) {
+func (b *IfBlock) SetNextFalse(next Block) {
 	b.nextFalse = &next
 }
 
-func (b *IfBlock[T]) ParseCondition(condition string) error {
-	// TODO
+func (b *IfBlock) ParseCondition(condition string) error {
+	exprStrings := strings.Split(condition, " ")
+	if len(exprStrings) < 3 {
+		return errors.New("IfBlock/ParseCondition fail:\n\tInvalid argument provided")
+	}
+	b.keyLHS = exprStrings[0]
+	b.keyRHS = exprStrings[2]
+	switch exprStrings[1] {
+	case "=", "==", "eq":
+		b.conditionFunc = func(lhs, rhs float32) bool { return lhs == rhs }
+		break
+	case "<":
+		b.conditionFunc = func(lhs, rhs float32) bool { return lhs < rhs }
+		break
+	case "<=":
+		b.conditionFunc = func(lhs, rhs float32) bool { return lhs <= rhs }
+		break
+	case ">":
+		b.conditionFunc = func(lhs, rhs float32) bool { return lhs > rhs }
+		break
+	case ">=":
+		b.conditionFunc = func(lhs, rhs float32) bool { return lhs >= rhs }
+		break
+	case "!=", "neq":
+		b.conditionFunc = func(lhs, rhs float32) bool { return lhs != rhs }
+		break
+	default:
+		return errors.New("IfBlock/ParseCondition fail:\n\tInvalid operator")
+	}
 	return nil
 }
 
-func (b *IfBlock[T]) SetCondition(condition func(x T) bool) { // Devtool
-	b.conditionFunction = condition
+func (b *IfBlock) GetKeys() (string, string) {
+	return b.keyLHS, b.keyRHS
+}
+
+func (b *IfBlock) SetCondition(conditionFunc func(lhs, rhs float32) bool) {
+	b.conditionFunc = conditionFunc
+}
+
+func (b *IfBlock) Compare(lhs, rhs float32) bool {
+	return b.conditionFunc(lhs, rhs)
 }

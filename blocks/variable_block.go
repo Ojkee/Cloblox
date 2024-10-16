@@ -7,50 +7,51 @@ import (
 	"strings"
 )
 
-type VariablesBlock[T BlockType] struct {
+type VariablesBlock struct {
 	BlockDefault
-	vars map[string]T // Variables with values on declarations, values should't change
-	next *Block
+	vars   map[string]any // Variables with values on declarations, values should't change
+	action func(v any)
+	next   *Block
 }
 
-func NewVariableBlock[T BlockType]() *VariablesBlock[T] {
-	return &VariablesBlock[T]{
+func NewVariableBlock() *VariablesBlock {
+	return &VariablesBlock{
 		BlockDefault: BlockDefault{
-			id:      -1,
-			name:    "variable block",
-			content: "variable block",
+			id:   -1,
+			name: "Variable Block",
 		},
-		vars: make(map[string]T),
+		vars: make(map[string]any),
 		next: nil,
 	}
 }
 
-func (b *VariablesBlock[T]) GetNext(args ...any) *Block {
+func (b *VariablesBlock) GetNext(args ...float32) *Block {
 	return b.next
 }
 
-func (b *VariablesBlock[T]) SetNext(next Block) {
+func (b *VariablesBlock) SetNext(next Block) {
 	b.next = &next
 }
 
-func (b *VariablesBlock[T]) UpdateContent() {
-	b.content = b.varsFormatted()
-}
-
-func (b *VariablesBlock[T]) AddVariable(name string, value T) {
+func (b *VariablesBlock) AddVariable(name string, value any) {
 	if len(strings.TrimSpace(name)) != 0 {
 		b.vars[name] = value
 	}
 }
 
-func (b *VariablesBlock[T]) GetValue(variableName string) (string, error) {
+func (b *VariablesBlock) GetValue(variableName string) (string, error) {
 	if val, ok := b.vars[variableName]; ok {
 		return b.valueToString(val), nil
 	}
-	return "", errors.New(b.content + " fail:\t\nNo such variable")
+	return "", errors.New(b.name + " fail:\t\nNo such variable")
 }
 
-func (b *VariablesBlock[T]) varsFormatted() string {
+func (b *VariablesBlock) Parse(input string) error {
+	// TODO
+	return nil
+}
+
+func (b *VariablesBlock) varsFormatted() string {
 	var buffur bytes.Buffer
 	for key, value := range b.vars {
 		line := fmt.Sprintf("%s = %s", key, b.valueToString(value))
@@ -59,13 +60,15 @@ func (b *VariablesBlock[T]) varsFormatted() string {
 	return buffur.String()
 }
 
-func (b *VariablesBlock[T]) valueToString(v T) string {
-	if retVal, ok := any(v).(float32); ok {
-		return fmt.Sprintf("%.2f", retVal)
-	} else if retVal, ok := any(v).(int); ok {
-		return fmt.Sprintf("%d", retVal)
-	} else if retVal, ok := any(v).(string); ok {
-		return retVal
+func (b *VariablesBlock) valueToString(v any) string {
+	if floatVal, ok := v.(float32); ok {
+		return fmt.Sprintf("%.2f", floatVal)
+	} else if stringVal, ok := v.(string); ok {
+		return stringVal
+	} else if _, ok := v.([]float32); ok {
+		return "TBD"
+	} else if _, ok := v.([]string); ok {
+		return "TBD"
 	}
 	return "Invalid Type"
 }

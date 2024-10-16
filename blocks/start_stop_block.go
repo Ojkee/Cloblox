@@ -8,15 +8,14 @@ type StartBlock struct {
 func NewStartBlock() *StartBlock {
 	return &StartBlock{
 		BlockDefault: BlockDefault{
-			id:      -1,
-			name:    "start block",
-			content: "Start",
+			id:   -1,
+			name: "Start Block",
 		},
 		next: nil,
 	}
 }
 
-func (b *StartBlock) GetNext(args ...any) *Block {
+func (b *StartBlock) GetNext(args ...float32) *Block {
 	return b.next
 }
 
@@ -32,15 +31,14 @@ type StopBlock struct {
 func NewStopBlock() *StopBlock {
 	return &StopBlock{
 		BlockDefault: BlockDefault{
-			id:      -1,
-			name:    "stop block",
-			content: "Stop",
+			id:   -1,
+			name: "Stop Block",
 		},
 		next: nil,
 	}
 }
 
-func (b *StopBlock) GetNext(args ...any) *Block {
+func (b *StopBlock) GetNext(args ...float32) *Block {
 	return nil
 }
 

@@ -24,8 +24,8 @@ func TestValid_1(t *testing.T) {
 
 func TestValid_2(t *testing.T) {
 	b1 := blocks.NewStartBlock()
-	b2 := blocks.NewVariableBlock[float32]()
-	b3 := blocks.NewIfBlock[int]()
+	b2 := blocks.NewVariableBlock()
+	b3 := blocks.NewIfBlock()
 	b4 := blocks.NewStopBlock()
 
 	b1.SetNext(b2)
@@ -42,7 +42,7 @@ func TestValid_2(t *testing.T) {
 
 func TestValid_3(t *testing.T) {
 	b1 := blocks.NewStartBlock()
-	b2 := blocks.NewVariableBlock[int]()
+	b2 := blocks.NewVariableBlock()
 	b3 := blocks.NewStopBlock()
 
 	b1.SetNext(b2)
@@ -56,7 +56,7 @@ func TestValid_3(t *testing.T) {
 
 func TestValid_4(t *testing.T) {
 	b1 := blocks.NewPrintBlock()
-	b2 := blocks.NewVariableBlock[int]()
+	b2 := blocks.NewVariableBlock()
 	b3 := blocks.NewStopBlock()
 	b4 := blocks.NewStartBlock()
 
@@ -72,9 +72,9 @@ func TestValid_4(t *testing.T) {
 
 func TestValid_5(t *testing.T) {
 	b1 := blocks.NewStartBlock()
-	b2 := blocks.NewVariableBlock[int]()
-	b3 := blocks.NewIfBlock[int]()
-	b4 := blocks.NewVariableBlock[int]()
+	b2 := blocks.NewVariableBlock()
+	b3 := blocks.NewIfBlock()
+	b4 := blocks.NewVariableBlock()
 	b5 := blocks.NewStopBlock()
 
 	b1.SetNext(b2)
@@ -92,9 +92,9 @@ func TestValid_5(t *testing.T) {
 
 func TestValid_6(t *testing.T) {
 	b1 := blocks.NewStartBlock()
-	b2 := blocks.NewVariableBlock[int]()
-	b3 := blocks.NewIfBlock[int]()
-	b4 := blocks.NewVariableBlock[int]()
+	b2 := blocks.NewVariableBlock()
+	b3 := blocks.NewIfBlock()
+	b4 := blocks.NewVariableBlock()
 
 	b1.SetNext(b2)
 	b2.SetNext(b3)

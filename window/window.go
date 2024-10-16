@@ -78,7 +78,7 @@ func (window *Window) checkEvent() {
 				clickedNewShape = true
 				window.shapeClicked = true
 				window.makeCurrentClicked(shape.GetType())
-				window.updateCurrent()
+				window.updateCurrentShape()
 			}
 		}
 		if mousePos.X < WINDOW_WIDTH/2 {
@@ -136,7 +136,7 @@ func (window *Window) draw() {
 		shape.Draw()
 	}
 	if window.currentShape != nil {
-		window.updateCurrent()
+		window.updateCurrentShape()
 		window.currentShape.Draw()
 	}
 
@@ -167,7 +167,7 @@ func (window *Window) makeCurrentClicked(shapeType SHAPE_TYPE) {
 	}
 }
 
-func (window *Window) updateCurrent() {
+func (window *Window) updateCurrentShape() {
 	mousePos := rl.GetMousePosition()
 	window.currentShape.MoveTo(
 		mousePos.X-SHAPE_WIDTH/2,
