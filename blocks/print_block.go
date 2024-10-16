@@ -6,16 +6,14 @@ type PrintBlock struct {
 }
 
 func NewPrintBlock() *PrintBlock {
-	retVal := PrintBlock{
+	return &PrintBlock{
 		BlockDefault: BlockDefault{
-			id:      blockCounter,
+			id:      -1,
 			name:    "print block",
 			content: "print",
 		},
 		next: nil,
 	}
-	blockCounter += 1
-	return &retVal
 }
 
 func (b *PrintBlock) GetNext(args ...any) *Block {

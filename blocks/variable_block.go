@@ -14,17 +14,15 @@ type VariablesBlock[T BlockType] struct {
 }
 
 func NewVariableBlock[T BlockType]() *VariablesBlock[T] {
-	retVal := VariablesBlock[T]{
+	return &VariablesBlock[T]{
 		BlockDefault: BlockDefault{
-			id:      blockCounter,
+			id:      -1,
 			name:    "variable block",
 			content: "variable block",
 		},
 		vars: make(map[string]T),
 		next: nil,
 	}
-	blockCounter += 1
-	return &retVal
 }
 
 func (b *VariablesBlock[T]) GetNext(args ...any) *Block {

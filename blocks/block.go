@@ -6,6 +6,7 @@ type BlockType interface {
 
 type Block interface {
 	GetId() int
+	SetId(id int)
 	GetName() string
 	GetContent() string
 	GetNext(args ...any) *Block
@@ -30,8 +31,12 @@ type BlockDefault struct {
 	content string
 }
 
-func (b BlockDefault) GetId() int {
+func (b *BlockDefault) GetId() int {
 	return b.id
+}
+
+func (b *BlockDefault) SetId(id int) {
+	b.id = id
 }
 
 func (b *BlockDefault) GetName() string {

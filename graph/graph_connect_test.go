@@ -37,3 +37,23 @@ func TestConnection_2(t *testing.T) {
 		t.Errorf("Should return error")
 	}
 }
+
+func TestIfConnected_1(t *testing.T) {
+	diagram := graph.NewGraph(&[]blocks.Block{
+		blocks.NewStartBlock(),
+		blocks.NewPrintBlock(),
+		blocks.NewStopBlock(),
+	})
+	if err := diagram.ConnectByIds(0, 1); err != nil {
+		t.Errorf("Shouldn't return error")
+	}
+	if diagram.IsConnectedByIds(0, 1) == false {
+		t.Fail()
+	}
+	if diagram.IsConnectedByIds(0, 2) == true {
+		t.Fail()
+	}
+	if diagram.IsConnectedByIds(1, 0) == true {
+		t.Fail()
+	}
+}

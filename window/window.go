@@ -96,7 +96,7 @@ func (window *Window) placeCurrent(mx, my float32) {
 	var cBlock blocks.Block
 	switch window.currentShapeType {
 	case START:
-		cBlock = blocks.NewStartBlock(window.idCounter)
+		cBlock = blocks.NewStartBlock()
 		cShapes = NewStartShape(mx, my)
 		break
 	case VARIABLE:
@@ -109,7 +109,7 @@ func (window *Window) placeCurrent(mx, my float32) {
 		cShapes = NewPrintShape(mx, my)
 		break
 	case STOP:
-		cBlock = blocks.NewStopBlock(window.idCounter)
+		cBlock = blocks.NewStopBlock()
 		cShapes = NewStopShape(mx, my)
 		break
 	default:

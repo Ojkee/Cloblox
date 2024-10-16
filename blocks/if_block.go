@@ -8,17 +8,15 @@ type IfBlock[T BlockType] struct {
 }
 
 func NewIfBlock[T BlockType]() *IfBlock[T] {
-	retVal := IfBlock[T]{
+	return &IfBlock[T]{
 		BlockDefault: BlockDefault{
-			id:      blockCounter,
+			id:      -1,
 			name:    "if block",
 			content: "if",
 		},
 		nextTrue:  nil,
 		nextFalse: nil,
 	}
-	blockCounter += 1
-	return &retVal
 }
 
 func (b *IfBlock[T]) GetNext(args ...any) *Block {

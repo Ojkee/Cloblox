@@ -13,15 +13,20 @@ type Graph struct {
 	head        *blocks.Block
 	current     *blocks.Block
 
-	lengthLimit int
+	blockCounter int
+	lengthLimit  int
 }
 
 func NewGraph(blocksSlice *[]blocks.Block) *Graph {
+	for i, block := range *blocksSlice {
+		block.SetId(i)
+	}
 	return &Graph{
-		blocksSlice: *blocksSlice,
-		head:        nil,
-		current:     nil,
-		lengthLimit: 100,
+		blocksSlice:  *blocksSlice,
+		head:         nil,
+		current:      nil,
+		blockCounter: len(*blocksSlice),
+		lengthLimit:  100,
 	}
 }
 
@@ -65,7 +70,32 @@ func (g *Graph) ConnectByIds(idFrom, idTo int, isNextTrue ...bool) error {
 }
 
 func (g *Graph) IsConnectedByIds(idFrom, idTo int) bool {
-	// TODO
+	for _, block := range g.blocksSlice {
+		if singleBlock, ok := block.(blocks.SingleOutBlock); ok {
+			next := singleBlock.GetNext()
+			if next == nil {
+				continue
+			}
+			if (*next).GetId() == idTo {
+				return true
+			}
+		} else if manyBlock, ok := block.(blocks.ManyOutBlock); ok {
+			nextTrue := *manyBlock.GetNextTrue()
+			if nextTrue == nil {
+				continue
+			}
+			if nextTrue.GetId() == idTo {
+				return true
+			}
+			nextFalse := *manyBlock.GetNextFalse()
+			if nextFalse == nil {
+				continue
+			}
+			if nextFalse.GetId() == idTo {
+				return true
+			}
+		}
+	}
 	return false
 }
 
