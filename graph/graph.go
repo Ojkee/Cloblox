@@ -15,11 +15,18 @@ type Graph struct {
 
 	blockCounter int
 	lengthLimit  int
+
+	allVars map[string]any
 }
 
 func NewGraph(blocksSlice *[]blocks.Block) *Graph {
-	for i, block := range *blocksSlice {
-		block.SetId(i)
+	if blocksSlice == nil {
+		blocksS := make([]blocks.Block, 0)
+		blocksSlice = &blocksS
+	} else {
+		for i, block := range *blocksSlice {
+			block.SetId(i)
+		}
 	}
 	return &Graph{
 		blocksSlice:  *blocksSlice,
@@ -49,6 +56,8 @@ func (g *Graph) GetAllBlocks() []blocks.Block {
 }
 
 func (g *Graph) AppendBlock(block blocks.Block) {
+	block.SetId(g.blockCounter)
+	g.blockCounter += 1
 	g.blocksSlice = append(g.blocksSlice, block)
 }
 
@@ -71,7 +80,7 @@ func (g *Graph) ConnectByIds(idFrom, idTo int, isNextTrue ...bool) error {
 
 func (g *Graph) IsConnectedByIds(idFrom, idTo int) bool {
 	for _, block := range g.blocksSlice {
-		if singleBlock, ok := block.(blocks.SingleOutBlock); ok {
+		if singleBlock, ok := block.(blocks.BlockSingleOut); ok {
 			next := singleBlock.GetNext()
 			if next == nil {
 				continue
@@ -79,7 +88,7 @@ func (g *Graph) IsConnectedByIds(idFrom, idTo int) bool {
 			if (*next).GetId() == idTo {
 				return true
 			}
-		} else if manyBlock, ok := block.(blocks.ManyOutBlock); ok {
+		} else if manyBlock, ok := block.(blocks.BlockManyOut); ok {
 			nextTrue := *manyBlock.GetNextTrue()
 			if nextTrue == nil {
 				continue
@@ -113,7 +122,7 @@ func (g *Graph) findIdsInSlice(idFrom, idTo int) (int, int) {
 }
 
 func (g *Graph) connectBlocks(src, dst int, isNextTrue ...bool) error {
-	if manyBlock, ok := g.blocksSlice[src].(blocks.ManyOutBlock); ok {
+	if manyBlock, ok := g.blocksSlice[src].(blocks.BlockManyOut); ok {
 		if len(isNextTrue) == 0 {
 			return errors.New(
 				"graph/ConnectByIDs fail:\n\tTrying connect to ManyOut without path specified",
@@ -124,7 +133,7 @@ func (g *Graph) connectBlocks(src, dst int, isNextTrue ...bool) error {
 		} else {
 			manyBlock.SetNextFalse(g.blocksSlice[dst])
 		}
-	} else if singleBlock, ok := g.blocksSlice[src].(blocks.SingleOutBlock); ok {
+	} else if singleBlock, ok := g.blocksSlice[src].(blocks.BlockSingleOut); ok {
 		singleBlock.SetNext(g.blocksSlice[dst])
 	}
 	return nil
@@ -175,7 +184,7 @@ func depthFirstSearchStop(node *blocks.Block, visitedIds *[]int) bool {
 	}
 	visited := append(*visitedIds, (*node).GetId())
 	visitedIds = &visited
-	if manyOutBlock, ok := (*node).(blocks.ManyOutBlock); ok {
+	if manyOutBlock, ok := (*node).(blocks.BlockManyOut); ok {
 		trueBlock := manyOutBlock.GetNextTrue()
 		falseBlock := manyOutBlock.GetNextFalse()
 		return depthFirstSearchStop(trueBlock, visitedIds) ||

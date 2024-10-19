@@ -13,6 +13,7 @@ func NewVariableShape(x, y float32) *VariableShape {
 		ShapeDefault: ShapeDefault{
 			shapeType: VARIABLE,
 			content:   []string{"Variable"},
+			blockID:   -1,
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,
@@ -48,4 +49,8 @@ func (shape *VariableShape) Draw() {
 			shape.fontColor,
 		)
 	}
+}
+
+func (shape *VariableShape) GetOutPos() (float32, float32) {
+	return shape.x + shape.width/2, shape.y + shape.height
 }

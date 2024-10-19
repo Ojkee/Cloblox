@@ -59,3 +59,21 @@ func TestIfParse_3(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestIfParse_4(t *testing.T) {
+	ifBlock := blocks.NewIfBlock()
+	ifBlock.ParseCondition("4 eq 4")
+	lhs, rhs := ifBlock.GetKeys()
+	if lhs != "4" || rhs != "4" {
+		t.Errorf("lhs: %s != %s\nrhs: %s != %s", lhs, "x", rhs, "4")
+	}
+	if ifBlock.Compare(3, 4) == true {
+		t.Fail()
+	}
+	if ifBlock.Compare(4, 4) == false {
+		t.Fail()
+	}
+	if ifBlock.Compare(5, 4) == true {
+		t.Fail()
+	}
+}

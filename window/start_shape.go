@@ -13,6 +13,7 @@ func NewStartShape(x, y float32) *StartShape {
 		ShapeDefault: ShapeDefault{
 			shapeType: START,
 			content:   []string{"Start"},
+			blockID:   -1,
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,
@@ -40,4 +41,8 @@ func (shape *StartShape) Draw() {
 		shape.fontSize,
 		shape.fontColor,
 	)
+}
+
+func (shape *StartShape) GetOutPos() (float32, float32) {
+	return shape.x + shape.width/2, shape.y + shape.height
 }

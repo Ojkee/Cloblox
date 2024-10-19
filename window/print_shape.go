@@ -14,6 +14,7 @@ func NewPrintShape(x, y float32) *PrintShape {
 		ShapeDefault: ShapeDefault{
 			shapeType: PRINT,
 			content:   []string{},
+			blockID:   -1,
 			x:         x,
 			y:         y,
 			height:    SHAPE_HEIGHT,
@@ -40,4 +41,8 @@ func (shape *PrintShape) Draw() {
 		shape.fontSize,
 		shape.fontColor,
 	)
+}
+
+func (shape *PrintShape) GetOutPos() (float32, float32) {
+	return shape.x + shape.width/2, shape.y + shape.height
 }

@@ -10,7 +10,7 @@ import (
 type VariablesBlock struct {
 	BlockDefault
 	vars   map[string]any // Variables with values on declarations, values should't change
-	action func(v any)
+	action func(v float32)
 	next   *Block
 }
 
@@ -51,6 +51,10 @@ func (b *VariablesBlock) Parse(input string) error {
 	return nil
 }
 
+func (b *VariablesBlock) GetVars() map[string]any {
+	return b.vars
+}
+
 func (b *VariablesBlock) varsFormatted() string {
 	var buffur bytes.Buffer
 	for key, value := range b.vars {
@@ -63,11 +67,7 @@ func (b *VariablesBlock) varsFormatted() string {
 func (b *VariablesBlock) valueToString(v any) string {
 	if floatVal, ok := v.(float32); ok {
 		return fmt.Sprintf("%.2f", floatVal)
-	} else if stringVal, ok := v.(string); ok {
-		return stringVal
 	} else if _, ok := v.([]float32); ok {
-		return "TBD"
-	} else if _, ok := v.([]string); ok {
 		return "TBD"
 	}
 	return "Invalid Type"

@@ -15,15 +15,17 @@ type Window struct {
 	backgroundColor rl.Color
 	fontColor       rl.Color
 
-	buildingShapes []Shape
-	shapes         []Shape
-
+	buildingShapes   []Shape
+	diagramShapes    []Shape
 	shapeClicked     bool
 	currentShape     Shape
 	currentShapeType SHAPE_TYPE
 
-	idCounter int
-	diagram   graph.Graph
+	connections       []Connection
+	clickedConnection bool
+	currentConnection *Connection
+
+	diagram graph.Graph
 }
 
 func NewWindow(name string, height, width int32) *Window {
@@ -36,11 +38,17 @@ func NewWindow(name string, height, width int32) *Window {
 		fontColor:       FONT_COLOR,
 
 		buildingShapes: initBuildingShapes(width, height),
-		shapes:         make([]Shape, 0),
+		diagramShapes:  make([]Shape, 0),
 
 		currentShape:     nil,
 		shapeClicked:     false,
 		currentShapeType: NONE,
+
+		connections:       make([]Connection, 0),
+		clickedConnection: false,
+		currentConnection: nil,
+
+		diagram: *graph.NewGraph(nil),
 	}
 }
 
@@ -72,54 +80,63 @@ func (window *Window) MainLoop() {
 func (window *Window) checkEvent() {
 	mousePos := rl.GetMousePosition()
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-		clickedNewShape := false
-		for _, shape := range window.buildingShapes {
-			if rl.CheckCollisionPointRec(mousePos, shape.GetRect()) {
-				clickedNewShape = true
-				window.shapeClicked = true
-				window.makeCurrentClicked(shape.GetType())
-				window.updateCurrentShape()
-			}
+		window.buildNewShapeEvent(&mousePos)
+	} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) {
+		window.currentConnectionEvent(mousePos)
+	}
+}
+
+func (window *Window) buildNewShapeEvent(mousePos *rl.Vector2) {
+	clickedNewShape := false
+	for _, shape := range window.buildingShapes {
+		if rl.CheckCollisionPointRec(*mousePos, shape.GetRect()) {
+			clickedNewShape = true
+			window.shapeClicked = true
+			window.makeCurrentClicked(shape.GetType())
+			window.updateCurrentShape(mousePos)
 		}
-		if mousePos.X < WINDOW_WIDTH/2 {
-			window.resetClickedShape()
-		}
-		if window.shapeClicked && !clickedNewShape {
-			window.placeCurrent(mousePos.X, mousePos.Y)
-			window.resetClickedShape()
-		}
+	}
+	if mousePos.X < WINDOW_WIDTH/2 {
+		window.resetClickedShape()
+	}
+	if window.shapeClicked && !clickedNewShape {
+		window.placeCurrent(mousePos.X, mousePos.Y)
+		window.resetClickedShape()
 	}
 }
 
 func (window *Window) placeCurrent(mx, my float32) {
-	var cShapes Shape
+	var cShape Shape
 	var cBlock blocks.Block
 	switch window.currentShapeType {
 	case START:
 		cBlock = blocks.NewStartBlock()
-		cShapes = NewStartShape(mx, my)
+		cShape = NewStartShape(mx, my)
 		break
 	case VARIABLE:
-		cShapes = NewVariableShape(mx, my)
+		cBlock = blocks.NewVariableBlock()
+		cShape = NewVariableShape(mx, my)
 		break
 	case IF:
-		cShapes = NewIfShape(mx, my)
+		cBlock = blocks.NewIfBlock()
+		cShape = NewIfShape(mx, my)
 		break
 	case PRINT:
-		cShapes = NewPrintShape(mx, my)
+		cBlock = blocks.NewPrintBlock()
+		cShape = NewPrintShape(mx, my)
 		break
 	case STOP:
 		cBlock = blocks.NewStopBlock()
-		cShapes = NewStopShape(mx, my)
+		cShape = NewStopShape(mx, my)
 		break
 	default:
 		window.resetClickedShape()
 		panic("window.go/makeCurrentClicked fail:\n\tNot implemented shape type")
 	}
-	window.idCounter += 1
 	window.diagram.AppendBlock(cBlock)
-	cShapes.TranslateCenter()
-	window.shapes = append(window.shapes, cShapes)
+	cShape.TranslateCenter()
+	cShape.SetBlockId(cBlock.GetId())
+	window.diagramShapes = append(window.diagramShapes, cShape)
 }
 
 func (window *Window) draw() {
@@ -132,14 +149,23 @@ func (window *Window) draw() {
 	for _, shape := range window.buildingShapes {
 		shape.Draw()
 	}
-	for _, shape := range window.shapes {
+	for _, shape := range window.diagramShapes {
 		shape.Draw()
 	}
-	if window.currentShape != nil {
-		window.updateCurrentShape()
-		window.currentShape.Draw()
+
+	for _, conn := range window.connections {
+		conn.Draw()
 	}
 
+	mousePos := rl.GetMousePosition()
+	if window.currentShape != nil {
+		window.updateCurrentShape(&mousePos)
+		window.currentShape.Draw()
+	}
+	if window.currentConnection != nil {
+		window.updateCurrentConnection(&mousePos)
+		window.currentConnection.Draw()
+	}
 	rl.EndDrawing()
 }
 
@@ -167,8 +193,7 @@ func (window *Window) makeCurrentClicked(shapeType SHAPE_TYPE) {
 	}
 }
 
-func (window *Window) updateCurrentShape() {
-	mousePos := rl.GetMousePosition()
+func (window *Window) updateCurrentShape(mousePos *rl.Vector2) {
 	window.currentShape.MoveTo(
 		mousePos.X-SHAPE_WIDTH/2,
 		mousePos.Y-SHAPE_HEIGHT/2,
@@ -179,4 +204,81 @@ func (window *Window) resetClickedShape() {
 	window.shapeClicked = false
 	window.currentShape = nil
 	window.currentShapeType = NONE
+}
+
+func (window *Window) currentConnectionEvent(mousePos rl.Vector2) {
+	clickedAnyShape := false
+	for _, shape := range window.diagramShapes {
+		if rl.CheckCollisionPointRec(mousePos, shape.GetRect()) {
+			clickedAnyShape = true
+			if !window.clickedConnection {
+				shapeX, shapeY := window.getShapeOutPos(&shape, &mousePos)
+				window.currentConnection = NewConnection(
+					shapeX, shapeY,
+					mousePos.X, mousePos.Y,
+					shape.GetBlockId(), -1,
+				)
+				window.clickedConnection = true
+			} else {
+				if !window.connectionExistsOrSelf(shape.GetBlockId(), window.currentConnection.inShapeId) {
+					shapePosX, shapePosY := shape.GetInPos()
+					window.currentConnection.MoveOutPos(shapePosX, shapePosY)
+					window.currentConnection.outShapeId = shape.GetBlockId()
+					window.connections = append(window.connections, *window.currentConnection)
+					window.resetCurrentConnection()
+				}
+			}
+		}
+	}
+	if !clickedAnyShape {
+		window.resetCurrentConnection()
+	}
+}
+
+func (window *Window) updateCurrentConnection(mousePos *rl.Vector2) {
+	if window.clickedConnection {
+		window.currentConnection.MoveOutPos(mousePos.X, mousePos.Y)
+	}
+}
+
+func (window *Window) getShapeOutPos(shape *Shape, mousePos *rl.Vector2) (float32, float32) {
+	var shapeX, shapeY float32
+	if shapeManyOut, ok := (*shape).(ShapeManyOut); ok {
+		if shapeManyOut.CloserToRight(*mousePos) {
+			shapeX, shapeY = shapeManyOut.GetOutPosTrue()
+		} else {
+			shapeX, shapeY = shapeManyOut.GetOutPosFalse()
+		}
+	} else if shapeSingleOut, ok := (*shape).(ShapeSingleOut); ok {
+		shapeX, shapeY = shapeSingleOut.GetOutPos()
+	} else {
+		panic("window/getShapeOutPos fail:\n\tNeither Single nor Many")
+	}
+	return shapeX, shapeY
+}
+
+func (window *Window) resetCurrentConnection() {
+	window.clickedConnection = false
+	window.currentConnection = nil
+}
+
+func (window *Window) connectionExistsOrSelf(id1, id2 int) bool {
+	if id1 == id2 {
+		return true
+	}
+	for _, conn := range window.connections {
+		if conn.HasIds(id1, id2) {
+			return true
+		}
+	}
+	return false
+}
+
+func (window *Window) popOutConnection(id int) *Connection {
+	for _, conn := range window.connections {
+		if conn.outShapeId == id {
+			return &conn
+		}
+	}
+	return nil
 }

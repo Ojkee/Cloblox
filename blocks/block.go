@@ -11,12 +11,12 @@ type Block interface {
 	GetNext(args ...float32) *Block
 }
 
-type SingleOutBlock interface {
+type BlockSingleOut interface {
 	Block
 	SetNext(next Block)
 }
 
-type ManyOutBlock interface {
+type BlockManyOut interface {
 	Block
 	GetNextTrue() *Block
 	GetNextFalse() *Block
