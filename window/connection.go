@@ -7,6 +7,7 @@ type Connection struct {
 	outPos        rl.Vector2
 	inShapeId     int
 	outShapeId    int
+	multipleOut   bool
 	closerToRight bool
 }
 
@@ -14,13 +15,15 @@ func NewConnection(
 	inPosX, inPosY,
 	outPosX, outPosY float32,
 	inShapeId, outShapeId int,
+	multipleOut, closerToRight bool,
 ) *Connection {
 	return &Connection{
 		inPos:         rl.NewVector2(inPosX, inPosY),
 		outPos:        rl.NewVector2(outPosX, outPosY),
 		inShapeId:     inShapeId,
 		outShapeId:    outShapeId,
-		closerToRight: false,
+		multipleOut:   multipleOut,
+		closerToRight: closerToRight,
 	}
 }
 

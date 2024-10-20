@@ -74,6 +74,9 @@ func (window *Window) MainLoop() {
 	for !(rl.WindowShouldClose() || rl.IsKeyPressed(rl.KeyQ)) {
 		window.checkEvent()
 		window.draw()
+		if rl.IsKeyPressed(rl.KeyD) { // Debug
+			window.diagram.Log()
+		}
 	}
 }
 
@@ -100,12 +103,12 @@ func (window *Window) buildNewShapeEvent(mousePos *rl.Vector2) {
 		window.resetClickedShape()
 	}
 	if window.shapeClicked && !clickedNewShape {
-		window.placeCurrent(mousePos.X, mousePos.Y)
+		window.placeCurrentShape(mousePos.X, mousePos.Y)
 		window.resetClickedShape()
 	}
 }
 
-func (window *Window) placeCurrent(mx, my float32) {
+func (window *Window) placeCurrentShape(mx, my float32) {
 	var cShape Shape
 	var cBlock blocks.Block
 	switch window.currentShapeType {
@@ -142,19 +145,17 @@ func (window *Window) placeCurrent(mx, my float32) {
 func (window *Window) draw() {
 	rl.BeginDrawing()
 	rl.MaximizeWindow()
-
 	rl.ClearBackground(window.backgroundColor)
-
 	rl.DrawLine(window.width/2, 0, window.width/2, window.height, FONT_COLOR)
+
+	for _, conn := range window.connections {
+		conn.Draw()
+	}
 	for _, shape := range window.buildingShapes {
 		shape.Draw()
 	}
 	for _, shape := range window.diagramShapes {
 		shape.Draw()
-	}
-
-	for _, conn := range window.connections {
-		conn.Draw()
 	}
 
 	mousePos := rl.GetMousePosition()
@@ -212,19 +213,24 @@ func (window *Window) currentConnectionEvent(mousePos rl.Vector2) {
 		if rl.CheckCollisionPointRec(mousePos, shape.GetRect()) {
 			clickedAnyShape = true
 			if !window.clickedConnection {
-				shapeX, shapeY := window.getShapeOutPos(&shape, &mousePos)
+				shapeX, shapeY, multipleOut, closerToRight := window.getShapeOutPos(
+					&shape,
+					&mousePos,
+				)
 				window.currentConnection = NewConnection(
 					shapeX, shapeY,
 					mousePos.X, mousePos.Y,
-					shape.GetBlockId(), -1,
+					-1, shape.GetBlockId(),
+					multipleOut, closerToRight,
 				)
 				window.clickedConnection = true
 			} else {
 				if !window.connectionExistsOrSelf(shape.GetBlockId(), window.currentConnection.inShapeId) {
 					shapePosX, shapePosY := shape.GetInPos()
 					window.currentConnection.MoveOutPos(shapePosX, shapePosY)
-					window.currentConnection.outShapeId = shape.GetBlockId()
+					window.currentConnection.inShapeId = shape.GetBlockId()
 					window.connections = append(window.connections, *window.currentConnection)
+					window.connectBlocksByConnection(window.currentConnection)
 					window.resetCurrentConnection()
 				}
 			}
@@ -241,11 +247,18 @@ func (window *Window) updateCurrentConnection(mousePos *rl.Vector2) {
 	}
 }
 
-func (window *Window) getShapeOutPos(shape *Shape, mousePos *rl.Vector2) (float32, float32) {
+func (window *Window) getShapeOutPos(
+	shape *Shape,
+	mousePos *rl.Vector2,
+) (float32, float32, bool, bool) {
 	var shapeX, shapeY float32
+	multipleOut := false
+	closerToRight := false
 	if shapeManyOut, ok := (*shape).(ShapeManyOut); ok {
+		multipleOut = true
 		if shapeManyOut.CloserToRight(*mousePos) {
 			shapeX, shapeY = shapeManyOut.GetOutPosTrue()
+			closerToRight = true
 		} else {
 			shapeX, shapeY = shapeManyOut.GetOutPosFalse()
 		}
@@ -254,7 +267,7 @@ func (window *Window) getShapeOutPos(shape *Shape, mousePos *rl.Vector2) (float3
 	} else {
 		panic("window/getShapeOutPos fail:\n\tNeither Single nor Many")
 	}
-	return shapeX, shapeY
+	return shapeX, shapeY, multipleOut, closerToRight
 }
 
 func (window *Window) resetCurrentConnection() {
@@ -281,4 +294,15 @@ func (window *Window) popOutConnection(id int) *Connection {
 		}
 	}
 	return nil
+}
+
+func (window *Window) connectBlocksByConnection(conn *Connection) error {
+	idOut := conn.outShapeId
+	idIn := conn.inShapeId
+	if conn.multipleOut {
+		err := window.diagram.ConnectByIds(idOut, idIn, conn.closerToRight)
+		return err
+	}
+	err := window.diagram.ConnectByIds(idOut, idIn)
+	return err
 }

@@ -46,7 +46,7 @@ func (g *Graph) IsFullyConnected() bool {
 	}
 	if idx, found := g.findStartIdx(); found {
 		visitedIds := make([]int, 0)
-		return depthFirstSearchStop(&(g.blocksSlice)[idx], &visitedIds)
+		return dfsStop(&(g.blocksSlice)[idx], &visitedIds)
 	}
 	return false
 }
@@ -172,7 +172,7 @@ func isIf(block *blocks.Block) bool {
 	return false
 }
 
-func depthFirstSearchStop(node *blocks.Block, visitedIds *[]int) bool {
+func dfsStop(node *blocks.Block, visitedIds *[]int) bool {
 	if node == nil {
 		return false
 	}
@@ -187,9 +187,42 @@ func depthFirstSearchStop(node *blocks.Block, visitedIds *[]int) bool {
 	if manyOutBlock, ok := (*node).(blocks.BlockManyOut); ok {
 		trueBlock := manyOutBlock.GetNextTrue()
 		falseBlock := manyOutBlock.GetNextFalse()
-		return depthFirstSearchStop(trueBlock, visitedIds) ||
-			depthFirstSearchStop(falseBlock, visitedIds)
+		return dfsStop(trueBlock, visitedIds) ||
+			dfsStop(falseBlock, visitedIds)
 	}
 	next := (*node).GetNext()
-	return depthFirstSearchStop(next, visitedIds)
+	return dfsStop(next, visitedIds)
+}
+
+func (g *Graph) Log() { // Debug
+	fmt.Println("******************************************")
+	for _, block := range g.blocksSlice {
+		fmt.Printf("%d ", block.GetId())
+		if mBlock, ok := block.(blocks.BlockManyOut); ok {
+			nextString := "  ->  "
+			nextFalse := mBlock.GetNextFalse()
+			if nextFalse != nil {
+				nextString += fmt.Sprintf("%d, ", (*nextFalse).GetId())
+			} else {
+				nextString += "nil, "
+			}
+			nextTrue := mBlock.GetNextTrue()
+			if nextTrue != nil {
+				nextString += fmt.Sprintf("%d, ", (*nextTrue).GetId())
+			} else {
+				nextString += "nil "
+			}
+			fmt.Print(nextString)
+		} else {
+			next := block.GetNext()
+			if next == nil {
+				fmt.Print("  ->  nil")
+			} else {
+				fmt.Printf("  ->  %d", (*next).GetId())
+			}
+		}
+		fmt.Println()
+	}
+	fmt.Println()
+	fmt.Println()
 }
