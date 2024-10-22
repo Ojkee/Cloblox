@@ -1,10 +1,16 @@
 package window
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"fmt"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type Connection struct {
-	inPos         rl.Vector2
-	outPos        rl.Vector2
+	inPosX        float32
+	inPosY        float32
+	outPosX       float32
+	outPosY       float32
 	inShapeId     int
 	outShapeId    int
 	multipleOut   bool
@@ -18,8 +24,10 @@ func NewConnection(
 	multipleOut, closerToRight bool,
 ) *Connection {
 	return &Connection{
-		inPos:         rl.NewVector2(inPosX, inPosY),
-		outPos:        rl.NewVector2(outPosX, outPosY),
+		inPosX:        inPosX,
+		inPosY:        inPosY,
+		outPosX:       outPosX,
+		outPosY:       outPosY,
 		inShapeId:     inShapeId,
 		outShapeId:    outShapeId,
 		multipleOut:   multipleOut,
@@ -27,13 +35,21 @@ func NewConnection(
 	}
 }
 
+func (c *Connection) MoveInPos(newX, newY float32) {
+	c.inPosX = newX
+	c.inPosY = newY
+	fmt.Println(c.inPosX, c.inPosY)
+}
+
 func (c *Connection) MoveOutPos(newX, newY float32) {
-	c.outPos.X = newX
-	c.outPos.Y = newY
+	c.outPosX = newX
+	c.outPosY = newY
 }
 
 func (c *Connection) Draw() {
-	rl.DrawLineBezier(c.inPos, c.outPos, 2, FONT_COLOR)
+	inPos := rl.NewVector2(c.inPosX, c.inPosY)
+	outPos := rl.NewVector2(c.outPosX, c.outPosY)
+	rl.DrawLineBezier(inPos, outPos, 2, FONT_COLOR)
 }
 
 func (c *Connection) HasIds(id1, id2 int) bool {

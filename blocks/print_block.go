@@ -15,8 +15,8 @@ func NewPrintBlock() *PrintBlock {
 	}
 }
 
-func (b *PrintBlock) GetNext(args ...float32) *Block {
-	return b.next
+func (b *PrintBlock) GetNext() (*Block, error) {
+	return b.next, nil
 }
 
 func (b *PrintBlock) SetNext(next Block) {

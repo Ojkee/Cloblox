@@ -1,6 +1,8 @@
 package window
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"Cloblox/blocks"
@@ -82,11 +84,14 @@ func (window *Window) MainLoop() {
 
 func (window *Window) checkEvent() {
 	mousePos := rl.GetMousePosition()
-	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) { // New Shape
 		window.buildNewShapeEvent(&mousePos)
-	} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) {
+	} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) { // Connect
 		window.currentConnectionEvent(mousePos)
 	}
+	//  else if rl.IsMouseButtonDown(rl.MouseButtonLeft) { // Move
+	// 	window.pressKeyMoveShapeAttach(&mousePos)
+	// }
 }
 
 func (window *Window) buildNewShapeEvent(mousePos *rl.Vector2) {
@@ -170,6 +175,7 @@ func (window *Window) draw() {
 	rl.EndDrawing()
 }
 
+// New Shape
 func (window *Window) makeCurrentClicked(shapeType SHAPE_TYPE) {
 	window.currentShapeType = shapeType
 	switch shapeType {
@@ -207,6 +213,7 @@ func (window *Window) resetClickedShape() {
 	window.currentShapeType = NONE
 }
 
+// Connect
 func (window *Window) currentConnectionEvent(mousePos rl.Vector2) {
 	clickedAnyShape := false
 	for _, shape := range window.diagramShapes {
@@ -230,7 +237,9 @@ func (window *Window) currentConnectionEvent(mousePos rl.Vector2) {
 					window.currentConnection.MoveOutPos(shapePosX, shapePosY)
 					window.currentConnection.inShapeId = shape.GetBlockId()
 					window.connections = append(window.connections, *window.currentConnection)
-					window.connectBlocksByConnection(window.currentConnection)
+					if err := window.connectBlocksByConnection(window.currentConnection); err != nil {
+						panic(err)
+					}
 					window.resetCurrentConnection()
 				}
 			}
@@ -287,15 +296,6 @@ func (window *Window) connectionExistsOrSelf(id1, id2 int) bool {
 	return false
 }
 
-func (window *Window) popOutConnection(id int) *Connection {
-	for _, conn := range window.connections {
-		if conn.outShapeId == id {
-			return &conn
-		}
-	}
-	return nil
-}
-
 func (window *Window) connectBlocksByConnection(conn *Connection) error {
 	idOut := conn.outShapeId
 	idIn := conn.inShapeId
@@ -305,4 +305,22 @@ func (window *Window) connectBlocksByConnection(conn *Connection) error {
 	}
 	err := window.diagram.ConnectByIds(idOut, idIn)
 	return err
+}
+
+// Move
+func (window *Window) pressKeyMoveShapeAttach(mousePos *rl.Vector2) {
+	for _, shape := range window.diagramShapes {
+		if rl.CheckCollisionPointRec(*mousePos, shape.GetRect()) {
+			shape.MoveToCenter(mousePos.X, mousePos.Y)
+			window.moveConnectionsByShape(&shape)
+		}
+	}
+}
+
+func (window *Window) moveConnectionsByShape(shape *Shape) {
+	for _, conn := range window.connections {
+		if conn.inShapeId == (*shape).GetBlockId() {
+			fmt.Println((*shape).GetInPos())
+		}
+	}
 }

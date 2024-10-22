@@ -1,3 +1,5 @@
+github.com/Pramod-Devireddy/go-exprtk v1.1.0 h1:U/uvXm5UMQ25p6PCnThz51WsxDqAeoynzdnhpQEAxZo=
+github.com/Pramod-Devireddy/go-exprtk v1.1.0/go.mod h1:GbqdmGxU1ESDj3lu8mPbffejPB5UoOtm6eB7qr3YZ94=
 github.com/ebitengine/purego v0.8.0 h1:JbqvnEzRvPpxhCJzJJ2y0RbiZ8nyjccVUrSM3q+GvvE=
 github.com/ebitengine/purego v0.8.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/gen2brain/raylib-go/raylib v0.0.0-20240930075631-c66f9e2942fe h1:mInjrbJkUglTM7tBmXG+epnPCE744aj15J7vjJwM4gs=

@@ -4,8 +4,8 @@ import rl "github.com/gen2brain/raylib-go/raylib"
 
 // WINDOW
 const (
-	WINDOW_HEIGHT = 600
-	WINDOW_WIDTH  = 1200
+	WINDOW_HEIGHT = 800
+	WINDOW_WIDTH  = 1400
 )
 
 var (

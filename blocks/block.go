@@ -8,7 +8,7 @@ type Block interface {
 	GetId() int
 	SetId(id int)
 	GetName() string
-	GetNext(args ...float32) *Block
+	GetNext() (*Block, error)
 }
 
 type BlockSingleOut interface {
@@ -22,6 +22,10 @@ type BlockManyOut interface {
 	GetNextFalse() *Block
 	SetNextTrue(next Block)
 	SetNextFalse(next Block)
+}
+
+type BlockWithVars interface {
+	GetVars() map[string]any
 }
 
 type BlockDefault struct {

@@ -15,8 +15,8 @@ func NewStartBlock() *StartBlock {
 	}
 }
 
-func (b *StartBlock) GetNext(args ...float32) *Block {
-	return b.next
+func (b *StartBlock) GetNext() (*Block, error) {
+	return b.next, nil
 }
 
 func (b *StartBlock) SetNext(next Block) {
@@ -38,8 +38,8 @@ func NewStopBlock() *StopBlock {
 	}
 }
 
-func (b *StopBlock) GetNext(args ...float32) *Block {
-	return nil
+func (b *StopBlock) GetNext() (*Block, error) {
+	return nil, nil
 }
 
 func (b *StopBlock) SetNext(next Block) {

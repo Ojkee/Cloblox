@@ -20,6 +20,7 @@ type Shape interface {
 	GetType() SHAPE_TYPE
 	GetRect() rl.Rectangle
 	MoveTo(x, y float32)
+	MoveToCenter(x, y float32)
 	TranslateCenter()
 	Resize(height, width float32)
 	SetContent(content *[]string)
@@ -64,6 +65,11 @@ func (shape *ShapeDefault) GetRect() rl.Rectangle {
 func (shape *ShapeDefault) MoveTo(x, y float32) {
 	shape.x = x
 	shape.y = y
+}
+
+func (shape *ShapeDefault) MoveToCenter(x, y float32) {
+	shape.x = x - shape.width/2
+	shape.y = y - shape.height/2
 }
 
 func (shape *ShapeDefault) TranslateCenter() {

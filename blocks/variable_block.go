@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -25,8 +26,8 @@ func NewVariableBlock() *VariablesBlock {
 	}
 }
 
-func (b *VariablesBlock) GetNext(args ...float32) *Block {
-	return b.next
+func (b *VariablesBlock) GetNext() (*Block, error) {
+	return b.next, nil
 }
 
 func (b *VariablesBlock) SetNext(next Block) {
@@ -46,8 +47,39 @@ func (b *VariablesBlock) GetValue(variableName string) (string, error) {
 	return "", errors.New(b.name + " fail:\t\nNo such variable")
 }
 
-func (b *VariablesBlock) Parse(input string) error {
-	// TODO
+func (b *VariablesBlock) Parse(lines []string) error {
+	for _, line := range lines {
+		lineTokens := strings.Split(line, " ")
+		if len(lineTokens) != 3 {
+			return errors.New(fmt.Sprintf(
+				`varible_block.go/Parse fail:
+        \n\tInvalid input in line: %s`, line),
+			)
+		}
+		if lineTokens[1] != "=" {
+			return errors.New(fmt.Sprintf(
+				`varible_block.go/Parse fail:
+        Invalid Syntax
+        Syntax: variable = values`),
+			)
+		}
+		if parsed, err := strconv.ParseFloat(lineTokens[0], 10); err == nil {
+			return errors.New(fmt.Sprintf(
+				`varible_block.go/Parse fail:
+        Number '%f' can't be variable
+        Syntax: variable = values`, parsed),
+			)
+		}
+		if parsed, err := strconv.ParseFloat(lineTokens[2], 10); err == nil {
+			b.AddVariable(lineTokens[0], parsed)
+		} else {
+			return errors.New(fmt.Sprintf(
+				`varible_block.go/Parse fail:
+        Non-number '%s' instance can't be value
+        Syntax: variable = values`, lineTokens[2]),
+			)
+		}
+	}
 	return nil
 }
 

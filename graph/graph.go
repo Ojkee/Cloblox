@@ -16,7 +16,8 @@ type Graph struct {
 	blockCounter int
 	lengthLimit  int
 
-	allVars map[string]any
+	allCurrentVars map[string]any
+	isFinished     bool
 }
 
 func NewGraph(blocksSlice *[]blocks.Block) *Graph {
@@ -29,11 +30,13 @@ func NewGraph(blocksSlice *[]blocks.Block) *Graph {
 		}
 	}
 	return &Graph{
-		blocksSlice:  *blocksSlice,
-		head:         nil,
-		current:      nil,
-		blockCounter: len(*blocksSlice),
-		lengthLimit:  100,
+		blocksSlice:    *blocksSlice,
+		head:           nil,
+		current:        nil,
+		blockCounter:   len(*blocksSlice),
+		lengthLimit:    100,
+		allCurrentVars: make(map[string]any),
+		isFinished:     false,
 	}
 }
 
@@ -44,7 +47,7 @@ func (g *Graph) IsFullyConnected() bool {
 	if len(g.blocksSlice) < 2 {
 		return false
 	}
-	if idx, found := g.findStartIdx(); found {
+	if idx := g.findStartIdx(); idx != -1 {
 		visitedIds := make([]int, 0)
 		return dfsStop(&(g.blocksSlice)[idx], &visitedIds)
 	}
@@ -81,7 +84,7 @@ func (g *Graph) ConnectByIds(idFrom, idTo int, isNextTrue ...bool) error {
 func (g *Graph) IsConnectedByIds(idFrom, idTo int) bool {
 	for _, block := range g.blocksSlice {
 		if singleBlock, ok := block.(blocks.BlockSingleOut); ok {
-			next := singleBlock.GetNext()
+			next, _ := singleBlock.GetNext()
 			if next == nil {
 				continue
 			}
@@ -139,13 +142,13 @@ func (g *Graph) connectBlocks(src, dst int, isNextTrue ...bool) error {
 	return nil
 }
 
-func (g *Graph) findStartIdx() (int, bool) {
+func (g *Graph) findStartIdx() int {
 	for i, block := range g.blocksSlice {
 		if isStart(&block) {
-			return i, true
+			return i
 		}
 	}
-	return -1, false
+	return -1
 }
 
 func isStart(block *blocks.Block) bool {
@@ -172,6 +175,14 @@ func isIf(block *blocks.Block) bool {
 	return false
 }
 
+func isVariable(block *blocks.Block) bool {
+	switch (*block).(type) {
+	case *blocks.IfBlock:
+		return true
+	}
+	return false
+}
+
 func dfsStop(node *blocks.Block, visitedIds *[]int) bool {
 	if node == nil {
 		return false
@@ -190,7 +201,7 @@ func dfsStop(node *blocks.Block, visitedIds *[]int) bool {
 		return dfsStop(trueBlock, visitedIds) ||
 			dfsStop(falseBlock, visitedIds)
 	}
-	next := (*node).GetNext()
+	next, _ := (*node).GetNext()
 	return dfsStop(next, visitedIds)
 }
 
@@ -214,7 +225,7 @@ func (g *Graph) Log() { // Debug
 			}
 			fmt.Print(nextString)
 		} else {
-			next := block.GetNext()
+			next, _ := block.GetNext()
 			if next == nil {
 				fmt.Print("  ->  nil")
 			} else {
@@ -225,4 +236,17 @@ func (g *Graph) Log() { // Debug
 	}
 	fmt.Println()
 	fmt.Println()
+}
+
+func (g *Graph) GetAllVars() map[string]any {
+	return g.allCurrentVars
+}
+
+func (g *Graph) MakeStep() error {
+	if isStop(g.current) {
+		g.isFinished = true
+		return nil
+	}
+
+	return nil
 }
