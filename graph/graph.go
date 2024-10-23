@@ -3,7 +3,11 @@ package graph
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
+	"strings"
+
+	"github.com/Pramod-Devireddy/go-exprtk"
 
 	"Cloblox/blocks"
 )
@@ -109,6 +113,10 @@ func (g *Graph) IsConnectedByIds(idFrom, idTo int) bool {
 		}
 	}
 	return false
+}
+
+func (g *Graph) GetAllVars() map[string]any {
+	return g.allCurrentVars
 }
 
 func (g *Graph) findIdsInSlice(idFrom, idTo int) (int, int) {
@@ -238,15 +246,108 @@ func (g *Graph) Log() { // Debug
 	fmt.Println()
 }
 
-func (g *Graph) GetAllVars() map[string]any {
-	return g.allCurrentVars
+func (g *Graph) GetKvpByKeys(keys *[]string) (map[string]float32, error) {
+	retVal := make(map[string]float32)
+	for _, key := range *keys {
+		if arrayKey, idxer, found := getIfArrayKey(&key); found {
+			if g.isKeyInVars(arrayKey) {
+				idxParsed, err := g.parseArrayIdxer(idxer)
+				if err != nil {
+					return nil, err
+				}
+				valSlice := g.allCurrentVars[arrayKey]
+				val, err := g.getValFromSliceIfValid(valSlice, idxParsed)
+				if err != nil {
+					return nil, err
+				}
+				retVal[key] = val
+			} else {
+				return nil, errors.New("Invalid array variable")
+			}
+		} else {
+			if g.isKeyInVars(key) {
+				if val, err := g.getValIfValid(key); err != nil {
+					return nil, err
+				} else {
+					retVal[key] = val
+				}
+			} else {
+				return nil, errors.New("Invalid array variable 3")
+			}
+		}
+	}
+	return retVal, nil
 }
 
-func (g *Graph) MakeStep() error {
-	if isStop(g.current) {
-		g.isFinished = true
-		return nil
+func getIfArrayKey(key *string) (string, string, bool) {
+	r := regexp.MustCompile(`\[(.+?)\]`)
+	keyFound := r.Find([]byte(*key))
+	if len(keyFound) == 0 {
+		return "", "", false
 	}
+	arrayKey := strings.TrimRight(*key, string(keyFound))
+	idxer := string(keyFound[1 : len(keyFound)-1])
+	return arrayKey, idxer, true
+}
 
-	return nil
+func (g *Graph) parseArrayIdxer(idxer string) (int, error) {
+	exprtkObj := exprtk.NewExprtk()
+	defer exprtkObj.Delete()
+	exprtkObj.SetExpression(idxer)
+	r := regexp.MustCompile(`\b[a-zA-Z_][a-zA-Z0-9_]*\b`)
+	keysFound := r.FindAllString(idxer, -1)
+
+	temp := make(map[string]float32)
+	for _, key := range keysFound {
+		val, err := g.getValIfValid(key)
+		if err != nil {
+			return 0, err
+		}
+		exprtkObj.AddDoubleVariable(key)
+		temp[key] = val
+	}
+	err := exprtkObj.CompileExpression()
+	if err != nil {
+		return 0, err
+	}
+	for key, val := range temp {
+		exprtkObj.SetDoubleVariableValue(key, float64(val))
+	}
+	retVal := exprtkObj.GetEvaluatedValue()
+	return int(retVal), nil
+}
+
+func (g *Graph) isKeyInVars(key string) bool {
+	if _, ok := g.allCurrentVars[key]; ok {
+		return true
+	}
+	return false
+}
+
+func (g *Graph) getValFromSliceIfValid(valSlice any, idxer int) (float32, error) {
+	switch s := valSlice.(type) {
+	case []float32:
+		if idxer >= 0 && idxer <= len(s) {
+			return s[idxer], nil
+		}
+		return 0, errors.New("Invalid index of the array")
+	}
+	return 0, errors.New("Variable isn't an array of numbers")
+}
+
+func (g *Graph) getValIfValid(key string) (float32, error) {
+	switch v := g.allCurrentVars[key].(type) {
+	case float64:
+		return float32(v), nil
+	case float32:
+		return float32(v), nil
+	case int:
+		return float32(v), nil
+	}
+	fmt.Println(key)
+	return 0, errors.New("Value isn't number")
+}
+
+func (g *Graph) SetAllVars(allVars map[string]any) {
+	g.allCurrentVars = allVars
 }
