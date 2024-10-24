@@ -2,8 +2,8 @@ package blocks
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/Pramod-Devireddy/go-exprtk"
@@ -14,11 +14,12 @@ type IfBlock struct {
 	nextTrue  *Block
 	nextFalse *Block
 
-	replaceKey    string
-	arrayKeys     map[string]string // key: array with index val: symbole
-	keys          []string
-	conditionKVP  map[string]float32
-	conditionExpr string
+	replaceKey            string             // key to replace every array array key for parsing
+	keys                  []string           // every array with index and non-array var
+	arrayKeys             map[string]string  // key: array with index val: symbole
+	conditionKVP          map[string]float64 // key: array with index and non-array var val: value
+	conditionExpr         string             // non edited expr
+	conditionExprReplaced string             // replaced with replaceKey and set rounding
 }
 
 func NewIfBlock() *IfBlock {
@@ -30,11 +31,12 @@ func NewIfBlock() *IfBlock {
 		nextTrue:  nil,
 		nextFalse: nil,
 
-		replaceKey:    "TEMPKEY",
-		arrayKeys:     make(map[string]string),
-		keys:          make([]string, 0),
-		conditionKVP:  make(map[string]float32),
-		conditionExpr: "",
+		replaceKey:            "TEMPKEY",
+		keys:                  make([]string, 0),
+		arrayKeys:             make(map[string]string),
+		conditionKVP:          make(map[string]float64),
+		conditionExpr:         "",
+		conditionExprReplaced: "",
 	}
 }
 
@@ -66,68 +68,67 @@ func (b *IfBlock) SetNextFalse(next Block) {
 }
 
 func (b *IfBlock) GetKeys() []string {
-	retVal := make([]string, 0)
-	for _, key := range b.keys {
-		if arrayKey, ok := b.arrayKeys[key]; ok {
-			retVal = append(retVal, arrayKey)
-		} else {
-			retVal = append(retVal, key)
-		}
-	}
-	return retVal
+	return b.keys
 }
 
 func (b *IfBlock) SetConditionExpr(condition string) error {
-	b.conditionExpr = b.findReplaceArrayKeys(condition)
+	b.conditionExpr = condition
+	exprReplaced := b.findReplaceArrayKeys(condition)
 
 	availableOperators := []string{"==", "<=", "<", ">=", ">", "!="}
 	for _, op := range availableOperators {
-		tokens := strings.Split(b.conditionExpr, op)
+		tokens := strings.Split(exprReplaced, op)
 		if len(tokens) == 2 {
-			cleanKeys := cleanKeys(b.conditionExpr)
-			b.keys = append(b.keys, cleanKeys...)
+			b.keys = rawKeys(b.conditionExpr)
+			b.conditionExprReplaced = setRound(tokens[0]) + op + setRound(tokens[1])
 			return nil
 		}
 	}
 	return errors.New("if_block.go/SetConditionExpr fail:\n\tNo valid operator used")
 }
 
+func (b *IfBlock) SetConditionKVP(kvp *map[string]float64) {
+	b.conditionKVP = *kvp
+}
+
 func (b *IfBlock) findReplaceArrayKeys(input string) string {
-	// a[4]         // In    arr[i]       // In
-	// tab[dd]      // In    [dkf]        // Out
+	// a[4]         // In    arr[i]       // In    arr[x + i] // In
+	// tab[dd]      // In    [dkf]        // Out   arr[x + 2] // In
 	// [4]          // Out   myArray[45]  // In
 	// dkjf[4k]     // Out   my_array[df] // In
 	// t[my_x]      // In    dlsk[df sf]  // Out
-	r := regexp.MustCompile(`[a-zA-Z_][a-zA-Z0-9_]*\[(?:[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+)\]`)
+	r := regexp.MustCompile(`[a-zA-Z_][a-zA-Z0-9_]*\[(?:[a-zA-Z0-9_+\-*/\s()]+)\]`)
 	arrayKeysFound := r.FindAllString(input, -1)
 	for i, key := range arrayKeysFound {
-		nextReplaceKey := b.replaceKey + strconv.FormatInt(int64(i), 10)
+		nextReplaceKey := fmt.Sprintf("%s%d", b.replaceKey, i)
 		input = strings.ReplaceAll(input, key, nextReplaceKey)
 		b.arrayKeys[key] = nextReplaceKey
 	}
 	return input
 }
 
-func cleanKeys(input string) []string {
-	// Searching variables that may has non-leading numbers
-	// or/and array variables such as a[i]
-	r := regexp.MustCompile(`[a-zA-Z]+(?:\[[0-9a-z]+\])?`)
+func rawKeys(input string) []string {
+	// Searching arrays that may has non-leading numbers
+	// such as my_tab2[(i-1)*2], but they aren't non-array variables
+	// such as x, i2, my_x etc.
+	r := regexp.MustCompile(
+		`[a-zA-Z_][a-zA-Z0-9_]*\[[a-zA-Z0-9_+\-*/\s()]*\]|[a-zA-Z_][a-zA-Z0-9_]*`,
+	)
 	keysFound := r.FindAllString(input, -1)
 	return keysFound
 }
 
-func (b *IfBlock) SetConditionKVP(kvp *map[string]float32) {
-	b.conditionKVP = *kvp
-}
-
 func (b *IfBlock) IsEvalTrue() (bool, error) {
+	// b.debugEval()
+
 	exprtkObj := exprtk.NewExprtk()
 	defer exprtkObj.Delete()
 
-	exprtkObj.SetExpression(b.conditionExpr)
+	exprtkObj.SetExpression(b.conditionExprReplaced)
 	for _, key := range b.keys {
 		exprtkObj.AddDoubleVariable(key)
 	}
+
 	for key := range b.conditionKVP {
 		if arrayKey, ok := b.arrayKeys[key]; ok {
 			exprtkObj.AddDoubleVariable(arrayKey)
@@ -153,8 +154,19 @@ func (b *IfBlock) IsEvalTrue() (bool, error) {
 	return true, nil
 }
 
+func (b *IfBlock) debugEval() {
+	fmt.Println(b.conditionExpr)
+	fmt.Println(b.conditionExprReplaced)
+	fmt.Println(strings.TrimRight(b.conditionExprReplaced, "=="))
+}
+
 func (b *IfBlock) FlushCondition() {
 	b.conditionExpr = ""
+	b.conditionExprReplaced = ""
 	b.keys = []string{}
 	b.arrayKeys = make(map[string]string, 0)
+}
+
+func setRound(inside string) string {
+	return "roundn(" + inside + ", 10)"
 }

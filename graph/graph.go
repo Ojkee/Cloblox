@@ -246,6 +246,10 @@ func (g *Graph) Log() { // Debug
 	fmt.Println()
 }
 
+func (g *Graph) SetAllVars(allVars map[string]any) {
+	g.allCurrentVars = allVars
+}
+
 func (g *Graph) GetKvpByKeys(keys *[]string) (map[string]float32, error) {
 	retVal := make(map[string]float32)
 	for _, key := range *keys {
@@ -346,8 +350,4 @@ func (g *Graph) getValIfValid(key string) (float32, error) {
 	}
 	fmt.Println(key)
 	return 0, errors.New("Value isn't number")
-}
-
-func (g *Graph) SetAllVars(allVars map[string]any) {
-	g.allCurrentVars = allVars
 }
