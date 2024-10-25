@@ -19,9 +19,6 @@ func TestConnection_1(t *testing.T) {
 	if err := diagram.ConnectByIds(1, 2); err != nil {
 		t.Errorf("Shouldn't return error")
 	}
-	if !diagram.IsFullyConnected() {
-		t.Fail()
-	}
 }
 
 func TestConnection_2(t *testing.T) {

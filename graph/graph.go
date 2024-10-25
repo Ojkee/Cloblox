@@ -12,13 +12,19 @@ import (
 	"Cloblox/blocks"
 )
 
-type Graph struct {
-	blocksSlice []blocks.Block
-	head        *blocks.Block
-	current     *blocks.Block
+const (
+	INVALID_PATH_ERR_MESSAGE  = "At least one path doesn't end in 'Stop' block"
+	INVALID_START_ERR_MESSAGE = "There must be exacly one 'Start' block"
+)
 
+type Graph struct {
 	blockCounter int
-	lengthLimit  int
+	blocksSlice  []blocks.Block
+	head         *blocks.Block
+	current      *blocks.Block
+
+	stepCounter int
+	stepLimit   int
 
 	allCurrentVars map[string]any
 	isFinished     bool
@@ -34,59 +40,75 @@ func NewGraph(blocksSlice *[]blocks.Block) *Graph {
 		}
 	}
 	return &Graph{
-		blocksSlice:    *blocksSlice,
-		head:           nil,
-		current:        nil,
-		blockCounter:   len(*blocksSlice),
-		lengthLimit:    100,
+		blockCounter: len(*blocksSlice),
+		blocksSlice:  *blocksSlice,
+		head:         nil,
+		current:      nil,
+
+		stepCounter: 0,
+		stepLimit:   100,
+
 		allCurrentVars: make(map[string]any),
 		isFinished:     false,
 	}
 }
 
-// Checks if is fully connected
-// doesn't check if it's completly transitive
-// E.G. doens't detect if infinite loop exists
-func (g *Graph) IsFullyConnected() bool {
-	if len(g.blocksSlice) < 2 {
-		return false
+// Assigns head node if there is only one Start block
+// and all paths lead to Stop block/blocks
+func (graph *Graph) InitIfValid() error {
+	if !isOneStart(&graph.blocksSlice) {
+		return errors.New(INVALID_START_ERR_MESSAGE)
 	}
-	if idx := g.findStartIdx(); idx != -1 {
-		visitedIds := make([]int, 0)
-		return dfsStop(&(g.blocksSlice)[idx], &visitedIds)
+
+	startNode := &graph.blocksSlice[graph.findStartIdx()]
+	graph.head = startNode
+	graph.current = startNode
+	visitedIds := make([]int, 0)
+
+	allInStop, anyInNil := dfsAllPathsStops(graph.head, &visitedIds)
+	if anyInNil || !allInStop {
+		return errors.New(INVALID_PATH_ERR_MESSAGE)
 	}
-	return false
+	return nil
 }
 
-func (g *Graph) GetAllBlocks() []blocks.Block {
-	return g.blocksSlice
+func (graph *Graph) GetHead() *blocks.Block {
+	return graph.head
 }
 
-func (g *Graph) AppendBlock(block blocks.Block) {
-	block.SetId(g.blockCounter)
-	g.blockCounter += 1
-	g.blocksSlice = append(g.blocksSlice, block)
+func (graph *Graph) GetCurrent() *blocks.Block {
+	return graph.current
 }
 
-func (g *Graph) ConnectByIds(idFrom, idTo int, isNextTrue ...bool) error {
+func (graph *Graph) GetAllBlocks() []blocks.Block {
+	return graph.blocksSlice
+}
+
+func (graph *Graph) AppendBlock(block blocks.Block) {
+	block.SetId(graph.blockCounter)
+	graph.blockCounter += 1
+	graph.blocksSlice = append(graph.blocksSlice, block)
+}
+
+func (graph *Graph) ConnectByIds(idFrom, idTo int, isNextTrue ...bool) error {
 	if idFrom == idTo {
 		return errors.New("graph/ConnectByIDs fail:\n\tCan't connect to itself")
 	}
-	sliceIdFrom, sliceIdTo := g.findIdsInSlice(idFrom, idTo)
+	sliceIdFrom, sliceIdTo := graph.findIdsInSlice(idFrom, idTo)
 	if sliceIdFrom == -1 || sliceIdTo == -1 {
 		return errors.New(fmt.Sprintf(
 			"graph/ConnectByIDs fail:\n\tId doesn't exist\n\tFrom: %d To: %d",
 			sliceIdFrom, sliceIdTo,
 		))
 	}
-	if err := g.connectBlocks(sliceIdFrom, sliceIdTo, isNextTrue...); err != nil {
+	if err := graph.connectBlocks(sliceIdFrom, sliceIdTo, isNextTrue...); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (g *Graph) IsConnectedByIds(idFrom, idTo int) bool {
-	for _, block := range g.blocksSlice {
+func (graph *Graph) IsConnectedByIds(idFrom, idTo int) bool {
+	for _, block := range graph.blocksSlice {
 		if singleBlock, ok := block.(blocks.BlockSingleOut); ok {
 			next, _ := singleBlock.GetNext()
 			if next == nil {
@@ -115,14 +137,126 @@ func (g *Graph) IsConnectedByIds(idFrom, idTo int) bool {
 	return false
 }
 
-func (g *Graph) GetAllVars() map[string]any {
-	return g.allCurrentVars
+func (graph *Graph) GetAllVars() map[string]any {
+	return graph.allCurrentVars
 }
 
-func (g *Graph) findIdsInSlice(idFrom, idTo int) (int, int) {
+func (graph *Graph) Log() { // Debug
+	fmt.Println("******************************************")
+	for _, block := range graph.blocksSlice {
+		fmt.Printf("%d ", block.GetId())
+		if mBlock, ok := block.(blocks.BlockManyOut); ok {
+			nextString := "  ->  "
+			nextFalse := mBlock.GetNextFalse()
+			if nextFalse != nil {
+				nextString += fmt.Sprintf("%d, ", (*nextFalse).GetId())
+			} else {
+				nextString += "nil, "
+			}
+			nextTrue := mBlock.GetNextTrue()
+			if nextTrue != nil {
+				nextString += fmt.Sprintf("%d, ", (*nextTrue).GetId())
+			} else {
+				nextString += "nil "
+			}
+			fmt.Print(nextString)
+		} else {
+			next, _ := block.GetNext()
+			if next == nil {
+				fmt.Print("  ->  nil")
+			} else {
+				fmt.Printf("  ->  %d", (*next).GetId())
+			}
+		}
+		fmt.Println()
+	}
+	fmt.Println()
+	fmt.Println()
+}
+
+func (graph *Graph) SetAllVars(allVars map[string]any) {
+	graph.allCurrentVars = allVars
+}
+
+func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float32, error) {
+	retVal := make(map[string]float32)
+	for _, key := range *keys {
+		if arrayKey, idxer, found := getIfArrayKey(&key); found {
+			if graph.isKeyInVars(arrayKey) {
+				idxParsed, err := graph.parseArrayIdxer(idxer)
+				if err != nil {
+					return nil, err
+				}
+				valSlice := graph.allCurrentVars[arrayKey]
+				val, err := graph.getValFromSliceIfValid(valSlice, idxParsed)
+				if err != nil {
+					return nil, err
+				}
+				retVal[key] = val
+			} else {
+				return nil, errors.New("Invalid array variable")
+			}
+		} else {
+			if graph.isKeyInVars(key) {
+				if val, err := graph.getValIfValid(key); err != nil {
+					return nil, err
+				} else {
+					retVal[key] = val
+				}
+			} else {
+				return nil, errors.New("Invalid array variable 3")
+			}
+		}
+	}
+	return retVal, nil
+}
+
+func dfsAllPathsStops(node *blocks.Block, visitedIds *[]int) (inStop, inNil bool) {
+	if node == nil {
+		return false, true
+	}
+	if slices.Contains(*visitedIds, (*node).GetId()) {
+		return false, false
+	}
+	if isStop(node) {
+		return true, false
+	}
+	*visitedIds = append(*visitedIds, (*node).GetId())
+
+	if manyOutBlock, ok := (*node).(blocks.BlockManyOut); ok {
+		trueBlock := manyOutBlock.GetNextTrue()
+		falseBlock := manyOutBlock.GetNextFalse()
+		inStopTrue, inNilTrue := dfsAllPathsStops(trueBlock, visitedIds)
+		inStopFalse, inNilFalse := dfsAllPathsStops(falseBlock, visitedIds)
+		if inNilTrue || inNilFalse {
+			return false, true
+		}
+		return inStopTrue || inStopFalse, false
+	}
+	next, err := (*node).GetNext()
+	if err != nil {
+		panic(err)
+	}
+	return dfsAllPathsStops(next, visitedIds)
+}
+
+func isOneStart(bSlice *[]blocks.Block) bool {
+	startCounter := 0
+	for _, block := range *bSlice {
+		if isStart(&block) {
+			startCounter += 1
+		}
+	}
+	if startCounter != 1 {
+		return false
+	}
+	return true
+}
+
+func (graph *Graph) findIdsInSlice(idFrom, idTo int) (int, int) {
 	sliceIdFrom := -1
 	sliceIdTo := -1
-	for i, block := range g.blocksSlice {
+	for i, block := range graph.blocksSlice {
 		if idFrom == block.GetId() {
 			sliceIdFrom = i
 		} else if idTo == block.GetId() {
@@ -132,26 +266,26 @@ func (g *Graph) findIdsInSlice(idFrom, idTo int) (int, int) {
 	return sliceIdFrom, sliceIdTo
 }
 
-func (g *Graph) connectBlocks(src, dst int, isNextTrue ...bool) error {
-	if manyBlock, ok := g.blocksSlice[src].(blocks.BlockManyOut); ok {
+func (graph *Graph) connectBlocks(src, dst int, isNextTrue ...bool) error {
+	if manyBlock, ok := graph.blocksSlice[src].(blocks.BlockManyOut); ok {
 		if len(isNextTrue) == 0 {
 			return errors.New(
-				"graph/ConnectByIDs fail:\n\tTrying connect to ManyOut without path specified",
+				"graph/ConnectByIDs fail:\n\tTryingraph connect to ManyOut without path specified",
 			)
 		}
 		if isNextTrue[0] {
-			manyBlock.SetNextTrue(g.blocksSlice[dst])
+			manyBlock.SetNextTrue(graph.blocksSlice[dst])
 		} else {
-			manyBlock.SetNextFalse(g.blocksSlice[dst])
+			manyBlock.SetNextFalse(graph.blocksSlice[dst])
 		}
-	} else if singleBlock, ok := g.blocksSlice[src].(blocks.BlockSingleOut); ok {
-		singleBlock.SetNext(g.blocksSlice[dst])
+	} else if singleBlock, ok := graph.blocksSlice[src].(blocks.BlockSingleOut); ok {
+		singleBlock.SetNext(graph.blocksSlice[dst])
 	}
 	return nil
 }
 
-func (g *Graph) findStartIdx() int {
-	for i, block := range g.blocksSlice {
+func (graph *Graph) findStartIdx() int {
+	for i, block := range graph.blocksSlice {
 		if isStart(&block) {
 			return i
 		}
@@ -191,98 +325,6 @@ func isVariable(block *blocks.Block) bool {
 	return false
 }
 
-func dfsStop(node *blocks.Block, visitedIds *[]int) bool {
-	if node == nil {
-		return false
-	}
-	if slices.Contains(*visitedIds, (*node).GetId()) {
-		return false
-	}
-	if isStop(node) {
-		return true
-	}
-	visited := append(*visitedIds, (*node).GetId())
-	visitedIds = &visited
-	if manyOutBlock, ok := (*node).(blocks.BlockManyOut); ok {
-		trueBlock := manyOutBlock.GetNextTrue()
-		falseBlock := manyOutBlock.GetNextFalse()
-		return dfsStop(trueBlock, visitedIds) ||
-			dfsStop(falseBlock, visitedIds)
-	}
-	next, _ := (*node).GetNext()
-	return dfsStop(next, visitedIds)
-}
-
-func (g *Graph) Log() { // Debug
-	fmt.Println("******************************************")
-	for _, block := range g.blocksSlice {
-		fmt.Printf("%d ", block.GetId())
-		if mBlock, ok := block.(blocks.BlockManyOut); ok {
-			nextString := "  ->  "
-			nextFalse := mBlock.GetNextFalse()
-			if nextFalse != nil {
-				nextString += fmt.Sprintf("%d, ", (*nextFalse).GetId())
-			} else {
-				nextString += "nil, "
-			}
-			nextTrue := mBlock.GetNextTrue()
-			if nextTrue != nil {
-				nextString += fmt.Sprintf("%d, ", (*nextTrue).GetId())
-			} else {
-				nextString += "nil "
-			}
-			fmt.Print(nextString)
-		} else {
-			next, _ := block.GetNext()
-			if next == nil {
-				fmt.Print("  ->  nil")
-			} else {
-				fmt.Printf("  ->  %d", (*next).GetId())
-			}
-		}
-		fmt.Println()
-	}
-	fmt.Println()
-	fmt.Println()
-}
-
-func (g *Graph) SetAllVars(allVars map[string]any) {
-	g.allCurrentVars = allVars
-}
-
-func (g *Graph) GetKvpByKeys(keys *[]string) (map[string]float32, error) {
-	retVal := make(map[string]float32)
-	for _, key := range *keys {
-		if arrayKey, idxer, found := getIfArrayKey(&key); found {
-			if g.isKeyInVars(arrayKey) {
-				idxParsed, err := g.parseArrayIdxer(idxer)
-				if err != nil {
-					return nil, err
-				}
-				valSlice := g.allCurrentVars[arrayKey]
-				val, err := g.getValFromSliceIfValid(valSlice, idxParsed)
-				if err != nil {
-					return nil, err
-				}
-				retVal[key] = val
-			} else {
-				return nil, errors.New("Invalid array variable")
-			}
-		} else {
-			if g.isKeyInVars(key) {
-				if val, err := g.getValIfValid(key); err != nil {
-					return nil, err
-				} else {
-					retVal[key] = val
-				}
-			} else {
-				return nil, errors.New("Invalid array variable 3")
-			}
-		}
-	}
-	return retVal, nil
-}
-
 func getIfArrayKey(key *string) (string, string, bool) {
 	r := regexp.MustCompile(`\[(.+?)\]`)
 	keyFound := r.Find([]byte(*key))
@@ -294,7 +336,7 @@ func getIfArrayKey(key *string) (string, string, bool) {
 	return arrayKey, idxer, true
 }
 
-func (g *Graph) parseArrayIdxer(idxer string) (int, error) {
+func (graph *Graph) parseArrayIdxer(idxer string) (int, error) {
 	exprtkObj := exprtk.NewExprtk()
 	defer exprtkObj.Delete()
 	exprtkObj.SetExpression(idxer)
@@ -303,7 +345,7 @@ func (g *Graph) parseArrayIdxer(idxer string) (int, error) {
 
 	temp := make(map[string]float32)
 	for _, key := range keysFound {
-		val, err := g.getValIfValid(key)
+		val, err := graph.getValIfValid(key)
 		if err != nil {
 			return 0, err
 		}
@@ -321,26 +363,37 @@ func (g *Graph) parseArrayIdxer(idxer string) (int, error) {
 	return int(retVal), nil
 }
 
-func (g *Graph) isKeyInVars(key string) bool {
-	if _, ok := g.allCurrentVars[key]; ok {
+func (graph *Graph) isKeyInVars(key string) bool {
+	if _, ok := graph.allCurrentVars[key]; ok {
 		return true
 	}
 	return false
 }
 
-func (g *Graph) getValFromSliceIfValid(valSlice any, idxer int) (float32, error) {
+func (graph *Graph) getValFromSliceIfValid(valSlice any, idxer int) (float32, error) {
+	idxErr := errors.New("Invalid index of the array")
 	switch s := valSlice.(type) {
 	case []float32:
 		if idxer >= 0 && idxer <= len(s) {
 			return s[idxer], nil
 		}
-		return 0, errors.New("Invalid index of the array")
+		return 0, idxErr
+	case []float64:
+		if idxer >= 0 && idxer <= len(s) {
+			return float32(s[idxer]), nil
+		}
+		return 0, idxErr
+	case []int:
+		if idxer >= 0 && idxer <= len(s) {
+			return float32(s[idxer]), nil
+		}
+		return 0, idxErr
 	}
 	return 0, errors.New("Variable isn't an array of numbers")
 }
 
-func (g *Graph) getValIfValid(key string) (float32, error) {
-	switch v := g.allCurrentVars[key].(type) {
+func (graph *Graph) getValIfValid(key string) (float32, error) {
+	switch v := graph.allCurrentVars[key].(type) {
 	case float64:
 		return float32(v), nil
 	case float32:

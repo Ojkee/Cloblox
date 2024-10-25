@@ -7,103 +7,250 @@ import (
 	"Cloblox/graph"
 )
 
-func TestValid_1(t *testing.T) {
-	b1 := blocks.NewStartBlock()
-	b2 := blocks.NewPrintBlock()
-	b3 := blocks.NewStopBlock()
+func TestInitIfValid_1(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	stopBlock := blocks.NewStopBlock()
 
-	b1.SetNext(b2)
-	b2.SetNext(b3)
+	startBlock.SetNext(varBlock)
+	varBlock.SetNext(stopBlock)
 
-	diagram := graph.NewGraph(&[]blocks.Block{b1, b2, b3})
-
-	if diagram.IsFullyConnected() == false {
-		t.Fail()
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err != nil {
+		t.Error(err.Error())
 	}
 }
 
-func TestValid_2(t *testing.T) {
-	b1 := blocks.NewStartBlock()
-	b2 := blocks.NewVariableBlock()
-	b3 := blocks.NewIfBlock()
-	b4 := blocks.NewStopBlock()
+func TestInitIfValid_2(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	ifBlock := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
 
-	b1.SetNext(b2)
-	b2.SetNext(b3)
-	b3.SetNextTrue(b4)
-	b3.SetNextFalse(b4)
+	startBlock.SetNext(ifBlock)
+	ifBlock.SetNextTrue(stopBlock)
 
-	diagram := graph.NewGraph(&[]blocks.Block{b1, b2, b3, b4})
-
-	if diagram.IsFullyConnected() == false {
-		t.Fail()
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, ifBlock, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err == nil {
+		t.Error("Should call error")
 	}
 }
 
-func TestValid_3(t *testing.T) {
-	b1 := blocks.NewStartBlock()
-	b2 := blocks.NewVariableBlock()
-	b3 := blocks.NewStopBlock()
+func TestInitIfValid_3(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	ifBlock := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
 
-	b1.SetNext(b2)
+	startBlock.SetNext(ifBlock)
+	ifBlock.SetNextTrue(stopBlock)
+	ifBlock.SetNextFalse(stopBlock)
 
-	diagram := graph.NewGraph(&[]blocks.Block{b1, b2, b3})
-
-	if diagram.IsFullyConnected() == true {
-		t.Fail()
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, ifBlock, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err != nil {
+		t.Error(err.Error())
 	}
 }
 
-func TestValid_4(t *testing.T) {
-	b1 := blocks.NewPrintBlock()
-	b2 := blocks.NewVariableBlock()
-	b3 := blocks.NewStopBlock()
-	b4 := blocks.NewStartBlock()
+func TestInitIfValid_4(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	ifBlock := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
 
-	b1.SetNext(b2)
-	b2.SetNext(b3)
+	startBlock.SetNext(varBlock)
+	varBlock.SetNext(ifBlock)
+	ifBlock.SetNextTrue(stopBlock)
+	ifBlock.SetNextFalse(varBlock)
 
-	diagram := graph.NewGraph(&[]blocks.Block{b1, b2, b3, b4})
-
-	if diagram.IsFullyConnected() == true {
-		t.Fail()
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, ifBlock, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err != nil {
+		t.Error(err.Error())
 	}
 }
 
-func TestValid_5(t *testing.T) {
-	b1 := blocks.NewStartBlock()
-	b2 := blocks.NewVariableBlock()
-	b3 := blocks.NewIfBlock()
-	b4 := blocks.NewVariableBlock()
-	b5 := blocks.NewStopBlock()
+func TestInitIfValid_5(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	ifBlock := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
 
-	b1.SetNext(b2)
-	b2.SetNext(b3)
-	b3.SetNextTrue(b5)
-	b3.SetNextFalse(b4)
-	b4.SetNext(b3)
+	startBlock.SetNext(varBlock)
+	varBlock.SetNext(ifBlock)
+	ifBlock.SetNextTrue(varBlock)
+	ifBlock.SetNextFalse(varBlock)
 
-	diagram := graph.NewGraph(&[]blocks.Block{b1, b2, b3, b4})
-
-	if diagram.IsFullyConnected() == false {
-		t.Fail()
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, ifBlock, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err == nil {
+		t.Error("Should call error")
 	}
 }
 
-func TestValid_6(t *testing.T) {
-	b1 := blocks.NewStartBlock()
-	b2 := blocks.NewVariableBlock()
-	b3 := blocks.NewIfBlock()
-	b4 := blocks.NewVariableBlock()
+func TestInitIfValid_6(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	ifBlock := blocks.NewIfBlock()
+	ifBlock2 := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
 
-	b1.SetNext(b2)
-	b2.SetNext(b3)
-	b3.SetNextFalse(b4)
-	b4.SetNext(b3)
+	startBlock.SetNext(varBlock)
+	varBlock.SetNext(ifBlock)
+	ifBlock.SetNextFalse(ifBlock2)
+	ifBlock.SetNextTrue(varBlock)
+	ifBlock2.SetNextTrue(varBlock)
+	ifBlock2.SetNextFalse(stopBlock)
 
-	diagram := graph.NewGraph(&[]blocks.Block{b1, b2, b3, b4})
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, ifBlock, ifBlock2, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err != nil {
+		t.Error(err.Error())
+	}
+}
 
-	if diagram.IsFullyConnected() == true {
-		t.Fail()
+func TestInitIfValid_7(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	ifBlock := blocks.NewIfBlock()
+	ifBlock2 := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
+
+	startBlock.SetNext(varBlock)
+	varBlock.SetNext(ifBlock)
+	ifBlock.SetNextFalse(ifBlock2)
+	ifBlock.SetNextTrue(varBlock)
+	ifBlock2.SetNextFalse(stopBlock)
+
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, ifBlock, ifBlock2, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err == nil {
+		t.Error("Should call error")
+	}
+}
+
+func TestInitIfValid_8(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	varBlock2 := blocks.NewVariableBlock()
+	ifBlock := blocks.NewIfBlock()
+	ifBlock2 := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
+
+	startBlock.SetNext(varBlock)
+	varBlock.SetNext(ifBlock)
+	ifBlock.SetNextFalse(ifBlock2)
+	ifBlock.SetNextTrue(varBlock)
+	ifBlock2.SetNextFalse(stopBlock)
+	ifBlock2.SetNextTrue(varBlock2)
+
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, ifBlock, ifBlock2, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err == nil {
+		t.Error("Should call error")
+	}
+}
+
+func TestInitIfValid_9(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	varBlock2 := blocks.NewVariableBlock()
+	ifBlock := blocks.NewIfBlock()
+	ifBlock2 := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
+
+	startBlock.SetNext(varBlock)
+	varBlock.SetNext(ifBlock)
+	ifBlock.SetNextFalse(ifBlock2)
+	ifBlock.SetNextTrue(varBlock)
+	ifBlock2.SetNextFalse(stopBlock)
+	ifBlock2.SetNextTrue(varBlock2)
+	varBlock2.SetNext(stopBlock)
+
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, varBlock2, ifBlock, ifBlock2, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err != nil {
+		t.Error(err.Error())
+	}
+}
+
+func TestInitIfValid_10(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	varBlock2 := blocks.NewVariableBlock()
+	ifBlock := blocks.NewIfBlock()
+	ifBlock2 := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
+
+	varBlock.SetNext(ifBlock)
+	ifBlock.SetNextFalse(ifBlock2)
+	ifBlock.SetNextTrue(varBlock)
+	ifBlock2.SetNextFalse(stopBlock)
+	ifBlock2.SetNextTrue(varBlock2)
+	varBlock2.SetNext(stopBlock)
+
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, varBlock2, ifBlock, ifBlock2, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err == nil {
+		t.Error("Should call error")
+	}
+}
+
+func TestInitIfValid_11(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	varBlock2 := blocks.NewVariableBlock()
+	ifBlock := blocks.NewIfBlock()
+	ifBlock2 := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
+
+	startBlock.SetNext(varBlock)
+	varBlock.SetNext(ifBlock)
+	ifBlock.SetNextFalse(ifBlock2)
+	ifBlock.SetNextTrue(varBlock)
+	ifBlock2.SetNextFalse(stopBlock)
+	ifBlock2.SetNextTrue(varBlock2)
+	varBlock2.SetNext(varBlock)
+
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, varBlock2, ifBlock, ifBlock2, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err != nil {
+		t.Error(err.Error())
+	}
+}
+
+func TestInitIfValid_12(t *testing.T) {
+	startBlock := blocks.NewStartBlock()
+	varBlock := blocks.NewVariableBlock()
+	varBlock2 := blocks.NewVariableBlock()
+	ifBlock := blocks.NewIfBlock()
+	ifBlock2 := blocks.NewIfBlock()
+	stopBlock := blocks.NewStopBlock()
+
+	startBlock.SetNext(varBlock)
+	varBlock.SetNext(ifBlock)
+	ifBlock.SetNextFalse(ifBlock2)
+	ifBlock.SetNextTrue(varBlock)
+	ifBlock2.SetNextFalse(varBlock)
+	ifBlock2.SetNextTrue(varBlock2)
+	varBlock2.SetNext(varBlock)
+
+	diagram := graph.NewGraph(&[]blocks.Block{
+		startBlock, varBlock, varBlock2, ifBlock, ifBlock2, stopBlock,
+	})
+	if err := diagram.InitIfValid(); err == nil {
+		t.Error("Should call error")
 	}
 }
