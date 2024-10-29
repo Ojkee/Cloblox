@@ -99,6 +99,9 @@ func (block *ActionBlock) getActionType(input *string) (ACTION_TYPE, error) {
 		}
 		return SWAP, nil
 	} else if strings.Contains(lowerInput, "print") {
+		if err := block.parseKeysIfValidPrint(input); err != nil {
+			return UNSIGNED, err
+		}
 		return PRINT, nil
 	} else if strings.Contains(lowerInput, "rand") {
 		if err := block.parseKeysIfValidRand(input); err != nil {
@@ -150,6 +153,17 @@ func (block *ActionBlock) actionSwap() map[string]float64 {
 }
 
 // PRINT
+func (block *ActionBlock) parseKeysIfValidPrint(input *string) error {
+	prefixIdx := strings.LastIndex(*input, "print")
+	inputNoPrefix := (*input)[prefixIdx+len("print"):]
+	keysFound := getKeysFromString(&inputNoPrefix)
+	if len(keysFound) == 0 {
+		return errors.New("Nothing to print")
+	}
+	block.keys = keysFound
+	return nil
+}
+
 func (block *ActionBlock) actionPrint() string {
 	var retVal bytes.Buffer
 	for key, value := range block.actionKVP {
@@ -224,4 +238,12 @@ func (block *ActionBlock) Flush() {
 	block.actionType = UNSIGNED
 	block.keys = make([]string, 0)
 	block.actionKVP = make(map[string]float64)
+}
+
+func getKeysFromString(input *string) []string {
+	r := regexp.MustCompile(
+		`[a-zA-Z_][a-zA-Z0-9_]*\[[a-zA-Z0-9_+\-*/\s()]*\]|[a-zA-Z_][a-zA-Z0-9_]*`,
+	)
+	numsFound := r.FindAllString(*input, -1)
+	return numsFound
 }
