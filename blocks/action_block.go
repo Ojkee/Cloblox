@@ -112,26 +112,36 @@ func (block *ActionBlock) getActionType(input *string) (ACTION_TYPE, error) {
 	ops := []string{"=", "+=", "-=", "/=", "*="}
 	for _, op := range ops {
 		if strings.Contains(*input, op) {
+			if err := block.parseKeysIfValidMathOperations(input); err != nil {
+				return UNSIGNED, nil
+			}
 			return MATH_OPERATIONS, nil
 		}
 	}
 	return UNSIGNED, nil
 }
 
+// TODO
 // MATH OPERATIONS
-func (block *ActionBlock) actionMathOperations() map[string]float64 { // TODO
+func (block *ActionBlock) parseKeysIfValidMathOperations(input *string) error {
+	// POSSIBLE INPUT:
+
+	keysFound := getKeysFromString(input)
+	if len(keysFound) == 0 {
+		return errors.New("No vars")
+	}
+	return nil
+}
+
+func (block *ActionBlock) actionMathOperations() map[string]float64 {
 	retVal := make(map[string]float64)
 	return retVal
 }
 
 // SWAP
 func (block *ActionBlock) parseKeysIfValidSwap(input *string) error {
-	r := regexp.MustCompile(
-		`[a-zA-Z_][a-zA-Z0-9_]*\[[a-zA-Z0-9_+\-*/\s()]*\]|[a-zA-Z_][a-zA-Z0-9_]*`,
-	)
-	trimmed := strings.TrimLeft(*input, " ")
-	inputNoPrefix, _ := strings.CutPrefix(trimmed, "swap")
-	foundKeys := r.FindAllString(inputNoPrefix, -1)
+	inputNoPrefix := (*input)[strings.LastIndex(*input, "swap")+len("swap"):]
+	foundKeys := getKeysFromString(&inputNoPrefix)
 	if len(foundKeys) != 2 {
 		return errors.New("Invalid number of variables")
 	}
@@ -178,14 +188,11 @@ func (block *ActionBlock) parseKeysIfValidRand(input *string) error {
 	if len(tokens) != 2 {
 		return errors.New("Invalid input")
 	}
-	r := regexp.MustCompile(
-		`[a-zA-Z_][a-zA-Z0-9_]*\[[a-zA-Z0-9_+\-*/\s()]*\]|[a-zA-Z_][a-zA-Z0-9_]*`,
-	)
-	numsFound := r.FindAllString(tokens[0], -1)
+	numsFound := getKeysFromString(&tokens[0])
 	if len(numsFound) != 1 {
 		return errors.New("Only one variable can be randomized per block")
 	}
-	numsFoundRange := r.FindAllString(tokens[1], -1)
+	numsFoundRange := getKeysFromString(&tokens[1])
 	block.keys = append(numsFound, numsFoundRange...)
 	return nil
 }
