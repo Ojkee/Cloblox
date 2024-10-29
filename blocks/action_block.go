@@ -71,7 +71,7 @@ func (block *ActionBlock) SetActionKVP(actionKVP *map[string]float64) {
 	block.actionKVP = *actionKVP
 }
 
-func (block *ActionBlock) PerformGetUpdateKVP() (map[string]float64, string, error) {
+func (block *ActionBlock) PerformGetUpdateKVP() (updateVars map[string]float64, logMessage string, err error) {
 	switch block.actionType {
 	case SWAP:
 		vals := block.actionSwap()
@@ -80,13 +80,13 @@ func (block *ActionBlock) PerformGetUpdateKVP() (map[string]float64, string, err
 		message := block.actionPrint()
 		return nil, message, nil
 	case RAND:
-		vals := block.actionRand()
-		return vals, "", nil
+		vals, err := block.actionRand()
+		return vals, "", err
 	case MATH_OPERATIONS:
 		vals := block.actionMathOperations()
 		return vals, "", nil
 	case UNSIGNED:
-		return nil, "", errors.New("Not initiated action block")
+		return nil, "", errors.New("Not initiated action block, might be syntax error")
 	}
 	return nil, "", errors.New("No action Type")
 }
@@ -100,7 +100,10 @@ func (block *ActionBlock) getActionType(input *string) (ACTION_TYPE, error) {
 		return SWAP, nil
 	} else if strings.Contains(lowerInput, "print") {
 		return PRINT, nil
-	} else if strings.Contains(lowerInput, "RAND") {
+	} else if strings.Contains(lowerInput, "rand") {
+		if err := block.parseKeysIfValidRand(input); err != nil {
+			return UNSIGNED, err
+		}
 		return RAND, nil
 	}
 	ops := []string{"=", "+=", "-=", "/=", "*="}
@@ -161,17 +164,38 @@ func (block *ActionBlock) parseKeysIfValidRand(input *string) error {
 	if len(tokens) != 2 {
 		return errors.New("Invalid input")
 	}
-
-	_, _, err := parseRandomMinMax(input)
-	return err
+	r := regexp.MustCompile(
+		`[a-zA-Z_][a-zA-Z0-9_]*\[[a-zA-Z0-9_+\-*/\s()]*\]|[a-zA-Z_][a-zA-Z0-9_]*`,
+	)
+	numsFound := r.FindAllString(tokens[0], -1)
+	if len(numsFound) != 1 {
+		return errors.New("Only one variable can be randomized per block")
+	}
+	numsFoundRange := r.FindAllString(tokens[1], -1)
+	block.keys = append(numsFound, numsFoundRange...)
+	return nil
 }
 
-func (block *ActionBlock) actionRand() map[string]float64 {
-	mmin, mmax, _ := parseRandomMinMax(&block.actionInput)
-	for key := range block.actionKVP {
-		block.actionKVP[key] = rand.Float64()*(mmax-mmin) + mmin
+func (block *ActionBlock) actionRand() (map[string]float64, error) {
+	// x = rand 2, 10 only nambers for now
+	trimmed := strings.TrimLeft(block.actionInput, " ")
+	tokens := strings.Split(trimmed, "rand")
+	for key, value := range block.actionKVP {
+		numStr := strconv.FormatFloat(value, 'f', -1, 64)
+		tokens[1] = strings.ReplaceAll(tokens[1], key, numStr)
 	}
-	return block.actionKVP
+	mmin, mmax, err := parseRandomMinMax(&tokens[1])
+	if err != nil {
+		return nil, err
+	}
+	rVal := rand.Float64()*(mmax-mmin) + mmin
+	for key := range block.actionKVP {
+		if strings.Contains(tokens[0], key) {
+			block.actionKVP[key] = rVal
+			break
+		}
+	}
+	return block.actionKVP, nil
 }
 
 func parseRandomMinMax(input *string) (float64, float64, error) {
