@@ -4,15 +4,15 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type PrintShape struct {
+type ActionShape struct {
 	ShapeDefault
 	tiltOffset float32
 }
 
-func NewPrintShape(x, y float32) *PrintShape {
-	return &PrintShape{
+func NewActionShape(x, y float32) *ActionShape {
+	return &ActionShape{
 		ShapeDefault: ShapeDefault{
-			shapeType: PRINT,
+			shapeType: ACTION,
 			content:   []string{},
 			blockID:   -1,
 			x:         x,
@@ -27,7 +27,7 @@ func NewPrintShape(x, y float32) *PrintShape {
 	}
 }
 
-func (shape *PrintShape) Draw() {
+func (shape *ActionShape) Draw() {
 	left_down := rl.NewVector2(shape.x, shape.y+shape.height)
 	right_down := rl.NewVector2(shape.x+shape.width, shape.y+shape.height)
 	left_up := rl.NewVector2(shape.x+shape.tiltOffset, shape.y)
@@ -35,7 +35,7 @@ func (shape *PrintShape) Draw() {
 	rl.DrawTriangle(left_up, right_down, right_up, shape.color)
 	rl.DrawTriangle(right_down, left_up, left_down, shape.color)
 	rl.DrawText(
-		"Print",
+		"Action",
 		int32(shape.x+shape.width/2-32),
 		int32(shape.y+shape.height/2-8),
 		shape.fontSize,
@@ -43,6 +43,6 @@ func (shape *PrintShape) Draw() {
 	)
 }
 
-func (shape *PrintShape) GetOutPos() (float32, float32) {
+func (shape *ActionShape) GetOutPos() (float32, float32) {
 	return shape.x + shape.width/2, shape.y + shape.height
 }

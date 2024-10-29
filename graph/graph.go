@@ -46,7 +46,7 @@ func NewGraph(blocksSlice *[]blocks.Block) *Graph {
 		current:      nil,
 
 		stepCounter: 0,
-		stepLimit:   100,
+		stepLimit:   1024,
 
 		allCurrentVars: make(map[string]any),
 		isFinished:     false,
@@ -211,6 +211,14 @@ func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float32, error) {
 	return retVal, nil
 }
 
+func (graph *Graph) MakeStep() error {
+	if graph.stepCounter >= graph.stepLimit {
+		return errors.New("Limit of steps exceeded")
+	}
+
+	return nil
+}
+
 func dfsAllPathsStops(node *blocks.Block, visitedIds *[]int) (inStop, inNil bool) {
 	if node == nil {
 		return false, true
@@ -270,7 +278,7 @@ func (graph *Graph) connectBlocks(src, dst int, isNextTrue ...bool) error {
 	if manyBlock, ok := graph.blocksSlice[src].(blocks.BlockManyOut); ok {
 		if len(isNextTrue) == 0 {
 			return errors.New(
-				"graph/ConnectByIDs fail:\n\tTryingraph connect to ManyOut without path specified",
+				"graph/ConnectByIDs fail:\n\tTrying connect to ManyOut without path specified",
 			)
 		}
 		if isNextTrue[0] {
@@ -401,6 +409,5 @@ func (graph *Graph) getValIfValid(key string) (float32, error) {
 	case int:
 		return float32(v), nil
 	}
-	fmt.Println(key)
 	return 0, errors.New("Value isn't number")
 }

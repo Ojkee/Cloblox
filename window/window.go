@@ -62,7 +62,7 @@ func initBuildingShapes(width, height int32) []Shape {
 		NewStartShape(offsetX, offsetY),
 		NewVariableShape(offsetX, offsetY+gap),
 		NewIfShape(offsetX, offsetY+2*gap),
-		NewPrintShape(offsetX, offsetY+3*gap),
+		NewActionShape(offsetX, offsetY+3*gap),
 		NewStopShape(offsetX, offsetY+4*gap),
 	}
 }
@@ -129,9 +129,9 @@ func (window *Window) placeCurrentShape(mx, my float32) {
 		cBlock = blocks.NewIfBlock()
 		cShape = NewIfShape(mx, my)
 		break
-	case PRINT:
-		cBlock = blocks.NewPrintBlock()
-		cShape = NewPrintShape(mx, my)
+	case ACTION:
+		cBlock = blocks.NewActionBlock()
+		cShape = NewActionShape(mx, my)
 		break
 	case STOP:
 		cBlock = blocks.NewStopBlock()
@@ -188,8 +188,8 @@ func (window *Window) makeCurrentClicked(shapeType SHAPE_TYPE) {
 	case IF:
 		window.currentShape = NewIfShape(0, 0)
 		break
-	case PRINT:
-		window.currentShape = NewPrintShape(0, 0)
+	case ACTION:
+		window.currentShape = NewActionShape(0, 0)
 		break
 	case STOP:
 		window.currentShape = NewStopShape(0, 0)

@@ -1,5 +1,8 @@
 package blocks
 
+// This block is responsible only for declaring variables
+// SYNTAX: varible = numerical value
+
 import (
 	"bytes"
 	"errors"

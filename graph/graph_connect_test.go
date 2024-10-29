@@ -10,7 +10,7 @@ import (
 func TestConnection_1(t *testing.T) {
 	diagram := graph.NewGraph(&[]blocks.Block{
 		blocks.NewStartBlock(),
-		blocks.NewPrintBlock(),
+		blocks.NewActionBlock(),
 		blocks.NewStopBlock(),
 	})
 	if err := diagram.ConnectByIds(0, 1); err != nil {
@@ -24,7 +24,7 @@ func TestConnection_1(t *testing.T) {
 func TestConnection_2(t *testing.T) {
 	diagram := graph.NewGraph(&[]blocks.Block{
 		blocks.NewStartBlock(),
-		blocks.NewPrintBlock(),
+		blocks.NewActionBlock(),
 		blocks.NewStopBlock(),
 	})
 	if err := diagram.ConnectByIds(0, 3); err == nil {
@@ -38,7 +38,7 @@ func TestConnection_2(t *testing.T) {
 func TestIfConnected_1(t *testing.T) {
 	diagram := graph.NewGraph(&[]blocks.Block{
 		blocks.NewStartBlock(),
-		blocks.NewPrintBlock(),
+		blocks.NewActionBlock(),
 		blocks.NewStopBlock(),
 	})
 	if err := diagram.ConnectByIds(0, 1); err != nil {

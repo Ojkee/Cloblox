@@ -91,33 +91,6 @@ func (b *IfBlock) SetConditionKVP(kvp *map[string]float64) {
 	b.conditionKVP = *kvp
 }
 
-func (b *IfBlock) findReplaceArrayKeys(input string) string {
-	// a[4]         // In    arr[i]       // In    arr[x + i] // In
-	// tab[dd]      // In    [dkf]        // Out   arr[x + 2] // In
-	// [4]          // Out   myArray[45]  // In
-	// dkjf[4k]     // Out   my_array[df] // In
-	// t[my_x]      // In    dlsk[df sf]  // Out
-	r := regexp.MustCompile(`[a-zA-Z_][a-zA-Z0-9_]*\[(?:[a-zA-Z0-9_+\-*/\s()]+)\]`)
-	arrayKeysFound := r.FindAllString(input, -1)
-	for i, key := range arrayKeysFound {
-		nextReplaceKey := fmt.Sprintf("%s%d", b.replaceKey, i)
-		input = strings.ReplaceAll(input, key, nextReplaceKey)
-		b.arrayKeys[key] = nextReplaceKey
-	}
-	return input
-}
-
-func rawKeys(input string) []string {
-	// Searching arrays that may has non-leading numbers
-	// such as my_tab2[(i-1)*2], but they aren't non-array variables
-	// such as x, i2, my_x etc.
-	r := regexp.MustCompile(
-		`[a-zA-Z_][a-zA-Z0-9_]*\[[a-zA-Z0-9_+\-*/\s()]*\]|[a-zA-Z_][a-zA-Z0-9_]*`,
-	)
-	keysFound := r.FindAllString(input, -1)
-	return keysFound
-}
-
 func (b *IfBlock) IsEvalTrue() (bool, error) {
 	// b.debugEval()
 
@@ -154,17 +127,38 @@ func (b *IfBlock) IsEvalTrue() (bool, error) {
 	return true, nil
 }
 
-func (b *IfBlock) debugEval() {
-	fmt.Println(b.conditionExpr)
-	fmt.Println(b.conditionExprReplaced)
-	fmt.Println(strings.TrimRight(b.conditionExprReplaced, "=="))
-}
-
 func (b *IfBlock) FlushCondition() {
 	b.conditionExpr = ""
 	b.conditionExprReplaced = ""
 	b.keys = []string{}
 	b.arrayKeys = make(map[string]string, 0)
+}
+
+func (b *IfBlock) findReplaceArrayKeys(input string) string {
+	// a[4]         // In    arr[i]       // In    arr[x + i] // In
+	// tab[dd]      // In    [dkf]        // Out   arr[x + 2] // In
+	// [4]          // Out   myArray[45]  // In
+	// dkjf[4k]     // Out   my_array[df] // In
+	// t[my_x]      // In    dlsk[df sf]  // Out
+	r := regexp.MustCompile(`[a-zA-Z_][a-zA-Z0-9_]*\[(?:[a-zA-Z0-9_+\-*/\s()]+)\]`)
+	arrayKeysFound := r.FindAllString(input, -1)
+	for i, key := range arrayKeysFound {
+		nextReplaceKey := fmt.Sprintf("%s%d", b.replaceKey, i)
+		input = strings.ReplaceAll(input, key, nextReplaceKey)
+		b.arrayKeys[key] = nextReplaceKey
+	}
+	return input
+}
+
+func rawKeys(input string) []string {
+	// Searching arrays that may has non-leading numbers
+	// such as my_tab2[(i-1)*2], but they aren't non-array variables
+	// such as x, i2, my_x etc.
+	r := regexp.MustCompile(
+		`[a-zA-Z_][a-zA-Z0-9_]*\[[a-zA-Z0-9_+\-*/\s()]*\]|[a-zA-Z_][a-zA-Z0-9_]*`,
+	)
+	keysFound := r.FindAllString(input, -1)
+	return keysFound
 }
 
 func setRound(inside string) string {

@@ -4,14 +4,14 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type SHAPE_TYPE int
+type SHAPE_TYPE uint
 
 const (
 	NONE SHAPE_TYPE = iota
 	START
 	VARIABLE
 	IF
-	PRINT
+	ACTION
 	STOP
 )
 
