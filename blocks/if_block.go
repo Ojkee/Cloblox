@@ -92,8 +92,6 @@ func (b *IfBlock) SetConditionKVP(kvp *map[string]float64) {
 }
 
 func (b *IfBlock) IsEvalTrue() (bool, error) {
-	// b.debugEval()
-
 	exprtkObj := exprtk.NewExprtk()
 	defer exprtkObj.Delete()
 
