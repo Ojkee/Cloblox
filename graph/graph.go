@@ -179,33 +179,31 @@ func (graph *Graph) SetAllVars(allVars map[string]any) {
 }
 
 func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float32, error) {
+	// idxer - expression within square brackets
 	retVal := make(map[string]float32)
 	for _, key := range *keys {
 		if arrayKey, idxer, found := getIfArrayKey(&key); found {
-			if graph.isKeyInVars(arrayKey) {
-				idxParsed, err := graph.parseArrayIdxer(idxer)
-				if err != nil {
-					return nil, err
-				}
-				valSlice := graph.allCurrentVars[arrayKey]
-				val, err := graph.getValFromSliceIfValid(valSlice, idxParsed)
-				if err != nil {
-					return nil, err
-				}
-				retVal[key] = val
-			} else {
+			if !graph.isKeyInVars(arrayKey) {
 				return nil, errors.New("Invalid array variable")
 			}
-		} else {
-			if graph.isKeyInVars(key) {
-				if val, err := graph.getValIfValid(key); err != nil {
-					return nil, err
-				} else {
-					retVal[key] = val
-				}
-			} else {
-				return nil, errors.New("Invalid array variable 3")
+			idxParsed, err := graph.parseArrayIdxer(idxer)
+			if err != nil {
+				return nil, err
 			}
+			valSlice := graph.allCurrentVars[arrayKey]
+			val, err := graph.getValFromSliceIfValid(valSlice, idxParsed)
+			if err != nil {
+				return nil, err
+			}
+			retVal[key] = val
+		} else if graph.isKeyInVars(key) {
+			val, err := graph.getValIfValid(key)
+			if err != nil {
+				return nil, err
+			}
+			retVal[key] = val
+		} else {
+			return nil, errors.New("Invalid array variable")
 		}
 	}
 	return retVal, nil
@@ -351,20 +349,20 @@ func (graph *Graph) parseArrayIdxer(idxer string) (int, error) {
 	r := regexp.MustCompile(`\b[a-zA-Z_][a-zA-Z0-9_]*\b`)
 	keysFound := r.FindAllString(idxer, -1)
 
-	temp := make(map[string]float32)
+	foundKVP := make(map[string]float32)
 	for _, key := range keysFound {
 		val, err := graph.getValIfValid(key)
 		if err != nil {
 			return 0, err
 		}
 		exprtkObj.AddDoubleVariable(key)
-		temp[key] = val
+		foundKVP[key] = val
 	}
 	err := exprtkObj.CompileExpression()
 	if err != nil {
 		return 0, err
 	}
-	for key, val := range temp {
+	for key, val := range foundKVP {
 		exprtkObj.SetDoubleVariableValue(key, float64(val))
 	}
 	retVal := exprtkObj.GetEvaluatedValue()
@@ -381,14 +379,14 @@ func (graph *Graph) isKeyInVars(key string) bool {
 func (graph *Graph) getValFromSliceIfValid(valSlice any, idxer int) (float32, error) {
 	idxErr := errors.New("Invalid index of the array")
 	switch s := valSlice.(type) {
-	case []float32:
-		if idxer >= 0 && idxer <= len(s) {
-			return s[idxer], nil
-		}
-		return 0, idxErr
 	case []float64:
 		if idxer >= 0 && idxer <= len(s) {
 			return float32(s[idxer]), nil
+		}
+		return 0, idxErr
+	case []float32:
+		if idxer >= 0 && idxer <= len(s) {
+			return s[idxer], nil
 		}
 		return 0, idxErr
 	case []int:
@@ -410,4 +408,47 @@ func (graph *Graph) getValIfValid(key string) (float32, error) {
 		return float32(v), nil
 	}
 	return 0, errors.New("Value isn't number")
+}
+
+func (graph *Graph) UpdateVarsFromKVP(newVars *map[string]float64) error {
+	for key, val := range *newVars {
+		if arrayKey, idxer, found := getIfArrayKey(&key); found {
+			if !graph.isKeyInVars(arrayKey) {
+				return errors.New("Invalid array variable")
+			}
+			idxParsed, err := graph.parseArrayIdxer(idxer)
+			if err != nil {
+				return err
+			}
+			err = graph.updateValInSlice(&arrayKey, &idxParsed, &val)
+			if err != nil {
+				return err
+			}
+		} else if graph.isSliceByKey(&key) {
+			return errors.New("Can't assign value to array variable")
+		} else {
+			graph.allCurrentVars[key] = val
+		}
+	}
+	return nil
+}
+
+func (graph *Graph) updateValInSlice(arrayKey *string, idx *int, val *float64) error {
+	switch valSlice := graph.allCurrentVars[*arrayKey].(type) {
+	case []float64:
+		if *idx < 0 || *idx > len(valSlice) {
+			return errors.New("Idx out of range")
+		}
+		valSlice[*idx] = *val
+		graph.allCurrentVars[*arrayKey] = valSlice
+	}
+	return nil
+}
+
+func (graph *Graph) isSliceByKey(key *string) bool {
+	switch graph.allCurrentVars[*key].(type) {
+	case []float64:
+		return true
+	}
+	return false
 }

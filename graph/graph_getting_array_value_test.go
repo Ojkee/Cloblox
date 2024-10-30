@@ -4,15 +4,14 @@ import (
 	"reflect"
 	"testing"
 
-	"Cloblox/blocks"
 	"Cloblox/graph"
 )
 
 // tab[]{ 1, 4, 2, 2, 4, 3, 5, 1, 0, 1 }
-// tab[tab[tab[3]]]
+// tab[tab[tab[3]]] TBD
 
 func TestGetArrayValue_1(t *testing.T) {
-	diagram := graph.NewGraph(&[]blocks.Block{})
+	diagram := graph.NewGraph(nil)
 	allVars := map[string]any{
 		"x":   3.0,
 		"tab": []float32{3.0, 4.0, 1.0, 2.0, 3.0},
@@ -32,7 +31,7 @@ func TestGetArrayValue_1(t *testing.T) {
 }
 
 func TestGetArrayValue_2(t *testing.T) {
-	diagram := graph.NewGraph(&[]blocks.Block{})
+	diagram := graph.NewGraph(nil)
 	allVars := map[string]any{
 		"x":   3.0,
 		"tab": []float32{3.0, 4.0, 1.0, 2.0, 3.0},
@@ -52,7 +51,7 @@ func TestGetArrayValue_2(t *testing.T) {
 }
 
 func TestGetArrayValue_3(t *testing.T) {
-	diagram := graph.NewGraph(&[]blocks.Block{})
+	diagram := graph.NewGraph(nil)
 	allVars := map[string]any{
 		"x":   3.0,
 		"tab": []float32{3.0, 4.0, 1.0, 2.0, 3.0},
@@ -69,7 +68,7 @@ func TestGetArrayValue_3(t *testing.T) {
 }
 
 func TestGetArrayValue_4(t *testing.T) {
-	diagram := graph.NewGraph(&[]blocks.Block{})
+	diagram := graph.NewGraph(nil)
 	allVars := map[string]any{
 		"x":   3.0,
 		"tab": []float32{3.0, 4.0, 1.0, 2.0, 3.0},
