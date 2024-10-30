@@ -29,13 +29,13 @@ type ActionBlock struct {
 	BlockDefault
 	next *Block
 
-	replaceKey          string
-	actionInputRaw      string
-	actionInputReplaced string
+	replaceKey          string             // key to replace every array array key for parsing
+	keys                []string           // every array with index and non-array var
+	arrayKeys           map[string]string  // key: array with index val: symbole
+	actionKVP           map[string]float64 // key: array with index and non-array var val: value
+	actionInputRaw      string             // non edited expr
+	actionInputReplaced string             // replaced with replaceKey and set rounding
 	actionType          ACTION_TYPE
-	arrayKeys           map[string]string
-	keys                []string
-	actionKVP           map[string]float64
 }
 
 func NewActionBlock() *ActionBlock {
@@ -47,12 +47,12 @@ func NewActionBlock() *ActionBlock {
 		next: nil,
 
 		replaceKey:          "TEMPKEY",
+		keys:                make([]string, 0),
+		arrayKeys:           make(map[string]string),
+		actionKVP:           make(map[string]float64),
 		actionInputRaw:      "",
 		actionInputReplaced: "",
 		actionType:          UNSIGNED,
-		arrayKeys:           make(map[string]string),
-		keys:                make([]string, 0),
-		actionKVP:           make(map[string]float64),
 	}
 }
 
@@ -148,18 +148,18 @@ func (block *ActionBlock) parseKeysIfValidMathOperations(input *string) error {
 		}
 	}
 	block.keys = keysFound
-	block.actionInputReplaced = block.findReplaceArrayKeys(*input)
+	block.actionInputReplaced, block.arrayKeys = findReplaceArrayKeys(*input, block.replaceKey)
 	return nil
 }
 
+// POSSIBLE INPUT:
+// x++;  x += 2; x /= 3;
+// x = x / 0; x = 2 * 4; x += i*g;
+// s[i] = i * 2; s[d*c+2] /= d*s[i]*k + 9
+// etc.
 func (block *ActionBlock) actionMathOperations() (map[string]float64, error) {
-	// POSSIBLE INPUT:
-	// x++;  x += 2; x /= 3;
-	// x = x / 0; x = 2 * 4; x += i*g;
-	// s[i] = i * 2; s[d*c+2] /= d*s[i]*k + 9
 	retVal := make(map[string]float64)
 	ops := []string{"+=", "-=", "/=", "*=", "++", "--", "="}
-
 	var operator string
 	for _, op := range ops {
 		if strings.Contains(block.actionInputReplaced, op) {
@@ -182,33 +182,10 @@ func (block *ActionBlock) actionMathOperations() (map[string]float64, error) {
 	}
 	tokensReplaced := strings.Split(block.actionInputReplaced, operator)
 	evaluated, err := block.evaluateRHS(&tokensReplaced[1])
-	if evaluated == math.Inf(1) || evaluated == math.Inf(-1) {
-		return nil, errors.New("Illigal math operation")
-	}
 	if err != nil {
 		return nil, err
 	}
-	if evaluated == 0 && (operator == "/" || operator == "/=") {
-		return nil, errors.New("Division by zero error")
-	}
-	switch operator {
-	case "=":
-		retVal[lhsKey] = evaluated
-		break
-	case "+=":
-		retVal[lhsKey] = block.actionKVP[lhsKey] + evaluated
-		break
-	case "-=":
-		retVal[lhsKey] = block.actionKVP[lhsKey] - evaluated
-		break
-	case "*=":
-		retVal[lhsKey] = block.actionKVP[lhsKey] * evaluated
-		break
-	case "/=":
-		retVal[lhsKey] = block.actionKVP[lhsKey] / evaluated
-		break
-	}
-	return retVal, nil
+	return block.validateEvalGetUpdateKVP(&evaluated, &operator, &lhsKey)
 }
 
 func (block *ActionBlock) evaluateRHS(replacedRHS *string) (float64, error) {
@@ -241,20 +218,35 @@ func (block *ActionBlock) evaluateRHS(replacedRHS *string) (float64, error) {
 	return exprtkObj.GetEvaluatedValue(), nil
 }
 
-func (block *ActionBlock) findReplaceArrayKeys(input string) string {
-	// a[4]         // In    arr[i]       // In    arr[x + i] // In
-	// tab[dd]      // In    [dkf]        // Out   arr[x + 2] // In
-	// [4]          // Out   myArray[45]  // In
-	// dkjf[4k]     // Out   my_array[df] // In
-	// t[my_x]      // In    dlsk[df sf]  // Out
-	r := regexp.MustCompile(`[a-zA-Z_][a-zA-Z0-9_]*\[(?:[a-zA-Z0-9_+\-*/\s()]+)\]`)
-	arrayKeysFound := r.FindAllString(input, -1)
-	for i, key := range arrayKeysFound {
-		nextReplaceKey := fmt.Sprintf("%s%d", block.replaceKey, i)
-		input = strings.ReplaceAll(input, key, nextReplaceKey)
-		block.arrayKeys[key] = nextReplaceKey
+func (block *ActionBlock) validateEvalGetUpdateKVP(
+	evaluated *float64,
+	operator, lhsKey *string,
+) (map[string]float64, error) {
+	if *evaluated == math.Inf(1) || *evaluated == math.Inf(-1) {
+		return nil, errors.New("Illigal math operation")
 	}
-	return input
+	if *evaluated == 0 && (*operator == "/" || *operator == "/=") {
+		return nil, errors.New("Division by zero error")
+	}
+	retVal := make(map[string]float64)
+	switch *operator {
+	case "=":
+		retVal[*lhsKey] = *evaluated
+		break
+	case "+=":
+		retVal[*lhsKey] = block.actionKVP[*lhsKey] + *evaluated
+		break
+	case "-=":
+		retVal[*lhsKey] = block.actionKVP[*lhsKey] - *evaluated
+		break
+	case "*=":
+		retVal[*lhsKey] = block.actionKVP[*lhsKey] * *evaluated
+		break
+	case "/=":
+		retVal[*lhsKey] = block.actionKVP[*lhsKey] / *evaluated
+		break
+	}
+	return retVal, nil
 }
 
 // SWAP
@@ -317,7 +309,6 @@ func (block *ActionBlock) parseKeysIfValidRand(input *string) error {
 }
 
 func (block *ActionBlock) actionRand() (map[string]float64, error) {
-	// x = rand 2, 10 only nambers for now
 	trimmed := strings.TrimLeft(block.actionInputRaw, " ")
 	tokens := strings.Split(trimmed, "rand")
 	for key, value := range block.actionKVP {
@@ -338,8 +329,8 @@ func (block *ActionBlock) actionRand() (map[string]float64, error) {
 	return block.actionKVP, nil
 }
 
+// Finds every real floating point number
 func parseRandomMinMax(input *string) (float64, float64, error) {
-	// Finds every real floating point number
 	r := regexp.MustCompile(`-?\b\d+(\.\d+)?\b`)
 	numsFound := r.FindAllString(*input, -1)
 	if len(numsFound) != 2 {
@@ -360,18 +351,11 @@ func parseRandomMinMax(input *string) (float64, float64, error) {
 }
 
 func (block *ActionBlock) Flush() {
+	block.replaceKey = "TEMPKEY"
+	block.keys = make([]string, 0)
+	block.arrayKeys = make(map[string]string)
+	block.actionKVP = make(map[string]float64)
 	block.actionInputRaw = ""
 	block.actionInputReplaced = ""
 	block.actionType = UNSIGNED
-	block.arrayKeys = make(map[string]string)
-	block.keys = make([]string, 0)
-	block.actionKVP = make(map[string]float64)
-}
-
-func getKeysFromString(input *string) []string {
-	r := regexp.MustCompile(
-		`[a-zA-Z_][a-zA-Z0-9_]*\[[a-zA-Z0-9_+\-*/\s()]*\]|[a-zA-Z_][a-zA-Z0-9_]*`,
-	)
-	numsFound := r.FindAllString(*input, -1)
-	return numsFound
 }

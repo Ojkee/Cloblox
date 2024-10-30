@@ -15,12 +15,12 @@ func NewStartBlock() *StartBlock {
 	}
 }
 
-func (b *StartBlock) GetNext() (*Block, error) {
-	return b.next, nil
+func (block *StartBlock) GetNext() (*Block, error) {
+	return block.next, nil
 }
 
-func (b *StartBlock) SetNext(next Block) {
-	b.next = &next
+func (block *StartBlock) SetNext(next Block) {
+	block.next = &next
 }
 
 type StopBlock struct {
@@ -38,13 +38,13 @@ func NewStopBlock() *StopBlock {
 	}
 }
 
-func (b *StopBlock) GetNext() (*Block, error) {
+func (block *StopBlock) GetNext() (*Block, error) {
 	return nil, nil
 }
 
-func (b *StopBlock) SetNext(next Block) {
+func (block *StopBlock) SetNext(next Block) {
 	if next != nil {
 		panic("Can't content to Stop block")
 	}
-	b.next = nil
+	block.next = nil
 }

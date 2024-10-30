@@ -29,28 +29,28 @@ func NewVariableBlock() *VariablesBlock {
 	}
 }
 
-func (b *VariablesBlock) GetNext() (*Block, error) {
-	return b.next, nil
+func (block *VariablesBlock) GetNext() (*Block, error) {
+	return block.next, nil
 }
 
-func (b *VariablesBlock) SetNext(next Block) {
-	b.next = &next
+func (block *VariablesBlock) SetNext(next Block) {
+	block.next = &next
 }
 
-func (b *VariablesBlock) AddVariable(name string, value any) {
+func (block *VariablesBlock) AddVariable(name string, value any) {
 	if len(strings.TrimSpace(name)) != 0 {
-		b.vars[name] = value
+		block.vars[name] = value
 	}
 }
 
-func (b *VariablesBlock) GetValue(variableName string) (string, error) {
-	if val, ok := b.vars[variableName]; ok {
-		return b.valueToString(val), nil
+func (block *VariablesBlock) GetValue(variableName string) (string, error) {
+	if val, ok := block.vars[variableName]; ok {
+		return block.valueToString(val), nil
 	}
-	return "", errors.New(b.name + " fail:\t\nNo such variable")
+	return "", errors.New(block.name + " fail:\t\nNo such variable")
 }
 
-func (b *VariablesBlock) Parse(lines []string) error {
+func (block *VariablesBlock) Parse(lines []string) error {
 	for _, line := range lines {
 		lineTokens := strings.Split(line, " ")
 		if len(lineTokens) != 3 {
@@ -74,7 +74,7 @@ func (b *VariablesBlock) Parse(lines []string) error {
 			)
 		}
 		if parsed, err := strconv.ParseFloat(lineTokens[2], 10); err == nil {
-			b.AddVariable(lineTokens[0], parsed)
+			block.AddVariable(lineTokens[0], parsed)
 		} else {
 			return errors.New(fmt.Sprintf(
 				`varible_block.go/Parse fail:
@@ -86,20 +86,20 @@ func (b *VariablesBlock) Parse(lines []string) error {
 	return nil
 }
 
-func (b *VariablesBlock) GetVars() map[string]any {
-	return b.vars
+func (block *VariablesBlock) GetVars() map[string]any {
+	return block.vars
 }
 
-func (b *VariablesBlock) varsFormatted() string {
+func (block *VariablesBlock) varsFormatted() string {
 	var buffur bytes.Buffer
-	for key, value := range b.vars {
-		line := fmt.Sprintf("%s = %s", key, b.valueToString(value))
+	for key, value := range block.vars {
+		line := fmt.Sprintf("%s = %s", key, block.valueToString(value))
 		buffur.WriteString(line)
 	}
 	return buffur.String()
 }
 
-func (b *VariablesBlock) valueToString(v any) string {
+func (block *VariablesBlock) valueToString(v any) string {
 	if floatVal, ok := v.(float32); ok {
 		return fmt.Sprintf("%.2f", floatVal)
 	} else if _, ok := v.([]float32); ok {
