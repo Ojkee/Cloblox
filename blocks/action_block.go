@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -126,7 +127,7 @@ func (block *ActionBlock) getActionType(input *string) (ACTION_TYPE, error) {
 			return MATH_OPERATIONS, nil
 		}
 	}
-	return UNSIGNED, nil
+	return UNSIGNED, errors.New("Invalid input in action block")
 }
 
 // MATH OPERATIONS
@@ -134,6 +135,17 @@ func (block *ActionBlock) parseKeysIfValidMathOperations(input *string) error {
 	keysFound := getKeysFromString(input)
 	if len(keysFound) == 0 {
 		return errors.New("No vars")
+	}
+	ops := []string{"+=", "-=", "/=", "*=", "="}
+	for _, op := range ops {
+		if strings.Contains(*input, op) {
+			tokens := strings.Split(*input, op)
+			if len(tokens) < 2 {
+				return errors.New("Invalid syntax")
+			} else if strings.TrimSpace(tokens[1]) == "" {
+				return errors.New("Invalid syntax")
+			}
+		}
 	}
 	block.keys = keysFound
 	block.actionInputReplaced = block.findReplaceArrayKeys(*input)
@@ -170,6 +182,9 @@ func (block *ActionBlock) actionMathOperations() (map[string]float64, error) {
 	}
 	tokensReplaced := strings.Split(block.actionInputReplaced, operator)
 	evaluated, err := block.evaluateRHS(&tokensReplaced[1])
+	if evaluated == math.Inf(1) || evaluated == math.Inf(-1) {
+		return nil, errors.New("Illigal math operation")
+	}
 	if err != nil {
 		return nil, err
 	}

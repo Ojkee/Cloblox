@@ -7,8 +7,6 @@ import (
 	"Cloblox/blocks"
 )
 
-// VALID 1-...
-
 func TestActionBlock_MathOperations_1(t *testing.T) {
 	actionBlock := blocks.NewActionBlock()
 	err := actionBlock.ParseFromUserInput("x++")
@@ -312,6 +310,36 @@ func TestActionBlock_MathOperations_10(t *testing.T) {
 	}
 	targetKvp := map[string]float64{
 		"s[i_2]": 16.0,
+	}
+	if !reflect.DeepEqual(targetKvp, newKvp) {
+		t.Errorf("Error KVP:\n\t%v\n\t%v", targetKvp, newKvp)
+	}
+}
+
+func TestActionBlock_MathOperations_11(t *testing.T) {
+	actionBlock := blocks.NewActionBlock()
+	err := actionBlock.ParseFromUserInput("s[i_2]--")
+	if err != nil {
+		t.Errorf("Error: %s", err)
+	}
+	kvp := map[string]float64{
+		"s[i_2]": 5.9,
+	}
+	actionBlock.SetActionKVP(&kvp)
+	keys := actionBlock.GetKeys()
+	targetKeys := []string{"s[i_2]"}
+	if !reflect.DeepEqual(targetKeys, keys) {
+		t.Errorf("Error keys:\n\t%v\n\t%v", targetKeys, keys)
+	}
+	newKvp, mess, err := actionBlock.PerformGetUpdateKVP()
+	if err != nil {
+		t.Errorf("Error: '%s'", err.Error())
+	}
+	if mess != "" {
+		t.Errorf("Error mess: '%s'", mess)
+	}
+	targetKvp := map[string]float64{
+		"s[i_2]": 4.9,
 	}
 	if !reflect.DeepEqual(targetKvp, newKvp) {
 		t.Errorf("Error KVP:\n\t%v\n\t%v", targetKvp, newKvp)
