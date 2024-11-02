@@ -7,7 +7,12 @@ import (
 	"Cloblox/blocks"
 )
 
-func TestVariableParse_1(t *testing.T) { // Valid
+// Valid 1-2
+// Error 3-7
+// Valid list 8-10
+// Error list ...-...
+
+func TestVariableParse_1(t *testing.T) {
 	varBlock := blocks.NewVariableBlock()
 	content := []string{
 		"x = 3.0",
@@ -28,7 +33,7 @@ func TestVariableParse_1(t *testing.T) { // Valid
 	}
 }
 
-func TestVariableParse_2(t *testing.T) { // Valid
+func TestVariableParse_2(t *testing.T) {
 	varBlock := blocks.NewVariableBlock()
 	content := []string{}
 	if err := varBlock.Parse(content); err != nil {
@@ -122,5 +127,117 @@ func TestVariableParse_7(t *testing.T) { // Token error
 	}
 	if !reflect.DeepEqual(targetMap, varBlock.GetVars()) {
 		t.Errorf("%v  !=  %v ", targetMap, varBlock.GetVars())
+	}
+}
+
+func TestVariableParse_8(t *testing.T) {
+	varBlock := blocks.NewVariableBlock()
+	content := []string{
+		"x = [88.9, 3.2, -2, -4.5, 8]",
+	}
+	err := varBlock.Parse(content)
+	if err != nil {
+		t.Errorf("Error:\n\t%s", err.Error())
+	}
+	targetMap := map[string]any{
+		"x": []float64{88.9, 3.2, -2, -4.5, 8},
+	}
+	if !reflect.DeepEqual(targetMap, varBlock.GetVars()) {
+		t.Errorf("%v  !=  %v ", targetMap, varBlock.GetVars())
+	}
+}
+
+func TestVariableParse_9(t *testing.T) {
+	varBlock := blocks.NewVariableBlock()
+	content := []string{
+		"x = [88.9, 3.2, -2, -4.5, 8]",
+		"z = [88.9,-2, -4.5, 8]",
+	}
+	err := varBlock.Parse(content)
+	if err != nil {
+		t.Errorf("Error:\n\t%s", err.Error())
+	}
+	targetMap := map[string]any{
+		"x": []float64{88.9, 3.2, -2, -4.5, 8},
+		"z": []float64{88.9, -2, -4.5, 8},
+	}
+	if !reflect.DeepEqual(targetMap, varBlock.GetVars()) {
+		t.Errorf("%v  !=  %v ", targetMap, varBlock.GetVars())
+	}
+}
+
+func TestVariableParse_10(t *testing.T) {
+	varBlock := blocks.NewVariableBlock()
+	content := []string{
+		"x = 5.5",
+		"z = [88.9,-2, -4.5, 8]",
+		"s_2 = -4.5",
+	}
+	err := varBlock.Parse(content)
+	if err != nil {
+		t.Errorf("Error:\n\t%s", err.Error())
+	}
+	targetMap := map[string]any{
+		"x":   5.5,
+		"z":   []float64{88.9, -2, -4.5, 8},
+		"s_2": -4.5,
+	}
+	if !reflect.DeepEqual(targetMap, varBlock.GetVars()) {
+		t.Errorf("%v  !=  %v ", targetMap, varBlock.GetVars())
+	}
+}
+
+func TestVariableParse_11(t *testing.T) {
+	varBlock := blocks.NewVariableBlock()
+	content := []string{
+		"z =88.9,-2, -4.5, 8",
+	}
+	err := varBlock.Parse(content)
+	if err == nil {
+		t.Errorf("Error should occur")
+	}
+}
+
+func TestVariableParse_12(t *testing.T) {
+	varBlock := blocks.NewVariableBlock()
+	content := []string{
+		"z = [88.9,-2, -4.5, 8",
+	}
+	err := varBlock.Parse(content)
+	if err == nil {
+		t.Errorf("Error should occur")
+	}
+}
+
+func TestVariableParse_13(t *testing.T) {
+	varBlock := blocks.NewVariableBlock()
+	content := []string{
+		"z = 88.9,-2, -4.5, 8]",
+	}
+	err := varBlock.Parse(content)
+	if err == nil {
+		t.Errorf("Error should occur")
+	}
+}
+
+func TestVariableParse_14(t *testing.T) {
+	varBlock := blocks.NewVariableBlock()
+	content := []string{
+		"z = [x, 88.9,-2, -4.5, 8]",
+	}
+	err := varBlock.Parse(content)
+	if err == nil {
+		t.Errorf("Error should occur")
+	}
+}
+
+func TestVariableParse_15(t *testing.T) {
+	varBlock := blocks.NewVariableBlock()
+	content := []string{
+		"z = [, 88.9,-2, -4.5, 8]",
+	}
+	err := varBlock.Parse(content)
+	if err == nil {
+		t.Errorf("Error should occur")
 	}
 }
