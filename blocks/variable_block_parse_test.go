@@ -10,7 +10,7 @@ import (
 // Valid 1-2
 // Error 3-7
 // Valid list 8-10
-// Error list ...-...
+// Error list 11-15
 
 func TestVariableParse_1(t *testing.T) {
 	varBlock := blocks.NewVariableBlock()

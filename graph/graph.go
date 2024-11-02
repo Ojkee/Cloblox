@@ -30,7 +30,7 @@ type Graph struct {
 	isFinished     bool
 }
 
-func NewGraph(blocksSlice *[]blocks.Block) *Graph {
+func NewGraph(blocksSlice *[]blocks.Block, stepLimit ...int) *Graph {
 	if blocksSlice == nil {
 		blocksS := make([]blocks.Block, 0)
 		blocksSlice = &blocksS
@@ -39,6 +39,12 @@ func NewGraph(blocksSlice *[]blocks.Block) *Graph {
 			block.SetId(i)
 		}
 	}
+	var stepLimit_ int
+	if len(stepLimit) > 0 {
+		stepLimit_ = stepLimit[0]
+	} else {
+		stepLimit_ = 1024
+	}
 	return &Graph{
 		blockCounter: len(*blocksSlice),
 		blocksSlice:  *blocksSlice,
@@ -46,7 +52,7 @@ func NewGraph(blocksSlice *[]blocks.Block) *Graph {
 		current:      nil,
 
 		stepCounter: 0,
-		stepLimit:   1024,
+		stepLimit:   stepLimit_,
 
 		allCurrentVars: make(map[string]any),
 		isFinished:     false,
@@ -178,9 +184,9 @@ func (graph *Graph) SetAllVars(allVars map[string]any) {
 	graph.allCurrentVars = allVars
 }
 
-func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float32, error) {
+func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float64, error) {
 	// idxer - expression within square brackets
-	retVal := make(map[string]float32)
+	retVal := make(map[string]float64)
 	for _, key := range *keys {
 		if arrayKey, idxer, found := getIfArrayKey(&key); found {
 			if !graph.isKeyInVars(arrayKey) {
@@ -209,12 +215,90 @@ func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float32, error) {
 	return retVal, nil
 }
 
-func (graph *Graph) MakeStep() error {
+// Goes to the next block and if it's action block it performs given action.
+// Doesn't catch errors on compile time.
+func (graph *Graph) MakeStep() (finished bool, logMessage string, err error) {
 	if graph.stepCounter >= graph.stepLimit {
-		return errors.New("Limit of steps exceeded")
+		err := errors.New("Limit of steps exceeded")
+		return false, err.Error(), err
 	}
+	err = graph.goToNext()
+	if err != nil {
+		return false, err.Error(), err
+	}
+	finished, logMessage, err = graph.evaluateCurrent()
+	graph.stepCounter += 1
+	return finished, logMessage, err
+}
 
+func (graph *Graph) goToNext() error {
+	var err error
+	switch prevBlock := (*graph.current).(type) {
+	case
+		*blocks.VariablesBlock,
+		*blocks.StartBlock,
+		*blocks.ActionBlock:
+		graph.current, err = prevBlock.GetNext()
+		if err != nil {
+			return err
+		}
+		break
+	case *blocks.IfBlock:
+		keys := prevBlock.GetKeys()
+		kvp, err := graph.GetKvpByKeys(&keys)
+		if err != nil {
+			return err
+		}
+		prevBlock.SetConditionKVP(&kvp)
+		graph.current, err = prevBlock.GetNext()
+		if err != nil {
+			return err
+		}
+		break
+	case *blocks.StopBlock:
+		return errors.New("Stop block can't give next block, should've finished")
+	default:
+		return errors.New("Not implemented block type")
+	}
 	return nil
+}
+
+func (graph *Graph) evaluateCurrent() (finished bool, logMessage string, err error) {
+	logMessage = ""
+	err = nil
+	switch currentBlock := (*graph.current).(type) {
+	case *blocks.StartBlock, *blocks.IfBlock:
+		return false, "", nil
+	case *blocks.StopBlock:
+		return true, "Finished", nil
+	case *blocks.ActionBlock:
+		keys := currentBlock.GetKeys()
+		kvp, err := graph.GetKvpByKeys(&keys)
+		if err != nil {
+			return false, err.Error(), err
+		}
+		currentBlock.SetActionKVP(&kvp)
+		updateKVP, mess, err := currentBlock.PerformGetUpdateKVP()
+		if err != nil {
+			return false, err.Error(), err
+		}
+		if mess != "" {
+			logMessage = mess
+		}
+		graph.UpdateVarsFromKVP(&updateKVP)
+		return false, logMessage, nil
+	case *blocks.VariablesBlock:
+		updateVars := currentBlock.GetVars()
+		err := graph.UpdateVarsFromKVPAny(&updateVars)
+		if err != nil {
+			return false, err.Error(), err
+		}
+		return false, "", nil
+	default:
+		err = errors.New("Not implemented block type")
+		logMessage = err.Error()
+	}
+	return
 }
 
 func dfsAllPathsStops(node *blocks.Block, visitedIds *[]int) (inStop, inNil bool) {
@@ -349,7 +433,7 @@ func (graph *Graph) parseArrayIdxer(idxer string) (int, error) {
 	r := regexp.MustCompile(`\b[a-zA-Z_][a-zA-Z0-9_]*\b`)
 	keysFound := r.FindAllString(idxer, -1)
 
-	foundKVP := make(map[string]float32)
+	foundKVP := make(map[string]float64)
 	for _, key := range keysFound {
 		val, err := graph.getValIfValid(key)
 		if err != nil {
@@ -376,38 +460,56 @@ func (graph *Graph) isKeyInVars(key string) bool {
 	return false
 }
 
-func (graph *Graph) getValFromSliceIfValid(valSlice any, idxer int) (float32, error) {
+func (graph *Graph) getValFromSliceIfValid(valSlice any, idxer int) (float64, error) {
 	idxErr := errors.New("Invalid index of the array")
 	switch s := valSlice.(type) {
 	case []float64:
 		if idxer >= 0 && idxer <= len(s) {
-			return float32(s[idxer]), nil
+			return s[idxer], nil
 		}
 		return 0, idxErr
 	case []float32:
 		if idxer >= 0 && idxer <= len(s) {
-			return s[idxer], nil
+			return float64(s[idxer]), nil
 		}
 		return 0, idxErr
 	case []int:
 		if idxer >= 0 && idxer <= len(s) {
-			return float32(s[idxer]), nil
+			return float64(s[idxer]), nil
 		}
 		return 0, idxErr
 	}
 	return 0, errors.New("Variable isn't an array of numbers")
 }
 
-func (graph *Graph) getValIfValid(key string) (float32, error) {
+func (graph *Graph) getValIfValid(key string) (float64, error) {
 	switch v := graph.allCurrentVars[key].(type) {
 	case float64:
-		return float32(v), nil
+		return v, nil
 	case float32:
-		return float32(v), nil
+		return float64(v), nil
 	case int:
-		return float32(v), nil
+		return float64(v), nil
 	}
 	return 0, errors.New("Value isn't number")
+}
+
+func (graph *Graph) UpdateVarsFromKVPAny(newVars *map[string]any) error {
+	updateVals := make(map[string]float64)
+	for key, val := range *newVars {
+		switch valFloat := val.(type) {
+		case float64:
+			updateVals[key] = valFloat
+			break
+		case []float64:
+			graph.allCurrentVars[key] = val
+			break
+		default:
+			return errors.New("Not implemented value type")
+		}
+	}
+	graph.UpdateVarsFromKVP(&updateVals)
+	return nil
 }
 
 func (graph *Graph) UpdateVarsFromKVP(newVars *map[string]float64) error {
@@ -451,4 +553,8 @@ func (graph *Graph) isSliceByKey(key *string) bool {
 		return true
 	}
 	return false
+}
+
+func (graph *Graph) GetStepCounter() int {
+	return graph.stepCounter
 }

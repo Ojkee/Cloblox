@@ -6,10 +6,6 @@ import (
 	"strings"
 )
 
-type BlockType interface {
-	float32 | []float32
-}
-
 type Block interface {
 	GetId() int
 	SetId(id int)
