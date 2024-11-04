@@ -76,14 +76,19 @@ func (block *IfBlock) SetConditionExpr(condition string) error {
 
 	availableOperators := []string{"==", "<=", "<", ">=", ">", "!="}
 	for _, op := range availableOperators {
-		tokens := strings.Split(exprReplaced, op)
-		if len(tokens) == 2 {
+		if strings.Contains(exprReplaced, op) {
 			block.keys = getKeysFromString(&block.conditionExpr)
-			block.conditionExprReplaced = setRound(tokens[0]) + op + setRound(tokens[1])
+			block.conditionExprReplaced = replaceLogicOps(&exprReplaced)
 			return nil
 		}
 	}
 	return errors.New("if_block.go/SetConditionExpr fail:\n\tNo valid operator used")
+}
+
+func replaceLogicOps(line *string) string {
+	replaced := strings.Replace(*line, "&&", "and", -1)
+	replaced = strings.Replace(replaced, "||", "or", -1)
+	return replaced
 }
 
 func (block *IfBlock) SetConditionKVP(kvp *map[string]float64) {
@@ -129,8 +134,4 @@ func (block *IfBlock) FlushCondition() {
 	block.conditionExprReplaced = ""
 	block.keys = []string{}
 	block.arrayKeys = make(map[string]string, 0)
-}
-
-func setRound(inside string) string {
-	return "roundn(" + inside + ", 10)"
 }

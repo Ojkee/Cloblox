@@ -245,3 +245,57 @@ func TestIfParse_9(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestIfParse_10(t *testing.T) {
+	ifBlock := blocks.NewIfBlock()
+	ifBlock.SetConditionExpr("j >= 0 && arr[j] > key")
+	keys := ifBlock.GetKeys()
+	targetKeys := []string{"j", "arr[j]", "key"}
+	if !reflect.DeepEqual(targetKeys, keys) {
+		t.Errorf("Error:\n\t'%v'\n\t'%v'", targetKeys, keys)
+	}
+	kvp := map[string]float64{
+		"j":      0,
+		"arr[j]": 3,
+		"key":    2,
+	}
+	ifBlock.SetConditionKVP(&kvp)
+	if isTrue, err := ifBlock.IsEvalTrue(); err != nil {
+		t.Errorf("Err: %v", err)
+	} else if !isTrue {
+		t.Fail()
+	}
+	kvp["key"] = 5
+	ifBlock.SetConditionKVP(&kvp)
+	if isTrue, err := ifBlock.IsEvalTrue(); err != nil {
+		t.Errorf("Err: %v", err)
+	} else if isTrue {
+		t.Fail()
+	}
+}
+
+func TestIfParse_11(t *testing.T) {
+	ifBlock := blocks.NewIfBlock()
+	ifBlock.SetConditionExpr("1 < 0 || a > 2")
+	keys := ifBlock.GetKeys()
+	targetKeys := []string{"a"}
+	if !reflect.DeepEqual(targetKeys, keys) {
+		t.Errorf("Error:\n\t'%v'\n\t'%v'", targetKeys, keys)
+	}
+	kvp := map[string]float64{
+		"a": 3,
+	}
+	ifBlock.SetConditionKVP(&kvp)
+	if isTrue, err := ifBlock.IsEvalTrue(); err != nil {
+		t.Errorf("Err: %v", err)
+	} else if !isTrue {
+		t.Fail()
+	}
+	kvp["a"] = 0
+	ifBlock.SetConditionKVP(&kvp)
+	if isTrue, err := ifBlock.IsEvalTrue(); err != nil {
+		t.Errorf("Err: %v", err)
+	} else if isTrue {
+		t.Fail()
+	}
+}

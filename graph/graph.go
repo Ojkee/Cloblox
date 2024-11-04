@@ -190,7 +190,7 @@ func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float64, error) {
 	for _, key := range *keys {
 		if arrayKey, idxer, found := getIfArrayKey(&key); found {
 			if !graph.isKeyInVars(arrayKey) {
-				return nil, errors.New("Invalid array variable")
+				return nil, errors.New("Variable not declared")
 			}
 			idxParsed, err := graph.parseArrayIdxer(idxer)
 			if err != nil {
@@ -209,7 +209,7 @@ func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float64, error) {
 			}
 			retVal[key] = val
 		} else {
-			return nil, errors.New("Invalid array variable")
+			return nil, errors.New(fmt.Sprintf("Invalid array variable:\n\t%s", key))
 		}
 	}
 	return retVal, nil
