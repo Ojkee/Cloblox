@@ -9,6 +9,13 @@ import (
 	"Cloblox/graph"
 )
 
+type MODE uint
+
+const (
+	INSERTION MODE = iota
+	SIMULATION
+)
+
 type Window struct {
 	name   string
 	height int32
@@ -89,6 +96,7 @@ func (window *Window) checkEvent() {
 	} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) { // Connect
 		window.currentConnectionEvent(mousePos)
 	}
+
 	//  else if rl.IsMouseButtonDown(rl.MouseButtonLeft) { // Move
 	// 	window.pressKeyMoveShapeAttach(&mousePos)
 	// }
