@@ -1,7 +1,9 @@
-package window
+package shapes
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
+
+	"Cloblox/settings"
 )
 
 type VariableShape struct {
@@ -16,12 +18,12 @@ func NewVariableShape(x, y float32) *VariableShape {
 			blockID:   -1,
 			x:         x,
 			y:         y,
-			height:    SHAPE_HEIGHT,
-			width:     SHAPE_WIDTH,
+			height:    settings.SHAPE_HEIGHT,
+			width:     settings.SHAPE_WIDTH,
 			visible:   true,
-			color:     VARIABLE_COLOR,
-			fontColor: FONT_COLOR,
-			fontSize:  FONT_SIZE,
+			color:     settings.VARIABLE_COLOR,
+			fontColor: settings.FONT_COLOR,
+			fontSize:  settings.FONT_SIZE,
 		},
 	}
 }
@@ -31,7 +33,7 @@ func (shape *VariableShape) Draw() {
 	if nLines == 0 {
 		nLines = 1
 	}
-	shapeHeight := int32(shape.height+SHAPE_TEXT_GAP) * int32(nLines)
+	shapeHeight := int32(shape.height+settings.SHAPE_TEXT_GAP) * int32(nLines)
 	rl.DrawRectangle(
 		int32(shape.x),
 		int32(shape.y),
@@ -44,7 +46,7 @@ func (shape *VariableShape) Draw() {
 		rl.DrawText(
 			text,
 			int32(shape.x+(shape.width-textWidth)/2.0),
-			int32(shape.y+float32(i*int(FONT_SIZE))),
+			int32(shape.y+float32(i*int(settings.FONT_SIZE))),
 			shape.fontSize,
 			shape.fontColor,
 		)

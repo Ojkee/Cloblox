@@ -1,4 +1,4 @@
-package window
+package shapes
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"

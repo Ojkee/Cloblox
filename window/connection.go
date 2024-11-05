@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+
+	"Cloblox/settings"
 )
 
 type Connection struct {
@@ -49,7 +51,7 @@ func (c *Connection) MoveOutPos(newX, newY float32) {
 func (c *Connection) Draw() {
 	inPos := rl.NewVector2(c.inPosX, c.inPosY)
 	outPos := rl.NewVector2(c.outPosX, c.outPosY)
-	rl.DrawLineBezier(inPos, outPos, 2, FONT_COLOR)
+	rl.DrawLineBezier(inPos, outPos, 2, settings.FONT_COLOR)
 }
 
 func (c *Connection) HasIds(id1, id2 int) bool {

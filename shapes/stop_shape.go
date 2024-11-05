@@ -1,32 +1,34 @@
-package window
+package shapes
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
+
+	"Cloblox/settings"
 )
 
-type StartShape struct {
+type StopShape struct {
 	ShapeDefault
 }
 
-func NewStartShape(x, y float32) *StartShape {
-	return &StartShape{
+func NewStopShape(x, y float32) *StopShape {
+	return &StopShape{
 		ShapeDefault: ShapeDefault{
-			shapeType: START,
-			content:   []string{"Start"},
+			shapeType: STOP,
+			content:   []string{"Stop"},
 			blockID:   -1,
 			x:         x,
 			y:         y,
-			height:    SHAPE_HEIGHT,
-			width:     SHAPE_WIDTH,
+			height:    settings.SHAPE_HEIGHT,
+			width:     settings.SHAPE_WIDTH,
 			visible:   true,
-			color:     START_STOP_COLOR,
-			fontColor: FONT_COLOR,
-			fontSize:  FONT_SIZE,
+			color:     settings.START_STOP_COLOR,
+			fontColor: settings.FONT_COLOR,
+			fontSize:  settings.FONT_SIZE,
 		},
 	}
 }
 
-func (shape *StartShape) Draw() {
+func (shape *StopShape) Draw() {
 	rl.DrawEllipse(
 		int32(shape.x+shape.width/2),
 		int32(shape.y+shape.height/2),
@@ -43,6 +45,6 @@ func (shape *StartShape) Draw() {
 	)
 }
 
-func (shape *StartShape) GetOutPos() (float32, float32) {
+func (shape *StopShape) GetOutPos() (float32, float32) {
 	return shape.x + shape.width/2, shape.y + shape.height
 }

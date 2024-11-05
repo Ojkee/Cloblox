@@ -1,4 +1,4 @@
-package window
+package settings
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 

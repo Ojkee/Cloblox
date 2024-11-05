@@ -1,7 +1,9 @@
-package window
+package shapes
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
+
+	"Cloblox/settings"
 )
 
 type IfShape struct {
@@ -16,12 +18,12 @@ func NewIfShape(x, y float32) *IfShape {
 			blockID:   -1,
 			x:         x,
 			y:         y,
-			height:    SHAPE_HEIGHT,
-			width:     SHAPE_WIDTH,
+			height:    settings.SHAPE_HEIGHT,
+			width:     settings.SHAPE_WIDTH,
 			visible:   true,
-			color:     IF_COLOR,
-			fontColor: FONT_COLOR,
-			fontSize:  FONT_SIZE,
+			color:     settings.IF_COLOR,
+			fontColor: settings.FONT_COLOR,
+			fontSize:  settings.FONT_SIZE,
 		},
 	}
 }

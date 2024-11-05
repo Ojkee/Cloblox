@@ -1,7 +1,9 @@
-package window
+package shapes
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
+
+	"Cloblox/settings"
 )
 
 type ActionShape struct {
@@ -17,13 +19,13 @@ func NewActionShape(x, y float32) *ActionShape {
 			blockID:   -1,
 			x:         x,
 			y:         y,
-			height:    SHAPE_HEIGHT,
-			width:     SHAPE_WIDTH - SHAPE_WIDTH/4,
-			color:     PRINT_COLOR,
-			fontColor: FONT_COLOR,
-			fontSize:  FONT_SIZE,
+			height:    settings.SHAPE_HEIGHT,
+			width:     settings.SHAPE_WIDTH - settings.SHAPE_WIDTH/4,
+			color:     settings.PRINT_COLOR,
+			fontColor: settings.FONT_COLOR,
+			fontSize:  settings.FONT_SIZE,
 		},
-		tiltOffset: SHAPE_WIDTH / 4,
+		tiltOffset: settings.SHAPE_WIDTH / 4,
 	}
 }
 
