@@ -96,6 +96,40 @@ func (graph *Graph) AppendBlock(block blocks.Block) {
 	graph.blocksSlice = append(graph.blocksSlice, block)
 }
 
+func (graph *Graph) RemoveBlockById(id int) {
+	for _, block := range graph.blocksSlice {
+		if singleBlock, ok := block.(blocks.BlockSingleOut); ok {
+			nextBlock, err := singleBlock.GetNext()
+			if nextBlock != nil && err == nil {
+				if (*nextBlock).GetId() == id {
+					singleBlock.SetNext(nil)
+				}
+			}
+		} else if manyBlock, ok := block.(blocks.BlockManyOut); ok {
+			nextTrue := manyBlock.GetNextTrue()
+			if nextTrue != nil {
+				if (*nextTrue).GetId() == id {
+					manyBlock.SetNextTrue(nil)
+				}
+			}
+			nextFalse := manyBlock.GetNextFalse()
+			if nextFalse != nil {
+				if (*nextFalse).GetId() == id {
+					manyBlock.SetNextFalse(nil)
+				}
+			}
+		}
+	}
+	blockI := 0
+	for i := range graph.blocksSlice {
+		if graph.blocksSlice[i].GetId() != id {
+			graph.blocksSlice[blockI] = graph.blocksSlice[i]
+			blockI++
+		}
+	}
+	graph.blocksSlice = graph.blocksSlice[:blockI]
+}
+
 func (graph *Graph) ConnectByIds(idFrom, idTo int, isNextTrue ...bool) error {
 	if idFrom == idTo {
 		return errors.New("graph/ConnectByIDs fail:\n\tCan't connect to itself")
@@ -148,30 +182,40 @@ func (graph *Graph) GetAllVars() map[string]any {
 }
 
 func (graph *Graph) Log() { // Debug
-	fmt.Println("******************************************")
-	for _, block := range graph.blocksSlice {
-		fmt.Printf("%d ", block.GetId())
-		if mBlock, ok := block.(blocks.BlockManyOut); ok {
+	fmt.Println("***********************************************************")
+	printVal := ""
+	for i := range graph.blocksSlice {
+		printVal = fmt.Sprintf(
+			"%s %d %v | ",
+			printVal,
+			graph.blocksSlice[i].GetId(),
+			&graph.blocksSlice[i],
+		)
+	}
+	fmt.Println(printVal)
+	for i := range graph.blocksSlice {
+		fmt.Printf("%d %v ", graph.blocksSlice[i].GetId(), &graph.blocksSlice[i])
+		if mBlock, ok := graph.blocksSlice[i].(blocks.BlockManyOut); ok {
 			nextString := "  ->  "
 			nextFalse := mBlock.GetNextFalse()
 			if nextFalse != nil {
-				nextString += fmt.Sprintf("%d, ", (*nextFalse).GetId())
+				nextString += fmt.Sprintf("%d %v, ", (*nextFalse).GetId(), nextFalse)
 			} else {
 				nextString += "nil, "
 			}
 			nextTrue := mBlock.GetNextTrue()
 			if nextTrue != nil {
-				nextString += fmt.Sprintf("%d, ", (*nextTrue).GetId())
+				nextString += fmt.Sprintf("%d %v, ", (*nextTrue).GetId(), nextFalse)
 			} else {
 				nextString += "nil "
 			}
 			fmt.Print(nextString)
-		} else {
-			next, _ := block.GetNext()
-			if next == nil {
-				fmt.Print("  ->  nil")
+		} else if sBlock, ok := graph.blocksSlice[i].(blocks.BlockSingleOut); ok {
+			next, _ := sBlock.GetNext()
+			if next != nil {
+				fmt.Printf("  ->  %d %v", (*next).GetId(), next)
 			} else {
-				fmt.Printf("  ->  %d", (*next).GetId())
+				fmt.Print("  ->  nil")
 			}
 		}
 		fmt.Println()
@@ -364,12 +408,14 @@ func (graph *Graph) connectBlocks(src, dst int, isNextTrue ...bool) error {
 			)
 		}
 		if isNextTrue[0] {
-			manyBlock.SetNextTrue(graph.blocksSlice[dst])
+			manyBlock.SetNextTrue(&graph.blocksSlice[dst])
 		} else {
-			manyBlock.SetNextFalse(graph.blocksSlice[dst])
+			manyBlock.SetNextFalse(&graph.blocksSlice[dst])
 		}
+		graph.blocksSlice[src] = manyBlock
 	} else if singleBlock, ok := graph.blocksSlice[src].(blocks.BlockSingleOut); ok {
-		singleBlock.SetNext(graph.blocksSlice[dst])
+		singleBlock.SetNext(&graph.blocksSlice[dst])
+		graph.blocksSlice[src] = singleBlock
 	}
 	return nil
 }
@@ -557,4 +603,18 @@ func (graph *Graph) isSliceByKey(key *string) bool {
 
 func (graph *Graph) GetStepCounter() int {
 	return graph.stepCounter
+}
+
+func (graph *Graph) GetAllSlicesKVP() (map[string][]float64, error) {
+	retVal := make(map[string][]float64)
+	for key, value := range graph.allCurrentVars {
+		switch v := value.(type) {
+		case []float64:
+			retVal[key] = v
+			break
+		case []float32, []int:
+			return nil, errors.New("TBD Type")
+		}
+	}
+	return retVal, nil
 }

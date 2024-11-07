@@ -57,12 +57,12 @@ func (block *IfBlock) GetNextFalse() *Block {
 	return block.nextFalse
 }
 
-func (block *IfBlock) SetNextTrue(next Block) {
-	block.nextTrue = &next
+func (block *IfBlock) SetNextTrue(next *Block) {
+	block.nextTrue = next
 }
 
-func (block *IfBlock) SetNextFalse(next Block) {
-	block.nextFalse = &next
+func (block *IfBlock) SetNextFalse(next *Block) {
+	block.nextFalse = next
 }
 
 func (block *IfBlock) GetKeys() []string {

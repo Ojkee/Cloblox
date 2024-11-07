@@ -15,15 +15,15 @@ type Block interface {
 
 type BlockSingleOut interface {
 	Block
-	SetNext(next Block)
+	SetNext(next *Block)
 }
 
 type BlockManyOut interface {
 	Block
 	GetNextTrue() *Block
 	GetNextFalse() *Block
-	SetNextTrue(next Block)
-	SetNextFalse(next Block)
+	SetNextTrue(next *Block)
+	SetNextFalse(next *Block)
 }
 
 type BlockWithVars interface {

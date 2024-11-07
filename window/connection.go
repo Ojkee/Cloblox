@@ -37,32 +37,36 @@ func NewConnection(
 	}
 }
 
-func (c *Connection) MoveInPos(newX, newY float32) {
-	c.inPosX = newX
-	c.inPosY = newY
-	fmt.Println(c.inPosX, c.inPosY)
+func (conn *Connection) MoveInPos(newX, newY float32) {
+	conn.inPosX = newX
+	conn.inPosY = newY
+	fmt.Println(conn.inPosX, conn.inPosY)
 }
 
-func (c *Connection) MoveOutPos(newX, newY float32) {
-	c.outPosX = newX
-	c.outPosY = newY
+func (conn *Connection) MoveOutPos(newX, newY float32) {
+	conn.outPosX = newX
+	conn.outPosY = newY
 }
 
-func (c *Connection) Draw() {
-	inPos := rl.NewVector2(c.inPosX, c.inPosY)
-	outPos := rl.NewVector2(c.outPosX, c.outPosY)
+func (conn *Connection) Draw() {
+	inPos := rl.NewVector2(conn.inPosX, conn.inPosY)
+	outPos := rl.NewVector2(conn.outPosX, conn.outPosY)
 	rl.DrawLineBezier(inPos, outPos, 2, settings.FONT_COLOR)
 }
 
-func (c *Connection) HasIds(id1, id2 int) bool {
-	return (c.inShapeId == id1 && c.outShapeId == id2) ||
-		(c.inShapeId == id2 && c.outShapeId == id1)
+func (conn *Connection) HasId(id int) bool {
+	return conn.inShapeId == id || conn.outShapeId == id
 }
 
-func (c *Connection) SetCloserToRight(isCloser bool) {
-	c.closerToRight = isCloser
+func (conn *Connection) HasIds(id1, id2 int) bool {
+	return (conn.inShapeId == id1 && conn.outShapeId == id2) ||
+		(conn.inShapeId == id2 && conn.outShapeId == id1)
 }
 
-func (c *Connection) IsCloserToRigth() bool {
-	return c.closerToRight
+func (conn *Connection) SetCloserToRight(isCloser bool) {
+	conn.closerToRight = isCloser
+}
+
+func (conn *Connection) IsCloserToRigth() bool {
+	return conn.closerToRight
 }

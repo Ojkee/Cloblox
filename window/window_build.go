@@ -8,6 +8,19 @@ import (
 	"Cloblox/shapes"
 )
 
+func initBuildingShapes(width, height int32) []shapes.Shape {
+	offsetX := float32(width/2.0 + 10)
+	gap := float32(settings.SHAPE_HEIGHT + 16)
+	offsetY := float32(height)/2.0 - gap*2.5
+	return []shapes.Shape{
+		shapes.NewStartShape(offsetX, offsetY),
+		shapes.NewVariableShape(offsetX, offsetY+gap),
+		shapes.NewIfShape(offsetX, offsetY+2*gap),
+		shapes.NewActionShape(offsetX, offsetY+3*gap),
+		shapes.NewStopShape(offsetX, offsetY+4*gap),
+	}
+}
+
 func (window *Window) buildNewShapeEvent(mousePos *rl.Vector2) {
 	clickedNewShape := false
 	for _, shape := range window.buildingShapes {
@@ -18,7 +31,7 @@ func (window *Window) buildNewShapeEvent(mousePos *rl.Vector2) {
 			window.updateCurrentShape(mousePos)
 		}
 	}
-	if mousePos.X < settings.WINDOW_WIDTH/2 {
+	if mousePos.X < settings.WINDOW_WIDTH/2+settings.SHAPE_WIDTH+10 && !clickedNewShape {
 		window.resetClickedShape()
 	}
 	if window.shapeClicked && !clickedNewShape {

@@ -6,40 +6,40 @@ import (
 	"Cloblox/shapes"
 )
 
-func (window *Window) currentConnectionEvent(mousePos rl.Vector2) {
+func (window *Window) currentConnectionEvent(mousePos rl.Vector2) error {
 	clickedAnyShape := false
 	for _, shape := range window.diagramShapes {
-		if rl.CheckCollisionPointRec(mousePos, shape.GetRect()) {
-			clickedAnyShape = true
-			if !window.clickedConnection {
-				shapeX, shapeY, multipleOut, closerToRight := window.getShapeOutPos(
-					&shape,
-					&mousePos,
-				)
-				window.currentConnection = NewConnection(
-					shapeX, shapeY,
-					mousePos.X, mousePos.Y,
-					-1, shape.GetBlockId(),
-					multipleOut, closerToRight,
-				)
-				window.clickedConnection = true
-			} else {
-				if !window.connectionExistsOrSelf(shape.GetBlockId(), window.currentConnection.inShapeId) {
-					shapePosX, shapePosY := shape.GetInPos()
-					window.currentConnection.MoveOutPos(shapePosX, shapePosY)
-					window.currentConnection.inShapeId = shape.GetBlockId()
-					window.connections = append(window.connections, *window.currentConnection)
-					if err := window.connectBlocksByConnection(window.currentConnection); err != nil {
-						panic(err)
-					}
-					window.resetCurrentConnection()
-				}
+		if !rl.CheckCollisionPointRec(mousePos, shape.GetRect()) {
+			continue
+		}
+		clickedAnyShape = true
+		if !window.clickedConnection {
+			shapeX, shapeY, multipleOut, closerToRight := window.getShapeOutPos(
+				&shape,
+				&mousePos,
+			)
+			window.currentConnection = NewConnection(
+				shapeX, shapeY,
+				mousePos.X, mousePos.Y,
+				-1, shape.GetBlockId(),
+				multipleOut, closerToRight,
+			)
+			window.clickedConnection = true
+		} else if !window.connectionExistsOrSelf(shape.GetBlockId(), window.currentConnection.inShapeId) {
+			shapePosX, shapePosY := shape.GetInPos()
+			window.currentConnection.MoveOutPos(shapePosX, shapePosY)
+			window.currentConnection.inShapeId = shape.GetBlockId()
+			if err := window.connectBlocksByConnection(window.currentConnection); err != nil {
+				return err
 			}
+			window.connections = append(window.connections, *window.currentConnection)
+			window.resetCurrentConnection()
 		}
 	}
 	if !clickedAnyShape {
 		window.resetCurrentConnection()
 	}
+	return nil
 }
 
 func (window *Window) updateCurrentConnection(mousePos *rl.Vector2) {

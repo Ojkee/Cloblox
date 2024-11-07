@@ -8,10 +8,21 @@ import (
 	"Cloblox/settings"
 )
 
-func (window *Window) drawMode() {
-	textWidth := rl.MeasureText(string(window.currentMode), settings.FONT_SIZE)
+type MODE string
+
+const (
+	BUILDING   MODE = "building"
+	INSERTION       = "insertion"
+	REMOVE          = "remove"
+	SIMULATION      = "simulation"
+	DEBUG           = "debug"
+)
+
+func (window *Window) drawCurrentMode() {
+	modeStr := string(window.currentMode)
+	textWidth := rl.MeasureText(modeStr, settings.FONT_SIZE)
 	rl.DrawText(
-		string(window.currentMode),
+		modeStr,
 		window.width-textWidth-4,
 		0,
 		settings.FONT_SIZE,
@@ -20,19 +31,29 @@ func (window *Window) drawMode() {
 }
 
 func (window *Window) changeModeEvent() {
-	switch rl.GetKeyPressed() {
-	case 0: // DEFAULT NO PRESS KEY
+	keyPressed := rl.GetKeyPressed()
+	if window.currentMode == INSERTION {
+		if keyPressed == rl.KeyEscape {
+			window.currentMode = BUILDING
+		} else {
+			return
+		}
+	}
+	switch keyPressed {
+	case
+		0,       // DEFAULT NO PRESS KEY
+		rl.KeyD: // RESERVED FOR DEBUG
 		break
-	case rl.KeyI:
-		window.currentMode = INSERTION
-		break
-	case rl.KeyR:
-		window.currentMode = REMOVE
-		break
-	case rl.KeyEscape, rl.KeyB:
+	case rl.KeyEscape, rl.KeyB, rl.KeyOne:
 		window.currentMode = BUILDING
 		break
-	case rl.KeyS:
+	case rl.KeyI, rl.KeyTwo:
+		window.currentMode = INSERTION
+		break
+	case rl.KeyR, rl.KeyThree:
+		window.currentMode = REMOVE
+		break
+	case rl.KeyS, rl.KeyFour:
 		window.currentMode = SIMULATION
 		break
 	default:

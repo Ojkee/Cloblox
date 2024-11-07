@@ -19,8 +19,8 @@ func (block *StartBlock) GetNext() (*Block, error) {
 	return block.next, nil
 }
 
-func (block *StartBlock) SetNext(next Block) {
-	block.next = &next
+func (block *StartBlock) SetNext(next *Block) {
+	block.next = next
 }
 
 type StopBlock struct {
@@ -42,7 +42,7 @@ func (block *StopBlock) GetNext() (*Block, error) {
 	return nil, nil
 }
 
-func (block *StopBlock) SetNext(next Block) {
+func (block *StopBlock) SetNext(next *Block) {
 	if next != nil {
 		panic("Can't content to Stop block")
 	}

@@ -1,7 +1,6 @@
 package graph_test
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -32,23 +31,23 @@ func TestGraphSimulation_1(t *testing.T) {
 	actionIInc.ParseFromUserInput("i++")
 	stop := blocks.NewStopBlock()
 
-	start.SetNext(variableT)
-	variableT.SetNext(variableIJ)
-	variableIJ.SetNext(actionJ)
-	actionJ.SetNext(ifI)
-	ifI.SetNextFalse(stop)
-	ifI.SetNextTrue(ifJ)
-	ifJ.SetNextFalse(actionIInc)
-	actionIInc.SetNext(actionJ)
-	ifJ.SetNextTrue(ifSwap)
-	ifSwap.SetNextTrue(actionSwap)
-	actionSwap.SetNext(actionJInc)
-	ifSwap.SetNextFalse(actionJInc)
-	actionJInc.SetNext(ifJ)
-
 	diagram := graph.NewGraph(&[]blocks.Block{
 		start, variableT, variableIJ, actionJ, ifI, ifJ, ifSwap, actionSwap, actionJInc, actionIInc, stop,
 	}, 200)
+	diagram.ConnectByIds(0, 1)
+	diagram.ConnectByIds(1, 2)
+	diagram.ConnectByIds(2, 3)
+	diagram.ConnectByIds(3, 4)
+	diagram.ConnectByIds(4, 10, false)
+	diagram.ConnectByIds(4, 5, true)
+	diagram.ConnectByIds(5, 9, false)
+	diagram.ConnectByIds(9, 3)
+	diagram.ConnectByIds(5, 6, true)
+	diagram.ConnectByIds(6, 7, true)
+	diagram.ConnectByIds(7, 8)
+	diagram.ConnectByIds(6, 8, false)
+	diagram.ConnectByIds(8, 5)
+
 	err := diagram.InitIfValid()
 	if err != nil {
 		t.Fatal(err)
@@ -96,25 +95,25 @@ func TestGraphSimulation_2(t *testing.T) {
 	actionJ := blocks.NewActionBlock()
 	actionJ.ParseFromUserInput("j--")
 
-	start.SetNext(variableT)
-	variableT.SetNext(variableINJKey)
-	variableINJKey.SetNext(ifI)
-	ifI.SetNextFalse(stop)
-	ifI.SetNextTrue(actionKey)
-	actionKey.SetNext(actionJI)
-	actionJI.SetNext(ifJ)
-	ifJ.SetNextFalse(actionT)
-	actionT.SetNext(actionI)
-	actionI.SetNext(ifI)
-	ifJ.SetNextTrue(ifT)
-	ifT.SetNextFalse(actionT)
-	ifT.SetNextTrue(actionTTrue)
-	actionTTrue.SetNext(actionJ)
-	actionJ.SetNext(ifJ)
-
 	diagram := graph.NewGraph(&[]blocks.Block{
 		start, variableT, variableINJKey, ifI, stop, actionKey, actionJI, ifJ, ifT, actionT, actionI, actionTTrue, actionJ,
 	}, 1000)
+	diagram.ConnectByIds(0, 1)
+	diagram.ConnectByIds(1, 2)
+	diagram.ConnectByIds(2, 3)
+	diagram.ConnectByIds(3, 4, false)
+	diagram.ConnectByIds(3, 5, true)
+	diagram.ConnectByIds(5, 6)
+	diagram.ConnectByIds(6, 7)
+	diagram.ConnectByIds(7, 9, false)
+	diagram.ConnectByIds(9, 10)
+	diagram.ConnectByIds(10, 3)
+	diagram.ConnectByIds(7, 8, true)
+	diagram.ConnectByIds(8, 9, false)
+	diagram.ConnectByIds(8, 11, true)
+	diagram.ConnectByIds(11, 12)
+	diagram.ConnectByIds(12, 7)
+
 	err := diagram.InitIfValid()
 	if err != nil {
 		t.Fatal(err)

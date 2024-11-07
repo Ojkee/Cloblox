@@ -24,6 +24,8 @@ var (
 	VARIABLE_COLOR         = rl.NewColor(153, 141, 153, 255)
 	PRINT_COLOR            = rl.NewColor(102, 96, 102, 255)
 	CONNECTION_COLOR       = rl.NewColor(77, 74, 77, 255)
+	BLOCK_POSITIVE         = rl.NewColor(108, 123, 41, 255)
+	BLOCK_NEGATIVE         = rl.NewColor(179, 34, 53, 255)
 )
 
 // SHAPES

@@ -35,8 +35,8 @@ func (block *VariablesBlock) GetNext() (*Block, error) {
 	return block.next, nil
 }
 
-func (block *VariablesBlock) SetNext(next Block) {
-	block.next = &next
+func (block *VariablesBlock) SetNext(next *Block) {
+	block.next = next
 }
 
 func (block *VariablesBlock) AddVariable(name string, value any) {

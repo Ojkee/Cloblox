@@ -1,20 +1,13 @@
 package window
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"Cloblox/graph"
 	"Cloblox/settings"
 	"Cloblox/shapes"
-)
-
-type MODE string
-
-const (
-	BUILDING   MODE = "building"
-	INSERTION       = "insertion"
-	SIMULATION      = "simulation"
-	REMOVE          = "remove"
 )
 
 type Window struct {
@@ -66,19 +59,6 @@ func NewWindow(name string, height, width int32) *Window {
 	}
 }
 
-func initBuildingShapes(width, height int32) []shapes.Shape {
-	offsetX := float32(width/2.0 + 10)
-	gap := float32(settings.SHAPE_HEIGHT + 16)
-	offsetY := float32(height)/2.0 - gap*2.5
-	return []shapes.Shape{
-		shapes.NewStartShape(offsetX, offsetY),
-		shapes.NewVariableShape(offsetX, offsetY+gap),
-		shapes.NewIfShape(offsetX, offsetY+2*gap),
-		shapes.NewActionShape(offsetX, offsetY+3*gap),
-		shapes.NewStopShape(offsetX, offsetY+4*gap),
-	}
-}
-
 func (window *Window) MainLoop() {
 	rl.InitWindow(window.width, window.height, "Cloblox")
 	rl.SetExitKey(rl.KeyQ)
@@ -89,6 +69,7 @@ func (window *Window) MainLoop() {
 	for !rl.WindowShouldClose() {
 		window.checkEvent()
 		window.draw()
+
 		if rl.IsKeyPressed(rl.KeyD) { // Debug
 			window.diagram.Log()
 		}
@@ -98,20 +79,35 @@ func (window *Window) MainLoop() {
 func (window *Window) checkEvent() {
 	window.changeModeEvent()
 	mousePos := rl.GetMousePosition()
-	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) { // New Shape
-		window.buildNewShapeEvent(&mousePos)
-	} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) { // Connect
-		window.currentConnectionEvent(mousePos)
+	switch window.currentMode {
+	case BUILDING:
+		if rl.IsMouseButtonPressed(rl.MouseButtonLeft) { // New Shape
+			window.buildNewShapeEvent(&mousePos)
+		} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) { // Connect
+			err := window.currentConnectionEvent(mousePos)
+			if err != nil {
+				fmt.Println(err) // TODO write to console
+			}
+		}
+		break
+	case INSERTION:
+		break
+	case REMOVE:
+		if rl.IsMouseButtonPressed(rl.MouseButtonLeft) ||
+			rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+			if removeId := window.getShapeIdMousePos(&mousePos); removeId != -1 {
+				window.removeShapeAndConnectionsById(removeId)
+			}
+		}
+		break
 	}
 }
 
 func (window *Window) draw() {
 	rl.BeginDrawing()
-	rl.MaximizeWindow()
 	rl.ClearBackground(window.backgroundColor)
 	rl.DrawLine(window.width/2, 0, window.width/2, window.height, settings.FONT_COLOR)
-
-	window.drawMode()
+	window.drawCurrentMode()
 
 	for _, conn := range window.connections {
 		conn.Draw()

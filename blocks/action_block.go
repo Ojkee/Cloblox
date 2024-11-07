@@ -60,8 +60,8 @@ func (block *ActionBlock) GetNext() (*Block, error) {
 	return block.next, nil
 }
 
-func (block *ActionBlock) SetNext(next Block) {
-	block.next = &next
+func (block *ActionBlock) SetNext(next *Block) {
+	block.next = next
 }
 
 func (block *ActionBlock) ParseFromUserInput(input string) error {
