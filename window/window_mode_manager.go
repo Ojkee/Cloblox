@@ -11,11 +11,11 @@ import (
 type MODE string
 
 const (
-	BUILDING   MODE = "building"
-	INSERTION       = "insertion"
-	REMOVE          = "remove"
-	SIMULATION      = "simulation"
-	DEBUG           = "debug"
+	BUILD    MODE = "build"
+	INSERT        = "insert"
+	REMOVE        = "remove"
+	SIMULATE      = "simulate"
+	DEBUG         = "debug"
 )
 
 func (window *Window) drawCurrentMode() {
@@ -32,9 +32,9 @@ func (window *Window) drawCurrentMode() {
 
 func (window *Window) changeModeEvent() {
 	keyPressed := rl.GetKeyPressed()
-	if window.currentMode == INSERTION {
+	if window.currentMode == INSERT {
 		if keyPressed == rl.KeyEscape {
-			window.currentMode = BUILDING
+			window.currentMode = BUILD
 		} else {
 			return
 		}
@@ -45,16 +45,16 @@ func (window *Window) changeModeEvent() {
 		rl.KeyD: // RESERVED FOR DEBUG
 		break
 	case rl.KeyEscape, rl.KeyB, rl.KeyOne:
-		window.currentMode = BUILDING
+		window.currentMode = BUILD
 		break
 	case rl.KeyI, rl.KeyTwo:
-		window.currentMode = INSERTION
+		window.currentMode = INSERT
 		break
 	case rl.KeyR, rl.KeyThree:
 		window.currentMode = REMOVE
 		break
 	case rl.KeyS, rl.KeyFour:
-		window.currentMode = SIMULATION
+		window.currentMode = SIMULATE
 		break
 	default:
 		fmt.Print("Mode not implremented")

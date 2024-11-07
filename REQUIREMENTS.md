@@ -1,8 +1,5 @@
 # Requirements
-- [https://github.com/gen2brain/raylib-go](Raylib) 
-Ubuntu:
-```
-    apt-get install libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
-```
-
+- Go 1.23.2
+- [Raylib](https://github.com/gen2brain/raylib-go) 
+- [go-exprtk](https://github.com/Pramod-Devireddy/go-exprtk)
 

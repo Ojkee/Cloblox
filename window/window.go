@@ -53,7 +53,7 @@ func NewWindow(name string, height, width int32) *Window {
 		clickedConnection: false,
 		currentConnection: nil,
 
-		currentMode: BUILDING,
+		currentMode: BUILD,
 
 		diagram: *graph.NewGraph(nil),
 	}
@@ -80,7 +80,7 @@ func (window *Window) checkEvent() {
 	window.changeModeEvent()
 	mousePos := rl.GetMousePosition()
 	switch window.currentMode {
-	case BUILDING:
+	case BUILD:
 		if rl.IsMouseButtonPressed(rl.MouseButtonLeft) { // New Shape
 			window.buildNewShapeEvent(&mousePos)
 		} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) { // Connect
@@ -90,7 +90,7 @@ func (window *Window) checkEvent() {
 			}
 		}
 		break
-	case INSERTION:
+	case INSERT:
 		break
 	case REMOVE:
 		if rl.IsMouseButtonPressed(rl.MouseButtonLeft) ||

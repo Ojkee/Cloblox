@@ -72,6 +72,9 @@ func (window *Window) placeCurrentShape(mx, my float32) {
 	cShape.TranslateCenter()
 	cShape.SetBlockId(cBlock.GetId())
 	window.diagramShapes = append(window.diagramShapes, cShape)
+	for _, conn := range window.connections {
+		window.connectBlocksByConnection(&conn)
+	}
 }
 
 func (window *Window) makeCurrentClicked(shapeType shapes.SHAPE_TYPE) {
