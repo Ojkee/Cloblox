@@ -8,6 +8,18 @@ import (
 	"Cloblox/shapes"
 )
 
+func (window *Window) buildManager(mousePos *rl.Vector2) error {
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) { // New Shape
+		window.buildNewShapeEvent(mousePos)
+	} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) { // Connect
+		err := window.currentConnectionEvent(mousePos)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func initBuildingShapes(width, height int32) []shapes.Shape {
 	offsetX := float32(width/2.0 + 10)
 	gap := float32(settings.SHAPE_HEIGHT + 16)
@@ -32,11 +44,11 @@ func (window *Window) buildNewShapeEvent(mousePos *rl.Vector2) {
 		}
 	}
 	if mousePos.X < settings.WINDOW_WIDTH/2+settings.SHAPE_WIDTH+10 && !clickedNewShape {
-		window.resetClickedShape()
+		window.flushBuildShape()
 	}
 	if window.shapeClicked && !clickedNewShape {
 		window.placeCurrentShape(mousePos.X, mousePos.Y)
-		window.resetClickedShape()
+		window.flushBuildShape()
 	}
 }
 
@@ -65,7 +77,7 @@ func (window *Window) placeCurrentShape(mx, my float32) {
 		cShape = shapes.NewStopShape(mx, my)
 		break
 	default:
-		window.resetClickedShape()
+		window.flushBuildShape()
 		panic("window.go/makeCurrentClicked fail:\n\tNot implemented shape type")
 	}
 	window.diagram.AppendBlock(cBlock)
@@ -96,7 +108,7 @@ func (window *Window) makeCurrentClicked(shapeType shapes.SHAPE_TYPE) {
 		window.currentShape = shapes.NewStopShape(0, 0)
 		break
 	default:
-		window.resetClickedShape()
+		window.flushBuildShape()
 		panic("window.go/makeCurrentClicked fail:\n\tNot implemented shape type")
 	}
 }
@@ -108,7 +120,7 @@ func (window *Window) updateCurrentShape(mousePos *rl.Vector2) {
 	)
 }
 
-func (window *Window) resetClickedShape() {
+func (window *Window) flushBuildShape() {
 	window.shapeClicked = false
 	window.currentShape = nil
 	window.currentShapeType = shapes.NONE

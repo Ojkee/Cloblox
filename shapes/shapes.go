@@ -24,6 +24,7 @@ type Shape interface {
 	TranslateCenter()
 	Resize(height, width float32)
 	SetContent(content *[]string)
+	GetContent() []string
 	GetInPos() (float32, float32)
 	SetBlockId(bId int)
 	GetBlockId() int
@@ -40,6 +41,7 @@ type ShapeManyOut interface {
 
 type ShapeDefault struct {
 	shapeType SHAPE_TYPE
+	name      string
 	content   []string
 	blockID   int
 
@@ -86,6 +88,10 @@ func (shape *ShapeDefault) SetContent(content *[]string) {
 	shape.content = *content
 }
 
+func (shape *ShapeDefault) GetContent() []string {
+	return shape.content
+}
+
 func (shape *ShapeDefault) GetInPos() (float32, float32) {
 	return shape.x + shape.width/2, shape.y
 }
@@ -100,4 +106,35 @@ func (shape *ShapeDefault) SetBlockId(bId int) {
 
 func (shape *ShapeDefault) GetBlockId() int {
 	return shape.blockID
+}
+
+func (shape *ShapeDefault) isContentEmpty() bool {
+	if len(shape.content) > 0 {
+		return false
+	}
+	return true
+}
+
+func (shape *ShapeDefault) drawContent() {
+	if shape.isContentEmpty() {
+		nameWidth := rl.MeasureText(shape.name, shape.fontSize)
+		rl.DrawText(
+			shape.name,
+			int32(shape.x+shape.width/2-float32(nameWidth)/2),
+			int32(shape.y+shape.height/2-8),
+			shape.fontSize,
+			shape.fontColor,
+		)
+	} else {
+		for i, contentLine := range shape.content {
+			contentWidth := shape.getContentSize(i)
+			rl.DrawText(
+				contentLine,
+				int32(shape.x+shape.width/2-float32(contentWidth)/2),
+				int32(shape.y+shape.height/2-8),
+				shape.fontSize,
+				shape.fontColor,
+			)
+		}
+	}
 }

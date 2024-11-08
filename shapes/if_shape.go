@@ -14,7 +14,8 @@ func NewIfShape(x, y float32) *IfShape {
 	return &IfShape{
 		ShapeDefault: ShapeDefault{
 			shapeType: IF,
-			content:   []string{"If"},
+			name:      "If",
+			content:   []string{},
 			blockID:   -1,
 			x:         x,
 			y:         y,
@@ -35,13 +36,7 @@ func (shape *IfShape) Draw() {
 	down := rl.NewVector2(shape.x+shape.width/2, shape.y+shape.height)
 	rl.DrawTriangle(up, left, down, shape.color)
 	rl.DrawTriangle(right, up, down, shape.color)
-	rl.DrawText(
-		shape.content[0],
-		int32(shape.x+shape.width/2),
-		int32(shape.y+shape.height/2-8),
-		shape.fontSize,
-		shape.fontColor,
-	)
+	shape.drawContent()
 }
 
 // Always to right
@@ -54,10 +49,10 @@ func (shape *IfShape) GetOutPosFalse() (float32, float32) {
 	return shape.x, shape.y + shape.height/2
 }
 
+// Works always upon click within Rect so Right is always
+// greater or equal than mousePol, similarly left is always
+// less than mousePos
 func (shape *IfShape) CloserToRight(mousePos rl.Vector2) bool {
-	// Works always upon click within Rect so Right is always
-	// greater or equal than mousePol, similarly left is always
-	// less than mousePos
 	// dR = x + w - mx          - distance to Right
 	// dL = mx - x              - distance to Left
 	// dR < dL => dR - dL < 0

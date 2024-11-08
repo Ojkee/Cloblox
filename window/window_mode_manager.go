@@ -1,8 +1,6 @@
 package window
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"Cloblox/settings"
@@ -57,7 +55,7 @@ func (window *Window) changeModeEvent() {
 		window.currentMode = SIMULATE
 		break
 	default:
-		fmt.Print("Mode not implremented")
+		// fmt.Print("Mode not implemented")
 		break
 	}
 }

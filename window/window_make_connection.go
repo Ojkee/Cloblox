@@ -6,17 +6,17 @@ import (
 	"Cloblox/shapes"
 )
 
-func (window *Window) currentConnectionEvent(mousePos rl.Vector2) error {
+func (window *Window) currentConnectionEvent(mousePos *rl.Vector2) error {
 	clickedAnyShape := false
 	for _, shape := range window.diagramShapes {
-		if !rl.CheckCollisionPointRec(mousePos, shape.GetRect()) {
+		if !rl.CheckCollisionPointRec(*mousePos, shape.GetRect()) {
 			continue
 		}
 		clickedAnyShape = true
 		if !window.clickedConnection {
 			shapeX, shapeY, multipleOut, closerToRight := window.getShapeOutPos(
 				&shape,
-				&mousePos,
+				mousePos,
 			)
 			window.currentConnection = NewConnection(
 				shapeX, shapeY,

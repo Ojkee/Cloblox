@@ -14,7 +14,8 @@ func NewStartShape(x, y float32) *StartShape {
 	return &StartShape{
 		ShapeDefault: ShapeDefault{
 			shapeType: START,
-			content:   []string{"Start"},
+			name:      "Start",
+			content:   []string{},
 			blockID:   -1,
 			x:         x,
 			y:         y,
@@ -34,15 +35,9 @@ func (shape *StartShape) Draw() {
 		int32(shape.y+shape.height/2),
 		shape.width/2,
 		shape.height/2,
-		shape.color)
-	contentWidth := float32(shape.getContentSize(0))
-	rl.DrawText(
-		shape.content[0],
-		int32(shape.x+(shape.width-contentWidth)/2.0),
-		int32(shape.y+shape.height/2-8),
-		shape.fontSize,
-		shape.fontColor,
+		shape.color,
 	)
+	shape.drawContent()
 }
 
 func (shape *StartShape) GetOutPos() (float32, float32) {

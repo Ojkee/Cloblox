@@ -1,8 +1,6 @@
 package window
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"Cloblox/graph"
@@ -18,17 +16,20 @@ type Window struct {
 	backgroundColor rl.Color
 	fontColor       rl.Color
 
+	currentMode MODE
+
 	buildingShapes   []shapes.Shape
 	diagramShapes    []shapes.Shape
 	shapeClicked     bool
 	currentShape     shapes.Shape
 	currentShapeType shapes.SHAPE_TYPE
 
+	currentInsertShape *shapes.Shape
+	insertBuffer       []string
+
 	connections       []Connection
 	clickedConnection bool
 	currentConnection *Connection
-
-	currentMode MODE
 
 	diagram graph.Graph
 }
@@ -39,21 +40,23 @@ func NewWindow(name string, height, width int32) *Window {
 		height: height,
 		width:  width,
 
+		currentMode: BUILD,
+
 		backgroundColor: settings.BACKGROUND_COLOR,
 		fontColor:       settings.FONT_COLOR,
 
-		buildingShapes: initBuildingShapes(width, height),
-		diagramShapes:  make([]shapes.Shape, 0),
-
-		currentShape:     nil,
+		buildingShapes:   initBuildingShapes(width, height),
+		diagramShapes:    make([]shapes.Shape, 0),
 		shapeClicked:     false,
+		currentShape:     nil,
 		currentShapeType: shapes.NONE,
+
+		currentInsertShape: nil,
+		insertBuffer:       make([]string, 0),
 
 		connections:       make([]Connection, 0),
 		clickedConnection: false,
 		currentConnection: nil,
-
-		currentMode: BUILD,
 
 		diagram: *graph.NewGraph(nil),
 	}
@@ -61,7 +64,7 @@ func NewWindow(name string, height, width int32) *Window {
 
 func (window *Window) MainLoop() {
 	rl.InitWindow(window.width, window.height, "Cloblox")
-	rl.SetExitKey(rl.KeyQ)
+	rl.SetExitKey(rl.KeyNull)
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(165)
 
@@ -81,24 +84,15 @@ func (window *Window) checkEvent() {
 	mousePos := rl.GetMousePosition()
 	switch window.currentMode {
 	case BUILD:
-		if rl.IsMouseButtonPressed(rl.MouseButtonLeft) { // New Shape
-			window.buildNewShapeEvent(&mousePos)
-		} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) { // Connect
-			err := window.currentConnectionEvent(mousePos)
-			if err != nil {
-				fmt.Println(err) // TODO write to console
-			}
-		}
+		window.buildManager(&mousePos)
 		break
 	case INSERT:
+		window.insertManager(&mousePos)
 		break
 	case REMOVE:
-		if rl.IsMouseButtonPressed(rl.MouseButtonLeft) ||
-			rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-			if removeId := window.getShapeIdMousePos(&mousePos); removeId != -1 {
-				window.removeShapeAndConnectionsById(removeId)
-			}
-		}
+		window.removeManager(&mousePos)
+		break
+	case SIMULATE:
 		break
 	}
 }

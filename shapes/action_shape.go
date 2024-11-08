@@ -15,6 +15,7 @@ func NewActionShape(x, y float32) *ActionShape {
 	return &ActionShape{
 		ShapeDefault: ShapeDefault{
 			shapeType: ACTION,
+			name:      "Action",
 			content:   []string{},
 			blockID:   -1,
 			x:         x,
@@ -36,13 +37,7 @@ func (shape *ActionShape) Draw() {
 	right_up := rl.NewVector2(shape.x+shape.width+shape.tiltOffset, shape.y)
 	rl.DrawTriangle(left_up, right_down, right_up, shape.color)
 	rl.DrawTriangle(right_down, left_up, left_down, shape.color)
-	rl.DrawText(
-		"Action",
-		int32(shape.x+shape.width/2-32),
-		int32(shape.y+shape.height/2-8),
-		shape.fontSize,
-		shape.fontColor,
-	)
+	shape.drawContent()
 }
 
 func (shape *ActionShape) GetOutPos() (float32, float32) {

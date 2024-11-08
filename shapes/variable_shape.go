@@ -14,7 +14,8 @@ func NewVariableShape(x, y float32) *VariableShape {
 	return &VariableShape{
 		ShapeDefault: ShapeDefault{
 			shapeType: VARIABLE,
-			content:   []string{"Variable"},
+			name:      "Variables",
+			content:   []string{},
 			blockID:   -1,
 			x:         x,
 			y:         y,
@@ -41,16 +42,7 @@ func (shape *VariableShape) Draw() {
 		shapeHeight,
 		shape.color,
 	)
-	for i, text := range shape.content {
-		textWidth := float32(shape.getContentSize(i))
-		rl.DrawText(
-			text,
-			int32(shape.x+(shape.width-textWidth)/2.0),
-			int32(shape.y+float32(i*int(settings.FONT_SIZE))),
-			shape.fontSize,
-			shape.fontColor,
-		)
-	}
+	shape.drawContent()
 }
 
 func (shape *VariableShape) GetOutPos() (float32, float32) {

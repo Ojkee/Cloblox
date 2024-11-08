@@ -14,6 +14,7 @@ func NewStopShape(x, y float32) *StopShape {
 	return &StopShape{
 		ShapeDefault: ShapeDefault{
 			shapeType: STOP,
+			name:      "Stop",
 			content:   []string{"Stop"},
 			blockID:   -1,
 			x:         x,
@@ -35,14 +36,7 @@ func (shape *StopShape) Draw() {
 		shape.width/2,
 		shape.height/2,
 		shape.color)
-	contentWidth := float32(shape.getContentSize(0))
-	rl.DrawText(
-		shape.content[0],
-		int32(shape.x+(shape.width-contentWidth)/2.0),
-		int32(shape.y+shape.height/2-8),
-		shape.fontSize,
-		shape.fontColor,
-	)
+	shape.drawContent()
 }
 
 func (shape *StopShape) GetOutPos() (float32, float32) {
