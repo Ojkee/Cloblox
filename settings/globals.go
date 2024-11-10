@@ -30,7 +30,18 @@ var (
 
 // SHAPES
 var (
-	SHAPE_WIDTH    float32 = 96
-	SHAPE_HEIGHT   float32 = 32
-	SHAPE_TEXT_GAP float32 = 10
+	SHAPE_MIN_WIDTH  float32 = 96
+	SHAPE_MIN_HEIGHT float32 = 32
+	SHAPE_TEXT_GAP   float32 = 10
+
+	MAX_CONTENT_LINES int     = 4
+	MAX_CONTENT_CHARS int     = 30
+	MARGIN_HORIZONTAL float32 = 10
+	MARGIN_VERTICAL   float32 = 10
+)
+
+// DEBUG
+var (
+	DEBUG_BLOCKS_POINTERS = false
+	DEBUG_SHAPE_CONTENT   = true
 )

@@ -19,8 +19,8 @@ func NewIfShape(x, y float32) *IfShape {
 			blockID:   -1,
 			x:         x,
 			y:         y,
-			height:    settings.SHAPE_HEIGHT,
-			width:     settings.SHAPE_WIDTH,
+			height:    settings.SHAPE_MIN_HEIGHT,
+			width:     settings.SHAPE_MIN_WIDTH,
 			visible:   true,
 			color:     settings.IF_COLOR,
 			fontColor: settings.FONT_COLOR,
@@ -30,6 +30,7 @@ func NewIfShape(x, y float32) *IfShape {
 }
 
 func (shape *IfShape) Draw() {
+	shape.updateSize()
 	left := rl.NewVector2(shape.x, shape.y+shape.height/2)
 	right := rl.NewVector2(shape.x+shape.width, shape.y+shape.height/2)
 	up := rl.NewVector2(shape.x+shape.width/2, shape.y)

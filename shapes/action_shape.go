@@ -20,17 +20,18 @@ func NewActionShape(x, y float32) *ActionShape {
 			blockID:   -1,
 			x:         x,
 			y:         y,
-			height:    settings.SHAPE_HEIGHT,
-			width:     settings.SHAPE_WIDTH - settings.SHAPE_WIDTH/4,
+			height:    settings.SHAPE_MIN_HEIGHT,
+			width:     settings.SHAPE_MIN_WIDTH - settings.SHAPE_MIN_WIDTH/4,
 			color:     settings.PRINT_COLOR,
 			fontColor: settings.FONT_COLOR,
 			fontSize:  settings.FONT_SIZE,
 		},
-		tiltOffset: settings.SHAPE_WIDTH / 4,
+		tiltOffset: settings.SHAPE_MIN_WIDTH / 4,
 	}
 }
 
 func (shape *ActionShape) Draw() {
+	shape.updateSize()
 	left_down := rl.NewVector2(shape.x, shape.y+shape.height)
 	right_down := rl.NewVector2(shape.x+shape.width, shape.y+shape.height)
 	left_up := rl.NewVector2(shape.x+shape.tiltOffset, shape.y)

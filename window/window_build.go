@@ -22,7 +22,7 @@ func (window *Window) buildManager(mousePos *rl.Vector2) error {
 
 func initBuildingShapes(width, height int32) []shapes.Shape {
 	offsetX := float32(width/2.0 + 10)
-	gap := float32(settings.SHAPE_HEIGHT + 16)
+	gap := float32(settings.SHAPE_MIN_HEIGHT + 16)
 	offsetY := float32(height)/2.0 - gap*2.5
 	return []shapes.Shape{
 		shapes.NewStartShape(offsetX, offsetY),
@@ -43,7 +43,7 @@ func (window *Window) buildNewShapeEvent(mousePos *rl.Vector2) {
 			window.updateCurrentShape(mousePos)
 		}
 	}
-	if mousePos.X < settings.WINDOW_WIDTH/2+settings.SHAPE_WIDTH+10 && !clickedNewShape {
+	if mousePos.X < settings.WINDOW_WIDTH/2+settings.SHAPE_MIN_WIDTH+10 && !clickedNewShape {
 		window.flushBuildShape()
 	}
 	if window.shapeClicked && !clickedNewShape {
@@ -87,6 +87,7 @@ func (window *Window) placeCurrentShape(mx, my float32) {
 	for _, conn := range window.connections {
 		window.connectBlocksByConnection(&conn)
 	}
+	window.setCurrentInsertShape(&window.diagramShapes[len(window.diagramShapes)-1])
 }
 
 func (window *Window) makeCurrentClicked(shapeType shapes.SHAPE_TYPE) {
@@ -115,8 +116,8 @@ func (window *Window) makeCurrentClicked(shapeType shapes.SHAPE_TYPE) {
 
 func (window *Window) updateCurrentShape(mousePos *rl.Vector2) {
 	window.currentShape.MoveTo(
-		mousePos.X-settings.SHAPE_WIDTH/2,
-		mousePos.Y-settings.SHAPE_HEIGHT/2,
+		mousePos.X-settings.SHAPE_MIN_WIDTH/2,
+		mousePos.Y-settings.SHAPE_MIN_HEIGHT/2,
 	)
 }
 

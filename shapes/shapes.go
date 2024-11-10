@@ -2,6 +2,8 @@ package shapes
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
+
+	"Cloblox/settings"
 )
 
 type SHAPE_TYPE uint
@@ -25,9 +27,12 @@ type Shape interface {
 	Resize(height, width float32)
 	SetContent(content *[]string)
 	GetContent() []string
+	IsContentEmpty() bool
+	GetContentSize(idx int) int32
 	GetInPos() (float32, float32)
 	SetBlockId(bId int)
 	GetBlockId() int
+	GetColor() rl.Color
 }
 
 type ShapeSingleOut interface {
@@ -96,7 +101,7 @@ func (shape *ShapeDefault) GetInPos() (float32, float32) {
 	return shape.x + shape.width/2, shape.y
 }
 
-func (shape *ShapeDefault) getContentSize(idx int) int32 {
+func (shape *ShapeDefault) GetContentSize(idx int) int32 {
 	return rl.MeasureText(shape.content[idx], shape.fontSize)
 }
 
@@ -108,7 +113,7 @@ func (shape *ShapeDefault) GetBlockId() int {
 	return shape.blockID
 }
 
-func (shape *ShapeDefault) isContentEmpty() bool {
+func (shape *ShapeDefault) IsContentEmpty() bool {
 	if len(shape.content) > 0 {
 		return false
 	}
@@ -116,25 +121,34 @@ func (shape *ShapeDefault) isContentEmpty() bool {
 }
 
 func (shape *ShapeDefault) drawContent() {
-	if shape.isContentEmpty() {
+	if shape.IsContentEmpty() {
 		nameWidth := rl.MeasureText(shape.name, shape.fontSize)
-		rl.DrawText(
-			shape.name,
-			int32(shape.x+shape.width/2-float32(nameWidth)/2),
-			int32(shape.y+shape.height/2-8),
-			shape.fontSize,
-			shape.fontColor,
-		)
+		xPos := int32(shape.x + shape.width/2 - float32(nameWidth)/2)
+		yPos := int32(shape.y + shape.height/2 - float32(settings.FONT_SIZE)/2)
+		rl.DrawText(shape.name, xPos, yPos, shape.fontSize, shape.fontColor)
 	} else {
+		offset := int(settings.FONT_SIZE)
 		for i, contentLine := range shape.content {
-			contentWidth := shape.getContentSize(i)
-			rl.DrawText(
-				contentLine,
-				int32(shape.x+shape.width/2-float32(contentWidth)/2),
-				int32(shape.y+shape.height/2-8),
-				shape.fontSize,
-				shape.fontColor,
-			)
+			contentWidth := shape.GetContentSize(i)
+			xPos := int32(shape.x + shape.width/2 - float32(contentWidth)/2)
+			yPos := int32(shape.y + float32(offset*i))
+			rl.DrawText(contentLine, xPos, yPos, shape.fontSize, shape.fontColor)
 		}
 	}
+}
+
+func (shape *ShapeDefault) updateSize() {
+	maxWidth := settings.SHAPE_MIN_WIDTH
+	for i := range shape.content {
+		maxWidth = max(maxWidth, float32(shape.GetContentSize(i))+2*settings.MARGIN_HORIZONTAL)
+	}
+	shape.width = maxWidth
+	shape.height = max(
+		settings.SHAPE_MIN_HEIGHT,
+		float32(len(shape.content))*float32(settings.FONT_SIZE)+settings.MARGIN_VERTICAL/2,
+	)
+}
+
+func (shape *ShapeDefault) GetColor() rl.Color {
+	return shape.color
 }

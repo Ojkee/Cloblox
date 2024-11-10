@@ -19,8 +19,8 @@ func NewVariableShape(x, y float32) *VariableShape {
 			blockID:   -1,
 			x:         x,
 			y:         y,
-			height:    settings.SHAPE_HEIGHT,
-			width:     settings.SHAPE_WIDTH,
+			height:    settings.SHAPE_MIN_HEIGHT,
+			width:     settings.SHAPE_MIN_WIDTH,
 			visible:   true,
 			color:     settings.VARIABLE_COLOR,
 			fontColor: settings.FONT_COLOR,
@@ -30,16 +30,12 @@ func NewVariableShape(x, y float32) *VariableShape {
 }
 
 func (shape *VariableShape) Draw() {
-	nLines := len(shape.content)
-	if nLines == 0 {
-		nLines = 1
-	}
-	shapeHeight := int32(shape.height+settings.SHAPE_TEXT_GAP) * int32(nLines)
+	shape.updateSize()
 	rl.DrawRectangle(
 		int32(shape.x),
 		int32(shape.y),
 		int32(shape.width),
-		shapeHeight,
+		int32(shape.height),
 		shape.color,
 	)
 	shape.drawContent()

@@ -25,7 +25,8 @@ type Window struct {
 	currentShapeType shapes.SHAPE_TYPE
 
 	currentInsertShape *shapes.Shape
-	insertBuffer       []string
+	insertCursorX      int
+	insertCursorY      int
 
 	connections       []Connection
 	clickedConnection bool
@@ -52,7 +53,8 @@ func NewWindow(name string, height, width int32) *Window {
 		currentShapeType: shapes.NONE,
 
 		currentInsertShape: nil,
-		insertBuffer:       make([]string, 0),
+		insertCursorX:      -1,
+		insertCursorY:      -1,
 
 		connections:       make([]Connection, 0),
 		clickedConnection: false,
@@ -73,8 +75,13 @@ func (window *Window) MainLoop() {
 		window.checkEvent()
 		window.draw()
 
-		if rl.IsKeyPressed(rl.KeyD) { // Debug
-			window.diagram.Log()
+		if rl.IsKeyPressed(rl.KeyF4) { // Debug
+			if settings.DEBUG_SHAPE_CONTENT {
+				window.debugContent()
+			}
+			if settings.DEBUG_BLOCKS_POINTERS {
+				window.diagram.Log()
+			}
 		}
 	}
 }
@@ -121,6 +128,9 @@ func (window *Window) draw() {
 	if window.currentConnection != nil {
 		window.updateCurrentConnection(&mousePos)
 		window.currentConnection.Draw()
+	}
+	if window.currentInsertShape != nil {
+		window.drawCursor()
 	}
 	rl.EndDrawing()
 }
