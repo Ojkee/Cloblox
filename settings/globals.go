@@ -26,7 +26,7 @@ var (
 	CONNECTION_COLOR       = rl.NewColor(77, 74, 77, 255)
 	BLOCK_POSITIVE         = rl.NewColor(108, 123, 41, 255)
 	BLOCK_NEGATIVE         = rl.NewColor(179, 34, 53, 255)
-	HIGHLIGHT_COLOR        = rl.NewColor(255, 248, 231, 255)
+	HIGHLIGHT_COLOR        = rl.NewColor(204, 199, 186, 255)
 )
 
 // SHAPES

@@ -49,7 +49,9 @@ func (window *Window) keyInsertManager() error {
 		if content[window.insertCursorY] != "" && len(content) < settings.MAX_CONTENT_LINES {
 			newContent := window.appendNewLine(window.insertCursorY)
 			(*window.currentInsertShape).SetContent(newContent)
-			window.setCursorEnd()
+			// window.setCursorEnd()
+			window.insertCursorY++
+			window.insertCursorX = -1
 		}
 	}
 	if window.currentInsertShape != nil {
@@ -102,7 +104,8 @@ func (window *Window) appendNewLine(lineBeforeIdx int) *[]string {
 	if len(content) == 0 {
 		return &[]string{""}
 	}
-	retVal := content[:lineBeforeIdx+1]
+	retVal := make([]string, 0)
+	retVal = append(retVal, content[:lineBeforeIdx+1]...)
 	retVal = append(retVal, "")
 	retVal = append(retVal, content[lineBeforeIdx+1:]...)
 	return &retVal
