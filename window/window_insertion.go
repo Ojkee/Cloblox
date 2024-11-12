@@ -40,7 +40,7 @@ func (window *Window) keyInsertManager() error {
 	if charPressed >= 32 && charPressed <= 126 {
 		window.insertNewBufferHandler(charPressed)
 	} else if rl.IsKeyPressed(rl.KeyBackspace) {
-		window.removeFromBufferHandler()
+		// window.removeFromBufferHandler()
 	} else if rl.IsKeyPressed(rl.KeyEnter) {
 		content := (*window.currentInsertShape).GetContent()
 		if content[window.insertCursorY] != "" && len(content) < settings.MAX_CONTENT_LINES {
@@ -88,7 +88,7 @@ func (window *Window) moveCursorHander() {
 			window.insertCursorX--
 		}
 	} else if rl.IsKeyPressed(rl.KeyRight) {
-		if window.insertCursorX < len(content[window.insertCursorY])-1 {
+		if window.insertCursorX < len(content[window.insertCursorY]) {
 			window.insertCursorX++
 		}
 	}
@@ -111,20 +111,24 @@ func (window *Window) insertChar(char string) *[]string {
 	if len(currentBuffr) < settings.MAX_CONTENT_CHARS {
 		lhs := ""
 		rhs := currentBuffr
-		if window.insertCursorX > 0 {
+		if window.insertCursorX > -1 {
 			lhs = currentBuffr[:window.insertCursorX]
 			rhs = currentBuffr[window.insertCursorX:]
 		}
 		newBuffr := lhs + char + rhs
+		if len(newBuffr) == 1 {
+			window.insertCursorX++
+		}
 		content[window.insertCursorY] = newBuffr
 		window.insertCursorX++
 	}
 	return &content
 }
 
-func (window *Window) removeLine(content *[]string) *[]string {
-	retVal := (*content)[:window.insertCursorY]
-	retVal = append(retVal, (*content)[window.insertCursorY+1:]...)
+func (window *Window) removeLine() *[]string {
+	content := (*window.currentInsertShape).GetContent()
+	retVal := content[:window.insertCursorY]
+	retVal = append(retVal, content[window.insertCursorY+1:]...)
 	return &retVal
 }
 
@@ -143,12 +147,6 @@ func (window *Window) removeChar() *[]string {
 	return &retVal
 }
 
-func (window *Window) flushInsertShape() {
-	window.currentInsertShape = nil
-	window.insertCursorX = -1
-	window.insertCursorY = -1
-}
-
 func (window *Window) isCursorBlank() bool {
 	return window.insertCursorX == -1 && window.insertCursorY == -1
 }
@@ -156,12 +154,11 @@ func (window *Window) isCursorBlank() bool {
 func (window *Window) setCursorEnd() {
 	content := (*window.currentInsertShape).GetContent()
 	window.insertCursorY = len(content) - 1
-	window.insertCursorX = len((content)[window.insertCursorY]) - 1
-}
-
-func (window *Window) setCursorPos(y, x int) {
-	window.insertCursorY = y
-	window.insertCursorX = x
+	if window.insertCursorY == -1 {
+		window.insertCursorX = -1
+		return
+	}
+	window.insertCursorX = len(content[window.insertCursorY]) - 1
 }
 
 func (window *Window) debugContent() {
@@ -194,16 +191,17 @@ func (window *Window) setCurrentInsertShape(shape *shapes.Shape) {
 }
 
 func (window *Window) drawCursor() {
-	if window.insertCursorX == -1 || window.insertCursorY == -1 ||
-		window.currentInsertShape == nil {
+	if window.insertCursorX == -1 || window.currentInsertShape == nil {
 		return
 	}
 	shape := *window.currentInsertShape
 	shapeRect := shape.GetRect()
 	content := shape.GetContent()
 	currentChar := ""
-	if window.insertCursorY < len(content[window.insertCursorY]) {
-		currentChar = string(content[window.insertCursorY][window.insertCursorX])
+	if window.insertCursorY != -1 {
+		if window.insertCursorX < len(content[window.insertCursorY]) {
+			currentChar = string(content[window.insertCursorY][window.insertCursorX])
+		}
 	}
 
 	posY := int32(shapeRect.Y) + int32(window.insertCursorY)*int32(settings.FONT_SIZE)
@@ -215,15 +213,15 @@ func (window *Window) drawCursor() {
 
 	rectColor := settings.FONT_COLOR
 	rl.DrawRectangle(
-		int32(posX)-1,
+		posX+1,
 		posY,
-		settings.FONT_SIZE/2+2,
+		settings.FONT_SIZE/2,
 		settings.FONT_SIZE,
 		rectColor,
 	)
 	rl.DrawText(
 		currentChar,
-		posX,
+		posX+1,
 		posY,
 		settings.FONT_SIZE,
 		reverseColor(&rectColor),
@@ -232,4 +230,14 @@ func (window *Window) drawCursor() {
 
 func reverseColor(color *rl.Color) rl.Color {
 	return rl.NewColor(255-color.R, 255-color.G, 255-color.B, 255)
+}
+
+func (window *Window) flushInsertShape() {
+	window.currentInsertShape = nil
+	window.flushInsertCursor()
+}
+
+func (window *Window) flushInsertCursor() {
+	window.insertCursorX = -1
+	window.insertCursorY = -1
 }

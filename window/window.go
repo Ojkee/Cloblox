@@ -129,7 +129,7 @@ func (window *Window) draw() {
 		window.updateCurrentConnection(&mousePos)
 		window.currentConnection.Draw()
 	}
-	if window.currentInsertShape != nil {
+	if window.currentInsertShape != nil && window.currentMode == INSERT {
 		window.drawCursor()
 	}
 	rl.EndDrawing()

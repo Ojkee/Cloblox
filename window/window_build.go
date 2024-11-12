@@ -45,6 +45,7 @@ func (window *Window) buildNewShapeEvent(mousePos *rl.Vector2) {
 	}
 	if mousePos.X < settings.WINDOW_WIDTH/2+settings.SHAPE_MIN_WIDTH+10 && !clickedNewShape {
 		window.flushBuildShape()
+		window.flushInsertShape()
 	}
 	if window.shapeClicked && !clickedNewShape {
 		window.placeCurrentShape(mousePos.X, mousePos.Y)
@@ -88,6 +89,7 @@ func (window *Window) placeCurrentShape(mx, my float32) {
 		window.connectBlocksByConnection(&conn)
 	}
 	window.setCurrentInsertShape(&window.diagramShapes[len(window.diagramShapes)-1])
+	window.setCursorEnd()
 }
 
 func (window *Window) makeCurrentClicked(shapeType shapes.SHAPE_TYPE) {
