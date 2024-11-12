@@ -89,6 +89,9 @@ func (window *Window) MainLoop() {
 func (window *Window) checkEvent() {
 	window.changeModeEvent()
 	mousePos := rl.GetMousePosition()
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+		window.selectInsertShape(&mousePos)
+	}
 	switch window.currentMode {
 	case BUILD:
 		window.buildManager(&mousePos)

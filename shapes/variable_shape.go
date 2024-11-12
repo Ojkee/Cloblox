@@ -29,15 +29,22 @@ func NewVariableShape(x, y float32) *VariableShape {
 	}
 }
 
+func (shape *VariableShape) drawShape(rect rl.Rectangle, color *rl.Color) {
+	rl.DrawRectangle(
+		rect.ToInt32().X,
+		rect.ToInt32().Y,
+		rect.ToInt32().Width,
+		rect.ToInt32().Height,
+		*color,
+	)
+}
+
 func (shape *VariableShape) Draw() {
 	shape.updateSize()
-	rl.DrawRectangle(
-		int32(shape.x),
-		int32(shape.y),
-		int32(shape.width),
-		int32(shape.height),
-		shape.color,
-	)
+	if shape.isHighlighted {
+		shape.drawShape(shape.getHighlightRect(), &settings.HIGHLIGHT_COLOR)
+	}
+	shape.drawShape(shape.GetRect(), &shape.color)
 	shape.drawContent()
 }
 

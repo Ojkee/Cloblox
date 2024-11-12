@@ -26,6 +26,7 @@ var (
 	CONNECTION_COLOR       = rl.NewColor(77, 74, 77, 255)
 	BLOCK_POSITIVE         = rl.NewColor(108, 123, 41, 255)
 	BLOCK_NEGATIVE         = rl.NewColor(179, 34, 53, 255)
+	HIGHLIGHT_COLOR        = rl.NewColor(255, 248, 231, 255)
 )
 
 // SHAPES
@@ -38,6 +39,8 @@ var (
 	MAX_CONTENT_CHARS int     = 30
 	MARGIN_HORIZONTAL float32 = 10
 	MARGIN_VERTICAL   float32 = 10
+
+	HIGHLIGHT_PAD float32 = 4
 )
 
 // DEBUG

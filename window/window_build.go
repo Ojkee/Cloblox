@@ -84,6 +84,7 @@ func (window *Window) placeCurrentShape(mx, my float32) {
 	window.diagram.AppendBlock(cBlock)
 	cShape.TranslateCenter()
 	cShape.SetBlockId(cBlock.GetId())
+	cShape.SetHighlight(true)
 	window.diagramShapes = append(window.diagramShapes, cShape)
 	for _, conn := range window.connections {
 		window.connectBlocksByConnection(&conn)

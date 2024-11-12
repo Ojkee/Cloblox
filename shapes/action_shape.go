@@ -8,7 +8,8 @@ import (
 
 type ActionShape struct {
 	ShapeDefault
-	tiltOffset float32
+	tiltOffset          float32
+	tiltOffsetHighlight float32
 }
 
 func NewActionShape(x, y float32) *ActionShape {
@@ -26,18 +27,30 @@ func NewActionShape(x, y float32) *ActionShape {
 			fontColor: settings.FONT_COLOR,
 			fontSize:  settings.FONT_SIZE,
 		},
-		tiltOffset: settings.SHAPE_MIN_WIDTH / 4,
+		tiltOffset:          settings.SHAPE_MIN_WIDTH / 4,
+		tiltOffsetHighlight: (settings.SHAPE_MIN_WIDTH + 2*settings.HIGHLIGHT_PAD) / 4,
 	}
+}
+
+func (shape *ActionShape) drawShape(rect rl.Rectangle, tilt float32, color *rl.Color) {
+	left_down := rl.NewVector2(rect.X, rect.Y+rect.Height)
+	right_down := rl.NewVector2(rect.X+rect.Width, rect.Y+rect.Height)
+	left_up := rl.NewVector2(rect.X+tilt, rect.Y)
+	right_up := rl.NewVector2(rect.X+rect.Width+tilt, rect.Y)
+	rl.DrawTriangle(left_up, right_down, right_up, *color)
+	rl.DrawTriangle(right_down, left_up, left_down, *color)
 }
 
 func (shape *ActionShape) Draw() {
 	shape.updateSize()
-	left_down := rl.NewVector2(shape.x, shape.y+shape.height)
-	right_down := rl.NewVector2(shape.x+shape.width, shape.y+shape.height)
-	left_up := rl.NewVector2(shape.x+shape.tiltOffset, shape.y)
-	right_up := rl.NewVector2(shape.x+shape.width+shape.tiltOffset, shape.y)
-	rl.DrawTriangle(left_up, right_down, right_up, shape.color)
-	rl.DrawTriangle(right_down, left_up, left_down, shape.color)
+	if shape.isHighlighted {
+		shape.drawShape(
+			shape.getHighlightRect(),
+			shape.tiltOffsetHighlight,
+			&settings.HIGHLIGHT_COLOR,
+		)
+	}
+	shape.drawShape(shape.GetRect(), shape.tiltOffset, &shape.color)
 	shape.drawContent()
 }
 

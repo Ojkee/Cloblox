@@ -29,13 +29,18 @@ func NewStopShape(x, y float32) *StopShape {
 	}
 }
 
-func (shape *StopShape) Draw() {
+func (shape *StopShape) drawShape(rect rl.Rectangle, color *rl.Color) {
 	rl.DrawEllipse(
-		int32(shape.x+shape.width/2),
-		int32(shape.y+shape.height/2),
-		shape.width/2,
-		shape.height/2,
-		shape.color)
+		int32(rect.X+rect.Width/2),
+		int32(rect.Y+rect.Height/2),
+		rect.Width/2,
+		rect.Height/2,
+		*color,
+	)
+}
+
+func (shape *StopShape) Draw() {
+	shape.drawShape(shape.GetRect(), &shape.color)
 	shape.drawContent()
 }
 

@@ -27,7 +27,10 @@ func (window *Window) selectInsertShape(mousePos *rl.Vector2) {
 			if window.currentInsertShape != nil {
 				window.setCursorEnd()
 				shapeClicked = true
+				window.diagramShapes[i].SetHighlight(true)
 			}
+		} else {
+			window.diagramShapes[i].SetHighlight(false)
 		}
 	}
 	if !shapeClicked {
@@ -152,6 +155,9 @@ func (window *Window) isCursorBlank() bool {
 }
 
 func (window *Window) setCursorEnd() {
+	if window.currentInsertShape == nil {
+		return
+	}
 	content := (*window.currentInsertShape).GetContent()
 	window.insertCursorY = len(content) - 1
 	if window.insertCursorY == -1 {

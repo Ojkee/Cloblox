@@ -33,6 +33,7 @@ type Shape interface {
 	SetBlockId(bId int)
 	GetBlockId() int
 	GetColor() rl.Color
+	SetHighlight(flag bool)
 }
 
 type ShapeSingleOut interface {
@@ -50,10 +51,11 @@ type ShapeDefault struct {
 	content   []string
 	blockID   int
 
-	y      float32
-	x      float32
-	width  float32
-	height float32
+	y             float32
+	x             float32
+	width         float32
+	height        float32
+	isHighlighted bool
 
 	visible   bool
 	color     rl.Color
@@ -151,4 +153,16 @@ func (shape *ShapeDefault) updateSize() {
 
 func (shape *ShapeDefault) GetColor() rl.Color {
 	return shape.color
+}
+
+func (shape *ShapeDefault) SetHighlight(flag bool) {
+	shape.isHighlighted = flag
+}
+
+func (shape *ShapeDefault) getHighlightRect() rl.Rectangle {
+	hx := shape.x - settings.HIGHLIGHT_PAD
+	hy := shape.y - settings.HIGHLIGHT_PAD
+	hwidth := shape.width + 2*settings.HIGHLIGHT_PAD
+	hheight := shape.height + 2*settings.HIGHLIGHT_PAD
+	return rl.NewRectangle(hx, hy, hwidth, hheight)
 }

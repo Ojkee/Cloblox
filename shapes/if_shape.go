@@ -29,14 +29,21 @@ func NewIfShape(x, y float32) *IfShape {
 	}
 }
 
+func (shape *IfShape) drawShape(rect rl.Rectangle, color *rl.Color) {
+	left := rl.NewVector2(rect.X, rect.Y+rect.Height/2)
+	right := rl.NewVector2(rect.X+rect.Width, rect.Y+rect.Height/2)
+	up := rl.NewVector2(rect.X+rect.Width/2, rect.Y)
+	down := rl.NewVector2(rect.X+rect.Width/2, rect.Y+rect.Height)
+	rl.DrawTriangle(up, left, down, *color)
+	rl.DrawTriangle(right, up, down, *color)
+}
+
 func (shape *IfShape) Draw() {
 	shape.updateSize()
-	left := rl.NewVector2(shape.x, shape.y+shape.height/2)
-	right := rl.NewVector2(shape.x+shape.width, shape.y+shape.height/2)
-	up := rl.NewVector2(shape.x+shape.width/2, shape.y)
-	down := rl.NewVector2(shape.x+shape.width/2, shape.y+shape.height)
-	rl.DrawTriangle(up, left, down, shape.color)
-	rl.DrawTriangle(right, up, down, shape.color)
+	if shape.isHighlighted {
+		shape.drawShape(shape.getHighlightRect(), &settings.HIGHLIGHT_COLOR)
+	}
+	shape.drawShape(shape.GetRect(), &shape.color)
 	shape.drawContent()
 }
 
