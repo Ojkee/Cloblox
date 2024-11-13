@@ -39,17 +39,23 @@ func (window *Window) selectInsertShape(mousePos *rl.Vector2) {
 }
 
 func (window *Window) keyInsertManager() error {
+	if isPasteShortcutClicked() {
+		clipboardText := rl.GetClipboardText()
+		for _, letter := range clipboardText {
+			window.insertChar(string(letter))
+		}
+		return nil
+	}
 	charPressed := rl.GetCharPressed()
 	if charPressed >= 32 && charPressed <= 126 {
 		window.insertNewBufferHandler(charPressed)
 	} else if rl.IsKeyPressed(rl.KeyBackspace) {
-		// window.removeFromBufferHandler()
+		window.removeFromBufferHandler()
 	} else if rl.IsKeyPressed(rl.KeyEnter) {
 		content := (*window.currentInsertShape).GetContent()
 		if content[window.insertCursorY] != "" && len(content) < settings.MAX_CONTENT_LINES {
 			newContent := window.appendNewLine(window.insertCursorY)
 			(*window.currentInsertShape).SetContent(newContent)
-			// window.setCursorEnd()
 			window.insertCursorY++
 			window.insertCursorX = -1
 		}
@@ -58,6 +64,14 @@ func (window *Window) keyInsertManager() error {
 		window.moveCursorHander()
 	}
 	return nil
+}
+
+func isPasteShortcutClicked() bool {
+	if (rl.IsKeyDown(rl.KeyLeftControl) || rl.IsKeyDown(rl.KeyRightControl)) &&
+		rl.IsKeyPressed(rl.KeyV) {
+		return true
+	}
+	return false
 }
 
 func (window *Window) insertNewBufferHandler(keyPressed int32) {
@@ -71,22 +85,17 @@ func (window *Window) insertNewBufferHandler(keyPressed int32) {
 	}
 }
 
-func (window *Window) removeFromBufferHandler() {
-	content := window.removeChar()
-	(*window.currentInsertShape).SetContent(content)
-}
-
 func (window *Window) moveCursorHander() {
 	content := (*window.currentInsertShape).GetContent()
 	if rl.IsKeyPressed(rl.KeyUp) {
 		if window.insertCursorY > 0 {
 			window.insertCursorY--
-			window.insertCursorX = min(len(content[window.insertCursorY])-1, window.insertCursorX)
+			window.insertCursorX = min(len(content[window.insertCursorY]), window.insertCursorX)
 		}
 	} else if rl.IsKeyPressed(rl.KeyDown) {
 		if window.insertCursorY < len(content)-1 {
 			window.insertCursorY++
-			window.insertCursorX = min(len(content[window.insertCursorY])-1, window.insertCursorX)
+			window.insertCursorX = min(len(content[window.insertCursorY]), window.insertCursorX)
 		}
 	} else if rl.IsKeyPressed(rl.KeyLeft) {
 		if window.insertCursorX > 0 {
@@ -131,25 +140,45 @@ func (window *Window) insertChar(char string) *[]string {
 	return &content
 }
 
+func (window *Window) removeFromBufferHandler() {
+	content := (*window.currentInsertShape).GetContent()
+	if len(content[window.insertCursorY]) == 0 && len(content) > 1 {
+		newContent := window.removeLine()
+		(*window.currentInsertShape).SetContent(newContent)
+		if window.insertCursorY > 0 {
+			window.insertCursorY--
+		}
+		window.insertCursorX = len((*newContent)[window.insertCursorY])
+	} else if len(content[window.insertCursorY]) > 0 {
+		newContent := window.removeChar()
+		window.insertCursorX--
+		(*window.currentInsertShape).SetContent(newContent)
+		if len((*newContent)[window.insertCursorY]) == 0 {
+			window.insertCursorX--
+		}
+	}
+}
+
 func (window *Window) removeLine() *[]string {
 	content := (*window.currentInsertShape).GetContent()
-	retVal := content[:window.insertCursorY]
-	retVal = append(retVal, content[window.insertCursorY+1:]...)
+	retVal := make([]string, 0)
+	for i, line := range content {
+		if i != window.insertCursorY {
+			retVal = append(retVal, line)
+		}
+	}
 	return &retVal
 }
 
 func (window *Window) removeChar() *[]string {
-	content := (*window.currentInsertShape).GetContent()
-	retVal := (content)[:window.insertCursorY]
+	retVal := (*window.currentInsertShape).GetContent()
 	currentBuffr := []rune{}
-	for i, letter := range (content)[window.insertCursorY] {
-		if i != window.insertCursorX {
+	for i, letter := range retVal[window.insertCursorY] {
+		if i != window.insertCursorX-1 {
 			currentBuffr = append(currentBuffr, letter)
 		}
 	}
 	retVal[window.insertCursorY] = string(currentBuffr)
-	retVal = append(retVal, content[window.insertCursorY+1:]...)
-	window.insertCursorX = min(window.insertCursorX, len(retVal[window.insertCursorY])-1)
 	return &retVal
 }
 
@@ -181,7 +210,11 @@ func (window *Window) debugContent() {
 	fmt.Printf("Y: %d\t\tX: %d\n\n", window.insertCursorY, window.insertCursorX)
 	content := (*window.currentInsertShape).GetContent()
 	for i, buffr := range content {
-		fmt.Printf("[ <%d>  %s ]\n", i, buffr)
+		letterBuffr := ""
+		for _, letter := range buffr {
+			letterBuffr += "'" + string(letter) + "'"
+		}
+		fmt.Printf("[ <%d>  %s ]\n", i, letterBuffr)
 	}
 	fmt.Println()
 	fmt.Println()
@@ -208,7 +241,7 @@ func (window *Window) drawCursor() {
 	content := shape.GetContent()
 	currentChar := ""
 	if window.insertCursorY != -1 {
-		if window.insertCursorX < len(content[window.insertCursorY]) {
+		if window.insertCursorX < len(content[window.insertCursorY]) && window.insertCursorX > -1 {
 			currentChar = string(content[window.insertCursorY][window.insertCursorX])
 		}
 	}
