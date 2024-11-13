@@ -72,6 +72,7 @@ func (window *Window) defaultHelpMessage() string {
 	- If statement
 	- New Variables
 	- Math operations
+  Insertion supports pasting from clipboard via ctrl + V.
 
 	Removing                       
   [ R ] , [ 3 ]

@@ -114,7 +114,9 @@ func (window *Window) draw() {
 	window.drawCurrentMode()
 
 	mousePos := rl.GetMousePosition()
-	window.drawHelp(&mousePos)
+	if window.currentMode != SIMULATE {
+		window.drawHelp(&mousePos)
+	}
 	for _, conn := range window.connections {
 		conn.Draw()
 	}

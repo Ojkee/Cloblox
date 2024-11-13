@@ -75,8 +75,10 @@ Evaluated logic expression.
 Accepts '&&' and "||" operators as and, or respectively.
 Doesn't evaluate 'and'/'or' keywords.
 
-Example:
-t[i] < d || t[5] > 2
+Examples:
+  t[i] < d || t[5] > 2
+  a < y
+  x >= 8
 
 Throws error if array or variable wasn't declared.
   `
