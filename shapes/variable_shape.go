@@ -51,3 +51,14 @@ func (shape *VariableShape) Draw() {
 func (shape *VariableShape) GetOutPos() (float32, float32) {
 	return shape.x + shape.width/2, shape.y + shape.height
 }
+
+func (shape *VariableShape) Info() string {
+	retVal := `
+  It's the place where variables are declared. 
+  Examples:
+    x = -1
+    y = 2.5
+    t = [4, 1, -2, 82, 9.2]
+  `
+	return retVal
+}

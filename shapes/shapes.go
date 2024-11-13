@@ -34,6 +34,7 @@ type Shape interface {
 	GetBlockId() int
 	GetColor() rl.Color
 	SetHighlight(flag bool)
+	Info() string
 }
 
 type ShapeSingleOut interface {

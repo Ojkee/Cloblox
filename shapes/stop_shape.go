@@ -47,3 +47,11 @@ func (shape *StopShape) Draw() {
 func (shape *StopShape) GetOutPos() (float32, float32) {
 	return shape.x + shape.width/2, shape.y + shape.height
 }
+
+func (shape *StopShape) Info() string {
+	retVal := `
+  Every diagram must end with this block.
+  Throws error is there is block that doesn't lead to any other block.
+  `
+	return retVal
+}

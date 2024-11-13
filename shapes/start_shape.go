@@ -47,3 +47,11 @@ func (shape *StartShape) Draw() {
 func (shape *StartShape) GetOutPos() (float32, float32) {
 	return shape.x + shape.width/2, shape.y + shape.height
 }
+
+func (shape *StartShape) Info() string {
+	retVal := `
+  Every diagram must begin with this block.
+  There can't be more than one start block.
+  `
+	return retVal
+}

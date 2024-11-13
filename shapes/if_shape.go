@@ -68,3 +68,17 @@ func (shape *IfShape) CloserToRight(mousePos rl.Vector2) bool {
 	// 2x - 2mx + w < 0
 	return 2*shape.x-2*mousePos.X+shape.width < 0
 }
+
+func (shape *IfShape) Info() string {
+	retVal := `
+Evaluated logic expression. 
+Accepts '&&' and "||" operators as and, or respectively.
+Doesn't evaluate 'and'/'or' keywords.
+
+Example:
+t[i] < d || t[5] > 2
+
+Throws error if array or variable wasn't declared.
+  `
+	return retVal
+}

@@ -57,3 +57,36 @@ func (shape *ActionShape) Draw() {
 func (shape *ActionShape) GetOutPos() (float32, float32) {
 	return shape.x + shape.width/2, shape.y + shape.height
 }
+
+func (shape *ActionShape) Info() string {
+	retVal := `
+
+  There is few types of action in this shape:
+  
+  - Print, prints variable to the debug console on the screen
+  
+  Example:
+    print x
+  
+  - Math operations, performs operations with assignment,
+  variable must be previously declared. 
+  Examples:
+    x++
+    x--
+    x += 3
+    x -= x/2
+    x /= t[i]*2
+    x = y
+
+  - Swap, swaps values of two variables 
+  Example:
+    swap t[i], x
+
+  - Rand, randomize value in range with assignment.
+  Rand is always floating number
+  Example:
+    x = rand 2, 5
+
+  `
+	return retVal
+}

@@ -113,6 +113,8 @@ func (window *Window) draw() {
 	rl.DrawLine(window.width/2, 0, window.width/2, window.height, settings.FONT_COLOR)
 	window.drawCurrentMode()
 
+	mousePos := rl.GetMousePosition()
+	window.drawHelp(&mousePos)
 	for _, conn := range window.connections {
 		conn.Draw()
 	}
@@ -123,7 +125,6 @@ func (window *Window) draw() {
 		shape.Draw()
 	}
 
-	mousePos := rl.GetMousePosition()
 	if window.currentShape != nil {
 		window.updateCurrentShape(&mousePos)
 		window.currentShape.Draw()
@@ -135,5 +136,6 @@ func (window *Window) draw() {
 	if window.currentInsertShape != nil && window.currentMode == INSERT {
 		window.drawCursor()
 	}
+
 	rl.EndDrawing()
 }
