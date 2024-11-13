@@ -8,9 +8,12 @@ const (
 	WINDOW_WIDTH  = 1400
 )
 
+// FONT
 var (
-	FONT      rl.Font
-	FONT_SIZE int32 = 16
+	FONT         rl.Font
+	FONT_SIZE    int32   = 16
+	FONT_SPACING float32 = 1
+	FONT_PATH    string  = "fonts/Metropolis-Medium.otf"
 )
 
 // COLORS

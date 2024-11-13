@@ -69,8 +69,8 @@ func (window *Window) MainLoop() {
 	rl.SetExitKey(rl.KeyNull)
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(165)
+	settings.FONT = rl.LoadFont(settings.FONT_PATH)
 
-	// FONT = rl.LoadFont("fonts/Metropolis-Medium.otf")
 	for !rl.WindowShouldClose() {
 		window.checkEvent()
 		window.draw()

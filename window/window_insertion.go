@@ -5,6 +5,7 @@ import (
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"Cloblox/functools"
 	"Cloblox/settings"
 	"Cloblox/shapes"
 )
@@ -246,26 +247,27 @@ func (window *Window) drawCursor() {
 		}
 	}
 
-	posY := int32(shapeRect.Y) + int32(window.insertCursorY)*int32(settings.FONT_SIZE)
+	posY := shapeRect.Y + float32(window.insertCursorY)*float32(settings.FONT_SIZE)
 	offsetX := shapeRect.X + shapeRect.Width/2
-	offsetText := float32(shape.GetContentSize(window.insertCursorY)) / 2
+	offsetText := functools.TextWidthEx(content[window.insertCursorY]).X / 2
 	textTillCursor := content[window.insertCursorY][:window.insertCursorX]
-	offsetCurrentPosText := float32(rl.MeasureText(textTillCursor, settings.FONT_SIZE))
-	posX := int32(offsetX - offsetText + offsetCurrentPosText)
+	offsetCurrentPosText := functools.TextWidthEx(textTillCursor).X
+	posX := offsetX - offsetText + offsetCurrentPosText
 
 	rectColor := settings.FONT_COLOR
-	rl.DrawRectangle(
-		posX+1,
-		posY,
-		settings.FONT_SIZE/2,
-		settings.FONT_SIZE,
+	posVec := rl.NewVector2(posX, posY)
+	sizeVec := rl.NewVector2(float32(settings.FONT_SIZE)/2, float32(settings.FONT_SIZE))
+	rl.DrawRectangleV(
+		posVec,
+		sizeVec,
 		rectColor,
 	)
-	rl.DrawText(
+	rl.DrawTextEx(
+		settings.FONT,
 		currentChar,
-		posX+1,
-		posY,
-		settings.FONT_SIZE,
+		posVec,
+		float32(settings.FONT_SIZE),
+		settings.FONT_SPACING,
 		reverseColor(&rectColor),
 	)
 }

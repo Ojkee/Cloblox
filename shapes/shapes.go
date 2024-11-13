@@ -3,6 +3,7 @@ package shapes
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"Cloblox/functools"
 	"Cloblox/settings"
 )
 
@@ -28,7 +29,6 @@ type Shape interface {
 	SetContent(content *[]string)
 	GetContent() []string
 	IsContentEmpty() bool
-	GetContentSize(idx int) int32
 	GetInPos() (float32, float32)
 	SetBlockId(bId int)
 	GetBlockId() int
@@ -103,10 +103,6 @@ func (shape *ShapeDefault) GetInPos() (float32, float32) {
 	return shape.x + shape.width/2, shape.y
 }
 
-func (shape *ShapeDefault) GetContentSize(idx int) int32 {
-	return rl.MeasureText(shape.content[idx], shape.fontSize)
-}
-
 func (shape *ShapeDefault) SetBlockId(bId int) {
 	shape.blockID = bId
 }
@@ -123,18 +119,35 @@ func (shape *ShapeDefault) IsContentEmpty() bool {
 }
 
 func (shape *ShapeDefault) drawContent() {
+	fontSizeFloat := float32(shape.fontSize)
 	if shape.IsContentEmpty() {
 		nameWidth := rl.MeasureText(shape.name, shape.fontSize)
-		xPos := int32(shape.x + shape.width/2 - float32(nameWidth)/2)
-		yPos := int32(shape.y + shape.height/2 - float32(settings.FONT_SIZE)/2)
-		rl.DrawText(shape.name, xPos, yPos, shape.fontSize, shape.fontColor)
+		xPos := float32(shape.x + shape.width/2 - float32(nameWidth)/2)
+		yPos := float32(shape.y + shape.height/2 - float32(shape.fontSize)/2)
+		posVec := rl.NewVector2(xPos, yPos)
+		rl.DrawTextEx(
+			settings.FONT,
+			shape.name,
+			posVec,
+			fontSizeFloat,
+			settings.FONT_SPACING,
+			shape.fontColor,
+		)
 	} else {
-		offset := int(settings.FONT_SIZE)
+		offset := float32(shape.fontSize)
 		for i, contentLine := range shape.content {
-			contentWidth := shape.GetContentSize(i)
-			xPos := int32(shape.x + shape.width/2 - float32(contentWidth)/2)
-			yPos := int32(shape.y + float32(offset*i))
-			rl.DrawText(contentLine, xPos, yPos, shape.fontSize, shape.fontColor)
+			contentWidth := functools.TextWidthEx(shape.content[i]).X
+			xPos := float32(shape.x + shape.width/2 - contentWidth/2)
+			yPos := float32(shape.y + offset*float32(i))
+			posVec := rl.NewVector2(xPos, yPos)
+			rl.DrawTextEx(
+				settings.FONT,
+				contentLine,
+				posVec,
+				fontSizeFloat,
+				settings.FONT_SPACING,
+				shape.fontColor,
+			)
 		}
 	}
 }
@@ -142,7 +155,8 @@ func (shape *ShapeDefault) drawContent() {
 func (shape *ShapeDefault) updateSize() {
 	maxWidth := settings.SHAPE_MIN_WIDTH
 	for i := range shape.content {
-		maxWidth = max(maxWidth, float32(shape.GetContentSize(i))+2*settings.MARGIN_HORIZONTAL)
+		textWidth := functools.TextWidthEx(shape.content[i]).X
+		maxWidth = max(maxWidth, textWidth+2*settings.MARGIN_HORIZONTAL)
 	}
 	shape.width = maxWidth
 	shape.height = max(
