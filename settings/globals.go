@@ -26,6 +26,8 @@ var (
 	PRINT_COLOR             = rl.NewColor(102, 96, 102, 255)
 	CONNECTION_COLOR        = rl.NewColor(77, 74, 77, 255)
 	HIGHLIGHT_COLOR         = rl.NewColor(204, 199, 186, 255)
+	POSITIVE_VAL_COLOR      = rl.NewColor(54, 227, 130, 255)
+	NEGATIVE_VAL_COLOR      = rl.NewColor(165, 61, 40, 255)
 	HELP_OUTER_BORDER_COLOR = rl.NewColor(81, 81, 81, 255)
 	HELP_INNER_BORDER_COLOR = rl.NewColor(31, 31, 31, 255)
 )
@@ -37,7 +39,7 @@ var (
 	SHAPE_TEXT_GAP   float32 = 10
 
 	MAX_CONTENT_LINES int     = 4
-	MAX_CONTENT_CHARS int     = 30
+	MAX_CONTENT_CHARS int     = 50
 	MARGIN_HORIZONTAL float32 = 10
 	MARGIN_VERTICAL   float32 = 10
 

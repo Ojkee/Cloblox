@@ -618,3 +618,27 @@ func (graph *Graph) GetAllSlicesKVP() (map[string][]float64, error) {
 	}
 	return retVal, nil
 }
+
+func (graph *Graph) GetAllSliceVars() []string {
+	retVal := make([]string, 0)
+	for key, value := range graph.allCurrentVars {
+		switch v := value.(type) {
+		case []float64:
+			if len(v) > 0 {
+				retVal = append(retVal, key)
+			}
+			break
+		case []float32:
+			if len(v) > 0 {
+				retVal = append(retVal, key)
+			}
+			break
+		case []int:
+			if len(v) > 0 {
+				retVal = append(retVal, key)
+			}
+			break
+		}
+	}
+	return retVal
+}

@@ -9,24 +9,30 @@ import (
 )
 
 type Window struct {
-	name   string
-	height int32
-	width  int32
-
+	name            string
+	height          int32
+	width           int32
 	backgroundColor rl.Color
 	fontColor       rl.Color
 
 	currentMode MODE
 
+	// BUILD
 	buildingShapes   []shapes.Shape
 	diagramShapes    []shapes.Shape
 	shapeClicked     bool
 	currentShape     shapes.Shape
 	currentShapeType shapes.SHAPE_TYPE
 
+	// INSERT
 	currentInsertShape *shapes.Shape
 	insertCursorX      int
 	insertCursorY      int
+
+	// SIMULATE
+	simulationStarted bool
+	simulationMode    SIMULATE_MODE
+	simulationVar     string
 
 	connections       []Connection
 	clickedConnection bool
@@ -56,6 +62,9 @@ func NewWindow(name string, height, width int32) *Window {
 		insertCursorX:      -1,
 		insertCursorY:      -1,
 
+		simulationStarted: false,
+		simulationMode:    NOT_SELECTED,
+
 		connections:       make([]Connection, 0),
 		clickedConnection: false,
 		currentConnection: nil,
@@ -70,6 +79,18 @@ func (window *Window) MainLoop() {
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(165)
 	settings.FONT = rl.LoadFont(settings.FONT_PATH)
+
+	// TODO REMOVE =======================================================================================
+	window.diagram.SetAllVars(map[string]any{
+		"x": 3,
+		"y": 4.5,
+		"p": []float64{3, 2, 1, 5, 3, 0, 10, 25, 13, 3, 11},
+		"n": []float64{0, -10, -15, -10, -9, -3, -3, -6, -33, -23},
+		"b": []float64{3, 5, 1, -1, -5, 0, 22, -25, 20, 5, -15},
+	})
+	window.simulationVar = "p"
+	window.simulationStarted = true
+	// END REMOVE ========================================================================================
 
 	for !rl.WindowShouldClose() {
 		window.checkEvent()
@@ -103,6 +124,7 @@ func (window *Window) checkEvent() {
 		window.removeManager(&mousePos)
 		break
 	case SIMULATE:
+		window.simulateManager(&mousePos)
 		break
 	}
 }
@@ -116,6 +138,10 @@ func (window *Window) draw() {
 	mousePos := rl.GetMousePosition()
 	if window.currentMode != SIMULATE {
 		window.drawHelp(&mousePos)
+	} else if window.currentMode == SIMULATE && !window.simulationStarted {
+		window.drawAllSlicesButtons()
+	} else if window.currentMode == SIMULATE {
+		window.drawCurrentSlice()
 	}
 	for _, conn := range window.connections {
 		conn.Draw()
