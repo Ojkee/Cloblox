@@ -7,6 +7,7 @@ import (
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"Cloblox/blocks"
 	"Cloblox/functools"
 	"Cloblox/settings"
 )
@@ -21,11 +22,13 @@ const (
 
 type VarButton struct {
 	name string
+	rect rl.Rectangle
 }
 
-func NewVarButton(name string) *VarButton {
+func NewVarButton(name string, rect rl.Rectangle) *VarButton {
 	return &VarButton{
 		name: name,
+		rect: rect,
 	}
 }
 
@@ -35,15 +38,17 @@ func (vButton *VarButton) GetName() string {
 
 func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 	if !window.simulationPrecompiled {
+		window.flushSimulate()
 		errs := window.preSimulationCompile()
 		window.simulationPrecompiled = true
 		return errs
 	}
-	// if rl.CheckCollisionPointRec(*mousePos , window.consoleInnerRect) {
-	//   if wheelMove := rl.GetMouseWheelMove(); wheelMove != 0 { // CONSOLE SCROLL
-	//
-	//   }
-	// }
+	if window.em.ContainsStongError() {
+		window.simulationPrecompiled = false
+		return nil
+	}
+	if !window.simulationStarted {
+	}
 	return nil
 }
 
@@ -56,9 +61,9 @@ func (window *Window) preSimulationCompile() []error {
 	}
 	err = window.diagram.InitIfValid()
 	if err != nil {
-		return append(errs, err)
+		errs = append(errs, err)
 	}
-	window.simulationSlicesVars = window.ReadAllSliceVars()
+	window.simulationSlicesVars = window.LoadSliceVarButtons()
 	if len(window.simulationSlicesVars) == 0 {
 		errs = append(errs, errors.New("No array to visualize"))
 	}
@@ -77,32 +82,55 @@ func (window *Window) shipContentToBlocks() error {
 	return nil
 }
 
-func (window *Window) ReadAllSliceVars() []string {
-	retVal := make([]string, 0)
-
-	return retVal
-}
-
-func (window *Window) drawAllSlicesButtons() {
+func (window *Window) LoadSliceVarButtons() []VarButton {
 	var margin float32 = 10
 	var buttonWidth float32 = 40
 	var buttonHeight float32 = 20
 	var buttonX float32 = settings.WINDOW_WIDTH/2 - buttonWidth - margin
 	var buttonY float32 = margin
 	var gap float32 = 10
-	for i, varName := range window.simulationSlicesVars {
-		x := buttonX + float32(i)*(buttonHeight+gap)
-		rect := rl.NewRectangle(x, buttonY, buttonWidth, buttonHeight)
-		drawSimulateButton(&rect, &varName)
+	retVal := make([]VarButton, 0)
+	for _, block := range window.diagram.GetAllBlocks() {
+		switch variableBlock := block.(type) {
+		case *blocks.VariablesBlock:
+			allVars := variableBlock.GetVars()
+			for key, value := range allVars {
+				switch value.(type) {
+				case []float64:
+					retVal = append(retVal, *NewVarButton(key, rl.NewRectangle(
+						buttonX,
+						buttonY+float32(len(retVal))*(buttonHeight+gap),
+						buttonWidth,
+						buttonHeight,
+					)))
+					break
+				}
+			}
+			break
+		}
+	}
+	return retVal
+}
+
+func (window *Window) drawAllSlicesButtons() {
+	for _, val := range window.simulationSlicesVars {
+		drawSimulateButton(&val)
 	}
 }
 
-func drawSimulateButton(rect *rl.Rectangle, text *string) {
-	rl.DrawRectangleRounded(*rect, 0.05, 10, settings.HIGHLIGHT_COLOR)
+func drawSimulateButton(vb *VarButton) {
+	rl.DrawRectangleRounded(vb.rect, 0.05, 10, settings.HELP_INNER_BORDER_COLOR)
+	textWidth := rl.MeasureTextEx(
+		settings.FONT,
+		vb.GetName(),
+		float32(settings.FONT_SIZE),
+		settings.FONT_SPACING,
+	).X
+	textOffset := vb.rect.X + vb.rect.Width/2 - textWidth/2
 	rl.DrawTextEx(
 		settings.FONT,
-		*text,
-		rl.NewVector2(rect.X, rect.Y),
+		vb.GetName(),
+		rl.NewVector2(textOffset, vb.rect.Y),
 		float32(settings.FONT_SIZE),
 		settings.FONT_SPACING,
 		settings.FONT_COLOR,
@@ -188,7 +216,7 @@ func (window *Window) drawValueFromSlice(
 func (window *Window) flushSimulate() {
 	window.simulationStarted = false
 	window.simulationMode = NOT_SELECTED
-	window.simulationSlicesVars = make([]string, 0)
+	window.simulationSlicesVars = make([]VarButton, 0)
 	window.simulationVar = ""
 	window.simulationPrecompiled = false
 	window.clearConsole()

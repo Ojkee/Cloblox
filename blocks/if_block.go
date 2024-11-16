@@ -84,6 +84,9 @@ func (block *IfBlock) SetConditionExpr(condition string) error {
 			return nil
 		}
 	}
+	if condition == "" {
+		condition = "If"
+	}
 	return functools.NewStrongError(
 		fmt.Sprintf("Can't compile line: %s", condition),
 		"if_block.go/SetConditionExpr fail:\n\tNo valid operator used",

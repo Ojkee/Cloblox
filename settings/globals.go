@@ -28,7 +28,8 @@ var (
 var (
 	BACKGROUND_COLOR        = rl.NewColor(51, 51, 51, 255)
 	FONT_COLOR              = rl.NewColor(255, 248, 231, 255)
-	FONT_ERROR_COLOR        = rl.NewColor(230, 92, 76, 255)
+	FONT_ERROR_COLOR        = rl.NewColor(243, 170, 154, 255)
+	FONT_ERROR_STRONG_COLOR = rl.NewColor(230, 92, 76, 255)
 	IF_COLOR                = rl.NewColor(171, 110, 164, 255)
 	START_STOP_COLOR        = rl.NewColor(118, 105, 126, 255)
 	VARIABLE_COLOR          = rl.NewColor(153, 141, 153, 255)

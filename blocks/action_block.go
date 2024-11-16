@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/Pramod-Devireddy/go-exprtk"
+
+	"Cloblox/functools"
 )
 
 // This block is responsible only for actions on variables (not declaring variables)
@@ -254,7 +256,9 @@ func (block *ActionBlock) parseKeysIfValidSwap(input *string) error {
 	inputNoPrefix := (*input)[strings.LastIndex(*input, "swap")+len("swap"):]
 	foundKeys := getKeysFromString(&inputNoPrefix)
 	if len(foundKeys) != 2 {
-		return errors.New("Invalid number of variables")
+		consoleMess := fmt.Sprintf("Invalid number of variables in line: %s", *input)
+		debugMess := fmt.Sprintf("action_block fail:\n\t%s", consoleMess)
+		return functools.NewStrongError(consoleMess, debugMess)
 	}
 	block.keys = foundKeys
 	return nil

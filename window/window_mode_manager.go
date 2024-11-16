@@ -58,7 +58,6 @@ func (window *Window) changeModeEvent() {
 		window.currentMode = REMOVE
 		break
 	case rl.KeyS, rl.KeyFour:
-		window.flushSimulate()
 		window.currentMode = SIMULATE
 		break
 	default:

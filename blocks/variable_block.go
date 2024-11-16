@@ -5,11 +5,12 @@ package blocks
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"Cloblox/functools"
 )
 
 type VariablesBlock struct {
@@ -49,7 +50,9 @@ func (block *VariablesBlock) GetValue(variableName string) (string, error) {
 	if val, ok := block.vars[variableName]; ok {
 		return block.valueToString(val), nil
 	}
-	return "", errors.New(block.name + " fail:\t\nNo such variable")
+	consoleMess := fmt.Sprintf("Variable not declared: %s", variableName)
+	debugMess := fmt.Sprintf("%s fail:\t\n%s", block.name, consoleMess)
+	return "", functools.NewStrongError(consoleMess, debugMess)
 }
 
 // Finds tokens of declaration expression of a variable or slice
@@ -64,7 +67,9 @@ func (block *VariablesBlock) Parse(lines []string) error {
 		} else if name, values, ok := block.parseSlice(&line); ok {
 			block.vars[name] = values
 		} else {
-			return errors.New(fmt.Sprintf("Invalid syntax at line:\n\t%s", line))
+			consoleMess := fmt.Sprintf("Invalid syntax at line: %s", line)
+			debugMess := fmt.Sprintf("%s fail:\n\t%s", block.name, consoleMess)
+			return functools.NewStrongError(consoleMess, debugMess)
 		}
 	}
 	return nil

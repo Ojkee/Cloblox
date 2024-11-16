@@ -19,8 +19,7 @@ func NewErrorManager(errs *[]error) *ErrorManager {
 
 func (em *ErrorManager) ContainsStongError() bool {
 	for _, err := range em.errs {
-		switch err.(type) {
-		case *StrongError:
+		if em.IsStrong(err) {
 			return true
 		}
 	}
@@ -62,9 +61,27 @@ func (em *ErrorManager) Clear() {
 	em.errs = make([]error, 0)
 }
 
+func (em *ErrorManager) StrongErrorCount() int {
+	retVal := 0
+	for _, err := range em.errs {
+		if em.IsStrong(err) {
+			retVal++
+		}
+	}
+	return retVal
+}
+
+func (em *ErrorManager) IsStrong(err error) bool {
+	switch err.(type) {
+	case *StrongError:
+		return true
+	}
+	return false
+}
+
 func (em *ErrorManager) PrintAllErrors() {
 	fmt.Println("**************ERRORS**************************************")
-	fmt.Println("ERRORS: ", len(em.errs))
+	fmt.Printf("ERRORS: %d\t\tSTRONG ERRORS: %d\n", len(em.errs), em.StrongErrorCount())
 	for _, err := range em.errs {
 		switch strongErr := err.(type) {
 		case *StrongError:

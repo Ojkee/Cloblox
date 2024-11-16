@@ -37,7 +37,7 @@ type Window struct {
 	// SIMULATE
 	simulationStarted     bool
 	simulationMode        SIMULATE_MODE
-	simulationSlicesVars  []string
+	simulationSlicesVars  []VarButton
 	simulationVar         string
 	consoleLines          []ConsoleLine
 	consoleInnerRect      rl.Rectangle
@@ -75,14 +75,14 @@ func NewWindow(name string, height, width int32) *Window {
 
 		simulationStarted:    false,
 		simulationMode:       NOT_SELECTED,
-		simulationSlicesVars: make([]string, 0),
+		simulationSlicesVars: make([]VarButton, 0),
 		simulationVar:        "",
 		consoleLines:         make([]ConsoleLine, 0),
 		consoleInnerRect: rl.NewRectangle(
-			10+2,
-			float32(settings.WINDOW_HEIGHT-settings.CONSOLE_HEIGHT)+2,
-			settings.WINDOW_WIDTH/2-2*(10+2),
-			settings.CONSOLE_HEIGHT-2*2-10,
+			settings.CONSOLE_MARGIN+settings.CONSOLE_BORDER_WIDTH,
+			float32(settings.WINDOW_HEIGHT-settings.CONSOLE_HEIGHT)+settings.CONSOLE_BORDER_WIDTH,
+			settings.WINDOW_WIDTH/2-2*(settings.CONSOLE_MARGIN+settings.CONSOLE_BORDER_WIDTH),
+			settings.CONSOLE_HEIGHT-2*settings.CONSOLE_BORDER_WIDTH-settings.CONSOLE_MARGIN,
 		),
 		simulationPrecompiled: false,
 
@@ -100,36 +100,6 @@ func (window *Window) MainLoop() {
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(165)
 	settings.FONT = rl.LoadFont(settings.FONT_PATH)
-
-	// TODO REMOVE =======================================================================================
-	// window.diagram.SetAllVars(map[string]any{
-	// 	"x": 3,
-	// 	"y": 4.5,
-	// 	"p": []float64{3, 2, 1, 5, 3, 0, 10, 25, 13, 3, 11},
-	// 	"n": []float64{0, -10, -15, -10, -9, -3, -3, -6, -33, -23},
-	// 	"b": []float64{3, 5, 1, -1, -5, 0, 22, -25, 20, 5, -15},
-	// })
-	// window.simulationVar = "p"
-	// window.simulationStarted = true
-	// preSplit := []string{
-	// 	"line1",
-	// 	"line2",
-	// 	"line3",
-	// 	"Very long error line omg what we gonna do lmfao xpp how to even handle this kind of situation what is goin on i need to wrap it somehow in the console",
-	// 	"line5 with more words",
-	// 	"line6",
-	// 	"line7",
-	// 	"line8",
-	// 	"line9",
-	// 	"line10",
-	// 	"line11",
-	// }
-	// cl := make([]string, 0)
-	// for _, line := range preSplit {
-	// 	cl = append(cl, functools.SplitLine(line, settings.CONSOLE_WIDTH-50)...)
-	// }
-	// window.consoleLines = cl
-	// END REMOVE ========================================================================================
 
 	for !rl.WindowShouldClose() {
 		window.checkEvent()
@@ -173,12 +143,20 @@ func (window *Window) checkEvent() {
 		errs = window.simulateManager(&mousePos)
 		break
 	}
+	window.appendErrorsToConsole(errs)
+}
+
+func (window *Window) appendErrorsToConsole(errs []error) {
 	if errs != nil {
 		window.em.AppendNewErrors(errs)
 		for _, err := range errs {
 			newLines := make([]ConsoleLine, 0)
+			color := settings.FONT_ERROR_COLOR
+			if window.em.IsStrong(err) {
+				color = settings.FONT_ERROR_STRONG_COLOR
+			}
 			for _, line := range functools.SplitLine(err.Error(), settings.CONSOLE_MAX_LINE_WIDTH) {
-				newLines = append(newLines, *NewConsoleLine(line, settings.FONT_ERROR_COLOR))
+				newLines = append(newLines, *NewConsoleLine(line, color))
 			}
 			window.consoleLines = append(
 				window.consoleLines,
@@ -200,8 +178,9 @@ func (window *Window) draw() {
 		window.drawAllSlicesButtons()
 		window.drawConsole()
 	} else if window.currentMode == SIMULATE {
-		window.drawCurrentSlice()
 		window.drawConsole()
+		window.drawCurrentSlice()
+		window.drawAllSlicesButtons()
 	}
 	for _, conn := range window.connections {
 		conn.Draw()

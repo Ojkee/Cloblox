@@ -10,6 +10,7 @@ import (
 	"github.com/Pramod-Devireddy/go-exprtk"
 
 	"Cloblox/blocks"
+	"Cloblox/functools"
 )
 
 const (
@@ -63,7 +64,9 @@ func NewGraph(blocksSlice *[]blocks.Block, stepLimit ...int) *Graph {
 // and all paths lead to Stop block/blocks
 func (graph *Graph) InitIfValid() error {
 	if !isOneStart(&graph.blocksSlice) {
-		return errors.New(INVALID_START_ERR_MESSAGE)
+		consoleMess := INVALID_START_ERR_MESSAGE
+		debugMess := fmt.Sprintf("graph.go/InitIfValid fail:\n\t%s", consoleMess)
+		return functools.NewStrongError(consoleMess, debugMess)
 	}
 
 	startNode := &graph.blocksSlice[graph.findStartIdx()]
@@ -73,7 +76,9 @@ func (graph *Graph) InitIfValid() error {
 
 	allInStop, anyInNil := dfsAllPathsStops(graph.head, &visitedIds)
 	if anyInNil || !allInStop {
-		return errors.New(INVALID_PATH_ERR_MESSAGE)
+		consoleMess := INVALID_PATH_ERR_MESSAGE
+		debugMess := fmt.Sprintf("graph.go/InitIfValid fail:\n\t%s", consoleMess)
+		return functools.NewStrongError(consoleMess, debugMess)
 	}
 	return nil
 }
