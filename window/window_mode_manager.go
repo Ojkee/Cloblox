@@ -18,12 +18,18 @@ const (
 
 func (window *Window) drawCurrentMode() {
 	modeStr := string(window.currentMode)
-	textWidth := rl.MeasureText(modeStr, settings.FONT_SIZE)
-	rl.DrawText(
+	textWidth := rl.MeasureTextEx(
+		settings.FONT,
 		modeStr,
-		window.width-textWidth-4,
-		0,
-		settings.FONT_SIZE,
+		float32(settings.FONT_SIZE),
+		settings.FONT_SPACING,
+	).X
+	rl.DrawTextEx(
+		settings.FONT,
+		modeStr,
+		rl.NewVector2(float32(window.width)-textWidth-4, 0),
+		float32(settings.FONT_SIZE),
+		settings.FONT_SPACING,
 		window.fontColor,
 	)
 }
@@ -52,6 +58,7 @@ func (window *Window) changeModeEvent() {
 		window.currentMode = REMOVE
 		break
 	case rl.KeyS, rl.KeyFour:
+		window.flushSimulate()
 		window.currentMode = SIMULATE
 		break
 	default:

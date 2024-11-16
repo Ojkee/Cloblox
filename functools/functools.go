@@ -1,7 +1,9 @@
 package functools
 
 import (
+	"fmt"
 	"math"
+	"strings"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 
@@ -86,4 +88,30 @@ func MulElemVec(source []float64, scalar float64) []float64 {
 		source[i] *= scalar
 	}
 	return source
+}
+
+func SplitLine(line string, maxWidth float32) []string {
+	retVal := make([]string, 0)
+	words := strings.Split(line, " ")
+	if len(words) == 0 {
+		return nil
+	}
+	currentLine := words[0]
+	for i := 1; i < len(words); i++ {
+		nextPossible := fmt.Sprintf("%s %s", currentLine, words[i])
+		if rl.MeasureTextEx(
+			settings.FONT,
+			nextPossible,
+			float32(settings.FONT_SIZE),
+			settings.FONT_SPACING,
+		).X <= maxWidth {
+			currentLine = nextPossible
+		} else {
+			retVal = append(retVal, currentLine)
+			currentLine = words[i]
+		}
+	}
+	retVal = append(retVal, currentLine)
+
+	return retVal
 }

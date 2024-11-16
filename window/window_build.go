@@ -8,13 +8,13 @@ import (
 	"Cloblox/shapes"
 )
 
-func (window *Window) buildManager(mousePos *rl.Vector2) error {
+func (window *Window) buildManager(mousePos *rl.Vector2) []error {
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) { // New Shape
 		window.buildNewShapeEvent(mousePos)
 	} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) { // Connect
 		err := window.currentConnectionEvent(mousePos)
 		if err != nil {
-			return err
+			return []error{err}
 		}
 	}
 	return nil

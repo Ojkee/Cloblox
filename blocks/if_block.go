@@ -1,10 +1,12 @@
 package blocks
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/Pramod-Devireddy/go-exprtk"
+
+	"Cloblox/functools"
 )
 
 type IfBlock struct {
@@ -82,7 +84,10 @@ func (block *IfBlock) SetConditionExpr(condition string) error {
 			return nil
 		}
 	}
-	return errors.New("if_block.go/SetConditionExpr fail:\n\tNo valid operator used")
+	return functools.NewStrongError(
+		fmt.Sprintf("Can't compile line: %s", condition),
+		"if_block.go/SetConditionExpr fail:\n\tNo valid operator used",
+	)
 }
 
 func replaceLogicOps(line *string) string {
@@ -114,7 +119,8 @@ func (block *IfBlock) IsEvalTrue() (bool, error) {
 
 	err := exprtkObj.CompileExpression()
 	if err != nil {
-		return false, err
+		consoleMessage := fmt.Sprintf("Can't compile: %s", block.conditionExpr)
+		return false, functools.NewStrongError(consoleMessage, err.Error())
 	}
 	for key, val := range block.conditionKVP {
 		if arrayKey, ok := block.arrayKeys[key]; ok {

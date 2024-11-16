@@ -8,6 +8,14 @@ const (
 	WINDOW_WIDTH  = 1400
 )
 
+// DEBUG
+var (
+	DEBUG_BLOCKS_POINTERS = false
+	DEBUG_SHAPE_CONTENT   = false
+	DEBUG_DIAGRAM_DETAILS = true
+	DEBUG_ERRORS          = true
+)
+
 // FONT
 var (
 	FONT         rl.Font
@@ -20,6 +28,7 @@ var (
 var (
 	BACKGROUND_COLOR        = rl.NewColor(51, 51, 51, 255)
 	FONT_COLOR              = rl.NewColor(255, 248, 231, 255)
+	FONT_ERROR_COLOR        = rl.NewColor(230, 92, 76, 255)
 	IF_COLOR                = rl.NewColor(171, 110, 164, 255)
 	START_STOP_COLOR        = rl.NewColor(118, 105, 126, 255)
 	VARIABLE_COLOR          = rl.NewColor(153, 141, 153, 255)
@@ -46,8 +55,14 @@ var (
 	HIGHLIGHT_PAD float32 = 4
 )
 
-// DEBUG
-var (
-	DEBUG_BLOCKS_POINTERS = false
-	DEBUG_SHAPE_CONTENT   = true
+// CONSOLE
+const (
+	CONSOLE_WIDTH             = WINDOW_WIDTH / 2
+	CONSOLE_HEIGHT            = WINDOW_HEIGHT / 4
+	CONSOLE_PREFIX            = ">"
+	CONSOLE_MAX_LINES         = 10
+	CONSOLE_MAX_LINES_HISTORY = 64
+	CONSOLE_MAX_LINE_WIDTH    = CONSOLE_WIDTH - 50
+	CONSOLE_MARGIN            = 10
+	CONSOLE_BORDER_WIDTH      = 2
 )

@@ -10,7 +10,7 @@ import (
 	"Cloblox/shapes"
 )
 
-func (window *Window) insertManager(mousePos *rl.Vector2) error {
+func (window *Window) insertManager(mousePos *rl.Vector2) []error {
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		window.selectInsertShape(mousePos)
 	} else if !rl.IsKeyPressed(rl.KeyZero) && window.currentInsertShape != nil {

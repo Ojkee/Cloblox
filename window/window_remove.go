@@ -2,7 +2,7 @@ package window
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
-func (window *Window) removeManager(mousePos *rl.Vector2) error {
+func (window *Window) removeManager(mousePos *rl.Vector2) []error {
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) ||
 		rl.IsMouseButtonPressed(rl.MouseButtonRight) {
 		if removeId := window.getShapeIdMousePos(mousePos); removeId != -1 {

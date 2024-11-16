@@ -1,8 +1,11 @@
 package window
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"Cloblox/functools"
 	"Cloblox/graph"
 	"Cloblox/settings"
 	"Cloblox/shapes"
@@ -17,6 +20,8 @@ type Window struct {
 
 	currentMode MODE
 
+	em functools.ErrorManager
+
 	// BUILD
 	buildingShapes   []shapes.Shape
 	diagramShapes    []shapes.Shape
@@ -30,9 +35,13 @@ type Window struct {
 	insertCursorY      int
 
 	// SIMULATE
-	simulationStarted bool
-	simulationMode    SIMULATE_MODE
-	simulationVar     string
+	simulationStarted     bool
+	simulationMode        SIMULATE_MODE
+	simulationSlicesVars  []string
+	simulationVar         string
+	consoleLines          []ConsoleLine
+	consoleInnerRect      rl.Rectangle
+	simulationPrecompiled bool
 
 	connections       []Connection
 	clickedConnection bool
@@ -49,6 +58,8 @@ func NewWindow(name string, height, width int32) *Window {
 
 		currentMode: BUILD,
 
+		em: *functools.NewErrorManager(nil),
+
 		backgroundColor: settings.BACKGROUND_COLOR,
 		fontColor:       settings.FONT_COLOR,
 
@@ -62,8 +73,18 @@ func NewWindow(name string, height, width int32) *Window {
 		insertCursorX:      -1,
 		insertCursorY:      -1,
 
-		simulationStarted: false,
-		simulationMode:    NOT_SELECTED,
+		simulationStarted:    false,
+		simulationMode:       NOT_SELECTED,
+		simulationSlicesVars: make([]string, 0),
+		simulationVar:        "",
+		consoleLines:         make([]ConsoleLine, 0),
+		consoleInnerRect: rl.NewRectangle(
+			10+2,
+			float32(settings.WINDOW_HEIGHT-settings.CONSOLE_HEIGHT)+2,
+			settings.WINDOW_WIDTH/2-2*(10+2),
+			settings.CONSOLE_HEIGHT-2*2-10,
+		),
+		simulationPrecompiled: false,
 
 		connections:       make([]Connection, 0),
 		clickedConnection: false,
@@ -81,15 +102,33 @@ func (window *Window) MainLoop() {
 	settings.FONT = rl.LoadFont(settings.FONT_PATH)
 
 	// TODO REMOVE =======================================================================================
-	window.diagram.SetAllVars(map[string]any{
-		"x": 3,
-		"y": 4.5,
-		"p": []float64{3, 2, 1, 5, 3, 0, 10, 25, 13, 3, 11},
-		"n": []float64{0, -10, -15, -10, -9, -3, -3, -6, -33, -23},
-		"b": []float64{3, 5, 1, -1, -5, 0, 22, -25, 20, 5, -15},
-	})
-	window.simulationVar = "p"
-	window.simulationStarted = true
+	// window.diagram.SetAllVars(map[string]any{
+	// 	"x": 3,
+	// 	"y": 4.5,
+	// 	"p": []float64{3, 2, 1, 5, 3, 0, 10, 25, 13, 3, 11},
+	// 	"n": []float64{0, -10, -15, -10, -9, -3, -3, -6, -33, -23},
+	// 	"b": []float64{3, 5, 1, -1, -5, 0, 22, -25, 20, 5, -15},
+	// })
+	// window.simulationVar = "p"
+	// window.simulationStarted = true
+	// preSplit := []string{
+	// 	"line1",
+	// 	"line2",
+	// 	"line3",
+	// 	"Very long error line omg what we gonna do lmfao xpp how to even handle this kind of situation what is goin on i need to wrap it somehow in the console",
+	// 	"line5 with more words",
+	// 	"line6",
+	// 	"line7",
+	// 	"line8",
+	// 	"line9",
+	// 	"line10",
+	// 	"line11",
+	// }
+	// cl := make([]string, 0)
+	// for _, line := range preSplit {
+	// 	cl = append(cl, functools.SplitLine(line, settings.CONSOLE_WIDTH-50)...)
+	// }
+	// window.consoleLines = cl
 	// END REMOVE ========================================================================================
 
 	for !rl.WindowShouldClose() {
@@ -101,7 +140,13 @@ func (window *Window) MainLoop() {
 				window.debugContent()
 			}
 			if settings.DEBUG_BLOCKS_POINTERS {
-				window.diagram.Log()
+				window.diagram.DebugLog()
+			}
+			if settings.DEBUG_DIAGRAM_DETAILS {
+				window.diagram.DebugDiagramDetails()
+			}
+			if settings.DEBUG_ERRORS {
+				window.em.PrintAllErrors()
 			}
 		}
 	}
@@ -113,19 +158,32 @@ func (window *Window) checkEvent() {
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		window.selectInsertShape(&mousePos)
 	}
+	var errs []error
 	switch window.currentMode {
 	case BUILD:
-		window.buildManager(&mousePos)
+		errs = window.buildManager(&mousePos)
 		break
 	case INSERT:
-		window.insertManager(&mousePos)
+		errs = window.insertManager(&mousePos)
 		break
 	case REMOVE:
-		window.removeManager(&mousePos)
+		errs = window.removeManager(&mousePos)
 		break
 	case SIMULATE:
-		window.simulateManager(&mousePos)
+		errs = window.simulateManager(&mousePos)
 		break
+	}
+	if errs != nil {
+		window.em.AppendNewErrors(errs)
+		for _, err := range errs {
+			newLines := make([]ConsoleLine, 0)
+			for _, line := range functools.SplitLine(err.Error(), settings.CONSOLE_MAX_LINE_WIDTH) {
+				newLines = append(newLines, *NewConsoleLine(line, settings.FONT_ERROR_COLOR))
+			}
+			window.consoleLines = append(
+				window.consoleLines,
+				newLines...)
+		}
 	}
 }
 
@@ -140,8 +198,10 @@ func (window *Window) draw() {
 		window.drawHelp(&mousePos)
 	} else if window.currentMode == SIMULATE && !window.simulationStarted {
 		window.drawAllSlicesButtons()
+		window.drawConsole()
 	} else if window.currentMode == SIMULATE {
 		window.drawCurrentSlice()
+		window.drawConsole()
 	}
 	for _, conn := range window.connections {
 		conn.Draw()
@@ -166,4 +226,26 @@ func (window *Window) draw() {
 	}
 
 	rl.EndDrawing()
+}
+
+func (window *Window) temp() {
+	preSplit := []string{
+		"line1",
+		"line2",
+		"line3",
+		"Very long error line omg what we gonna do lmfao xpp how to even handle this kind of situation what is goin on i need to wrap it somehow in the console",
+		"line5 with more words",
+		"line6",
+		"line7",
+		"line8",
+		"line9",
+		"line10",
+		"line11",
+		"line12",
+	}
+	cl := make([]string, 0)
+	for _, line := range preSplit {
+		cl = append(cl, functools.SplitLine(line, 20)...)
+	}
+	fmt.Println(cl)
 }

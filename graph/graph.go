@@ -181,7 +181,7 @@ func (graph *Graph) GetAllVars() map[string]any {
 	return graph.allCurrentVars
 }
 
-func (graph *Graph) Log() { // Debug
+func (graph *Graph) DebugLog() {
 	fmt.Println("***********************************************************")
 	printVal := ""
 	for i := range graph.blocksSlice {
@@ -641,4 +641,52 @@ func (graph *Graph) GetAllSliceVars() []string {
 		}
 	}
 	return retVal
+}
+
+func (graph *Graph) SetBlockContentById(content *[]string, id int) error {
+	for i := range graph.blocksSlice {
+		if id == graph.blocksSlice[i].GetId() {
+			var err error
+			if b, ok := graph.blocksSlice[i].(*blocks.IfBlock); ok {
+				err = b.SetConditionExpr(strings.Join(*content, ""))
+				if err != nil {
+					return err
+				}
+			} else if b, ok := graph.blocksSlice[i].(*blocks.VariablesBlock); ok {
+				err = b.Parse(*content)
+				if err != nil {
+					return err
+				}
+			} else if b, ok := graph.blocksSlice[i].(*blocks.ActionBlock); ok {
+				err = b.ParseFromUserInput(strings.Join(*content, ""))
+			}
+			return nil
+		}
+	}
+	return errors.New(fmt.Sprintf("No Block with id = %d found", id))
+}
+
+func (graph *Graph) DebugDiagramDetails() {
+	fmt.Println("**************DETAILS**************************************")
+	for i := range graph.blocksSlice {
+		id := graph.blocksSlice[i].GetId()
+		name := graph.blocksSlice[i].GetName()
+		debugMessage := fmt.Sprintf("%d  %s", id, name)
+		var additionalInfo string
+		if block, ok := graph.blocksSlice[i].(*blocks.IfBlock); ok {
+			keys := strings.Join(block.GetKeys(), " ")
+			additionalInfo = fmt.Sprintf("Keys: %s", keys)
+		} else if block, ok := graph.blocksSlice[i].(*blocks.VariablesBlock); ok {
+			vars := block.GetVars()
+			for key, value := range vars {
+				additionalInfo = fmt.Sprintf("%s, %s: %v", additionalInfo, key, value)
+			}
+		} else if block, ok := graph.blocksSlice[i].(*blocks.ActionBlock); ok {
+			keys := strings.Join(block.GetKeys(), " ")
+			additionalInfo = fmt.Sprintf("Keys: %s", keys)
+		}
+		fmt.Println(fmt.Sprintf("%s\n\t%s", debugMessage, additionalInfo))
+	}
+	fmt.Println()
+	fmt.Println()
 }
