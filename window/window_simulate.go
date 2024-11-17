@@ -44,9 +44,9 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 	var err error
 	if window.simulationMode == CONTINUOUSLY {
 		err = window.SimulationStep()
+		time.Sleep(time.Millisecond * settings.SIMULATION_TIME_STEP_MS)
 	} else if window.simulationMode == STEP_BY_STEP {
-		keyPressed := rl.GetKeyPressed()
-		if keyPressed == rl.KeyRight {
+		if rl.IsKeyDown(rl.KeyRight) {
 			err = window.SimulationStep()
 		}
 	}
@@ -86,8 +86,6 @@ func (window *Window) SimulationStep() error {
 	window.em.AppendNew(err)
 	if finished {
 		window.simulationMode = FINISHED
-	} else {
-		time.Sleep(time.Millisecond * settings.SIMULATION_TIME_STEP_MS)
 	}
 	return err
 }

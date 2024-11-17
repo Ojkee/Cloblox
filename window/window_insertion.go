@@ -277,6 +277,9 @@ func reverseColor(color *rl.Color) rl.Color {
 }
 
 func (window *Window) flushInsertShape() {
+	for i := range window.diagramShapes {
+		window.diagramShapes[i].SetHighlight(false)
+	}
 	window.currentInsertShape = nil
 	window.flushInsertCursor()
 }
