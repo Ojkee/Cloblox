@@ -1,8 +1,6 @@
 package window
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"Cloblox/functools"
@@ -35,7 +33,6 @@ type Window struct {
 	insertCursorY      int
 
 	// SIMULATE
-	simulationStarted    bool
 	simulationMode       SIMULATE_MODE
 	simulationVarButtons []VarButton
 	simulationVar        string
@@ -72,7 +69,6 @@ func NewWindow(name string, height, width int32) *Window {
 		insertCursorX:      -1,
 		insertCursorY:      -1,
 
-		simulationStarted:    false,
 		simulationMode:       NOT_SELECTED,
 		simulationVarButtons: make([]VarButton, 0),
 		simulationVar:        "",
@@ -155,15 +151,10 @@ func (window *Window) draw() {
 	mousePos := rl.GetMousePosition()
 	if window.currentMode != SIMULATE {
 		window.drawHelp(&mousePos)
-	} else if window.currentMode == SIMULATE && !window.simulationStarted {
-		window.drawConsole()
-		window.drawAllSlicesButtons()
-		window.drawCurrentSlice()
-		fmt.Println(window.simulationVar)
 	} else if window.currentMode == SIMULATE {
 		window.drawConsole()
-		window.drawAllSlicesButtons()
 		window.drawCurrentSlice()
+		window.drawAllSlicesButtons()
 	}
 	for _, conn := range window.connections {
 		conn.Draw()

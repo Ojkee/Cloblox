@@ -137,7 +137,7 @@ func (shape *ShapeDefault) drawContent() {
 	} else {
 		offset := float32(shape.fontSize)
 		for i, contentLine := range shape.content {
-			contentWidth := functools.TextWidthEx(shape.content[i]).X
+			contentWidth := functools.TextSizeEx(shape.content[i]).X
 			xPos := float32(shape.x + shape.width/2 - contentWidth/2)
 			yPos := float32(shape.y + offset*float32(i))
 			posVec := rl.NewVector2(xPos, yPos)
@@ -156,7 +156,7 @@ func (shape *ShapeDefault) drawContent() {
 func (shape *ShapeDefault) updateSize() {
 	maxWidth := settings.SHAPE_MIN_WIDTH
 	for i := range shape.content {
-		textWidth := functools.TextWidthEx(shape.content[i]).X
+		textWidth := functools.TextSizeEx(shape.content[i]).X
 		maxWidth = max(maxWidth, textWidth+2*settings.MARGIN_HORIZONTAL)
 	}
 	shape.width = maxWidth

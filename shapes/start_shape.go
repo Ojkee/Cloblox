@@ -40,6 +40,9 @@ func (shape *StartShape) drawShape(rect rl.Rectangle, color *rl.Color) {
 }
 
 func (shape *StartShape) Draw() {
+	if shape.isHighlighted {
+		shape.drawShape(shape.getHighlightRect(), &settings.HIGHLIGHT_COLOR)
+	}
 	shape.drawShape(shape.GetRect(), &shape.color)
 	shape.drawContent()
 }

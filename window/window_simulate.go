@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 
@@ -18,6 +19,8 @@ const (
 	NOT_SELECTED SIMULATE_MODE = iota
 	STEP_BY_STEP
 	CONTINUOUSLY
+	PAUSE
+	FINISHED
 )
 
 type VarButton struct {
@@ -36,8 +39,15 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 	if window.em.ContainsStongError() {
 		return nil
 	}
-	window.simulationMode = CONTINUOUSLY
+	window.SelectVarButtonOnClick(mousePos)
 
+	if window.simulationMode == CONTINUOUSLY {
+		window.ContinuousSimulation()
+	}
+	return nil
+}
+
+func (window *Window) SelectVarButtonOnClick(mousePos *rl.Vector2) {
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		for _, button := range window.simulationVarButtons {
 			if rl.CheckCollisionPointRec(*mousePos, button.rect) {
@@ -45,7 +55,31 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 			}
 		}
 	}
-	return nil
+}
+
+func (window *Window) ContinuousSimulation() {
+	finished, consoleMessage, err := window.diagram.MakeStep()
+	if consoleMessage != "" {
+		window.consoleLines = append(
+			window.consoleLines,
+			*NewConsoleLine(consoleMessage, settings.FONT_COLOR),
+		)
+	}
+	current := window.diagram.GetCurrent()
+	currentId := (*current).GetId()
+	for i := range window.diagramShapes {
+		if window.diagramShapes[i].GetBlockId() == currentId {
+			window.diagramShapes[i].SetHighlight(true)
+		} else {
+			window.diagramShapes[i].SetHighlight(false)
+		}
+	}
+	window.em.AppendNew(err)
+	if finished {
+		window.simulationMode = FINISHED
+	} else {
+		time.Sleep(time.Millisecond * settings.SIMULATION_TIME_STEP_MS)
+	}
 }
 
 func (window *Window) preSimulationCompile() []error {
@@ -212,8 +246,6 @@ func (window *Window) drawValueFromSlice(
 }
 
 func (window *Window) flushSimulate() {
-	window.simulationStarted = false
-	window.simulationMode = NOT_SELECTED
 	window.simulationVarButtons = make([]VarButton, 0)
 	window.simulationVar = ""
 	window.clearConsole()

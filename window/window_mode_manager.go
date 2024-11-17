@@ -43,6 +43,15 @@ func (window *Window) changeModeEvent() {
 			return
 		}
 	}
+
+	// TODO REMOVE
+	if window.currentMode == SIMULATE && window.simulationMode != FINISHED {
+		if keyPressed == rl.KeyTab {
+			window.simulationMode = (window.simulationMode + 1) % 5 // 5 modes
+		}
+	}
+	// END REMOVE
+
 	switch keyPressed {
 	case
 		0,       // DEFAULT NO PRESS KEY
@@ -58,8 +67,10 @@ func (window *Window) changeModeEvent() {
 		window.currentMode = REMOVE
 		break
 	case rl.KeyS, rl.KeyFour:
+		window.flushInsertShape()
 		window.flushSimulate()
-		window.diagram.FlushVars()
+		window.diagram.FlushCache()
+
 		errs := window.preSimulationCompile()
 		window.em.AppendNewErrors(errs)
 		window.appendErrorsToConsole(errs)

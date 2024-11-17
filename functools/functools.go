@@ -10,7 +10,7 @@ import (
 	"Cloblox/settings"
 )
 
-func TextWidthEx(text string) rl.Vector2 {
+func TextSizeEx(text string) rl.Vector2 {
 	retVal := rl.MeasureTextEx(
 		settings.FONT,
 		text,

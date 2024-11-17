@@ -249,9 +249,9 @@ func (window *Window) drawCursor() {
 
 	posY := shapeRect.Y + float32(window.insertCursorY)*float32(settings.FONT_SIZE)
 	offsetX := shapeRect.X + shapeRect.Width/2
-	offsetText := functools.TextWidthEx(content[window.insertCursorY]).X / 2
+	offsetText := functools.TextSizeEx(content[window.insertCursorY]).X / 2
 	textTillCursor := content[window.insertCursorY][:window.insertCursorX]
-	offsetCurrentPosText := functools.TextWidthEx(textTillCursor).X
+	offsetCurrentPosText := functools.TextSizeEx(textTillCursor).X
 	posX := offsetX - offsetText + offsetCurrentPosText
 
 	rectColor := settings.FONT_COLOR

@@ -239,7 +239,9 @@ func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float64, error) {
 	for _, key := range *keys {
 		if arrayKey, idxer, found := getIfArrayKey(&key); found {
 			if !graph.isKeyInVars(arrayKey) {
-				return nil, errors.New("Variable not declared")
+				concoleMess := "Variable not declared"
+				debugMess := fmt.Sprintf("graph.go/GetKvpByKeys() fail: %s", concoleMess)
+				return nil, functools.NewStrongError(concoleMess, debugMess)
 			}
 			idxParsed, err := graph.parseArrayIdxer(idxer)
 			if err != nil {
@@ -268,12 +270,13 @@ func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float64, error) {
 // Doesn't catch errors on compile time.
 func (graph *Graph) MakeStep() (finished bool, logMessage string, err error) {
 	if graph.stepCounter >= graph.stepLimit {
-		err := errors.New("Limit of steps exceeded")
-		return false, err.Error(), err
+		consoleMess := "Limit of steps exceeded"
+		debugMess := fmt.Sprintf("graph.go/MakeStep() fail: %s ", consoleMess)
+		return false, "", functools.NewStrongError(consoleMess, debugMess)
 	}
 	err = graph.goToNext()
 	if err != nil {
-		return false, err.Error(), err
+		return false, "", err
 	}
 	finished, logMessage, err = graph.evaluateCurrent()
 	graph.stepCounter += 1
@@ -696,8 +699,10 @@ func (graph *Graph) DebugDiagramDetails() {
 	fmt.Println()
 }
 
-func (graph *Graph) FlushVars() {
+// Flushed every variable, sets start
+func (graph *Graph) FlushCache() {
 	graph.allCurrentVars = make(map[string]any, 0)
+	graph.current = graph.head
 }
 
 func (graph *Graph) ContainsVar(name string) bool {
