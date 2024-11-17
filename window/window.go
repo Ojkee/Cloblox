@@ -35,13 +35,12 @@ type Window struct {
 	insertCursorY      int
 
 	// SIMULATE
-	simulationStarted     bool
-	simulationMode        SIMULATE_MODE
-	simulationSlicesVars  []VarButton
-	simulationVar         string
-	consoleLines          []ConsoleLine
-	consoleInnerRect      rl.Rectangle
-	simulationPrecompiled bool
+	simulationStarted    bool
+	simulationMode       SIMULATE_MODE
+	simulationVarButtons []VarButton
+	simulationVar        string
+	consoleLines         []ConsoleLine
+	consoleInnerRect     rl.Rectangle
 
 	connections       []Connection
 	clickedConnection bool
@@ -75,7 +74,7 @@ func NewWindow(name string, height, width int32) *Window {
 
 		simulationStarted:    false,
 		simulationMode:       NOT_SELECTED,
-		simulationSlicesVars: make([]VarButton, 0),
+		simulationVarButtons: make([]VarButton, 0),
 		simulationVar:        "",
 		consoleLines:         make([]ConsoleLine, 0),
 		consoleInnerRect: rl.NewRectangle(
@@ -84,7 +83,6 @@ func NewWindow(name string, height, width int32) *Window {
 			settings.WINDOW_WIDTH/2-2*(settings.CONSOLE_MARGIN+settings.CONSOLE_BORDER_WIDTH),
 			settings.CONSOLE_HEIGHT-2*settings.CONSOLE_BORDER_WIDTH-settings.CONSOLE_MARGIN,
 		),
-		simulationPrecompiled: false,
 
 		connections:       make([]Connection, 0),
 		clickedConnection: false,
@@ -120,6 +118,8 @@ func (window *Window) MainLoop() {
 			}
 		}
 	}
+	rl.UnloadFont(settings.FONT)
+	rl.CloseWindow()
 }
 
 func (window *Window) checkEvent() {
@@ -146,25 +146,6 @@ func (window *Window) checkEvent() {
 	window.appendErrorsToConsole(errs)
 }
 
-func (window *Window) appendErrorsToConsole(errs []error) {
-	if errs != nil {
-		window.em.AppendNewErrors(errs)
-		for _, err := range errs {
-			newLines := make([]ConsoleLine, 0)
-			color := settings.FONT_ERROR_COLOR
-			if window.em.IsStrong(err) {
-				color = settings.FONT_ERROR_STRONG_COLOR
-			}
-			for _, line := range functools.SplitLine(err.Error(), settings.CONSOLE_MAX_LINE_WIDTH) {
-				newLines = append(newLines, *NewConsoleLine(line, color))
-			}
-			window.consoleLines = append(
-				window.consoleLines,
-				newLines...)
-		}
-	}
-}
-
 func (window *Window) draw() {
 	rl.BeginDrawing()
 	rl.ClearBackground(window.backgroundColor)
@@ -175,12 +156,14 @@ func (window *Window) draw() {
 	if window.currentMode != SIMULATE {
 		window.drawHelp(&mousePos)
 	} else if window.currentMode == SIMULATE && !window.simulationStarted {
-		window.drawAllSlicesButtons()
 		window.drawConsole()
+		window.drawAllSlicesButtons()
+		window.drawCurrentSlice()
+		fmt.Println(window.simulationVar)
 	} else if window.currentMode == SIMULATE {
 		window.drawConsole()
-		window.drawCurrentSlice()
 		window.drawAllSlicesButtons()
+		window.drawCurrentSlice()
 	}
 	for _, conn := range window.connections {
 		conn.Draw()
@@ -205,26 +188,4 @@ func (window *Window) draw() {
 	}
 
 	rl.EndDrawing()
-}
-
-func (window *Window) temp() {
-	preSplit := []string{
-		"line1",
-		"line2",
-		"line3",
-		"Very long error line omg what we gonna do lmfao xpp how to even handle this kind of situation what is goin on i need to wrap it somehow in the console",
-		"line5 with more words",
-		"line6",
-		"line7",
-		"line8",
-		"line9",
-		"line10",
-		"line11",
-		"line12",
-	}
-	cl := make([]string, 0)
-	for _, line := range preSplit {
-		cl = append(cl, functools.SplitLine(line, 20)...)
-	}
-	fmt.Println(cl)
 }

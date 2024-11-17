@@ -83,6 +83,14 @@ func (window *Window) defaultHelpMessage() string {
 	Starts simulation mode, where user can select which array variable
   program should visualize and whether algorithm makes step by step
   simulation or moves automatically.
+
+
+  Console
+  Appears in simulation mode and shows every print action,
+  strong and weak errors.
+  - Strong error - '!! [red]' - Doesn't let simulation to start.
+  - Weak error - '> [orange]' - Lets simulation to start.
+    May couse Strong error later on.
   `
 	return retVal
 }

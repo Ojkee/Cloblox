@@ -695,3 +695,14 @@ func (graph *Graph) DebugDiagramDetails() {
 	fmt.Println()
 	fmt.Println()
 }
+
+func (graph *Graph) FlushVars() {
+	graph.allCurrentVars = make(map[string]any, 0)
+}
+
+func (graph *Graph) ContainsVar(name string) bool {
+	if _, ok := graph.allCurrentVars[name]; ok {
+		return true
+	}
+	return false
+}

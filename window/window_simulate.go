@@ -32,22 +32,18 @@ func NewVarButton(name string, rect rl.Rectangle) *VarButton {
 	}
 }
 
-func (vButton *VarButton) GetName() string {
-	return vButton.name
-}
-
 func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
-	if !window.simulationPrecompiled {
-		window.flushSimulate()
-		errs := window.preSimulationCompile()
-		window.simulationPrecompiled = true
-		return errs
-	}
 	if window.em.ContainsStongError() {
-		window.simulationPrecompiled = false
 		return nil
 	}
-	if !window.simulationStarted {
+	window.simulationMode = CONTINUOUSLY
+
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+		for _, button := range window.simulationVarButtons {
+			if rl.CheckCollisionPointRec(*mousePos, button.rect) {
+				window.simulationVar = button.name
+			}
+		}
 	}
 	return nil
 }
@@ -63,8 +59,8 @@ func (window *Window) preSimulationCompile() []error {
 	if err != nil {
 		errs = append(errs, err)
 	}
-	window.simulationSlicesVars = window.LoadSliceVarButtons()
-	if len(window.simulationSlicesVars) == 0 {
+	window.simulationVarButtons = window.LoadSliceVarButtons()
+	if len(window.simulationVarButtons) == 0 {
 		errs = append(errs, errors.New("No array to visualize"))
 	}
 	return errs
@@ -83,12 +79,6 @@ func (window *Window) shipContentToBlocks() error {
 }
 
 func (window *Window) LoadSliceVarButtons() []VarButton {
-	var margin float32 = 10
-	var buttonWidth float32 = 40
-	var buttonHeight float32 = 20
-	var buttonX float32 = settings.WINDOW_WIDTH/2 - buttonWidth - margin
-	var buttonY float32 = margin
-	var gap float32 = 10
 	retVal := make([]VarButton, 0)
 	for _, block := range window.diagram.GetAllBlocks() {
 		switch variableBlock := block.(type) {
@@ -98,10 +88,10 @@ func (window *Window) LoadSliceVarButtons() []VarButton {
 				switch value.(type) {
 				case []float64:
 					retVal = append(retVal, *NewVarButton(key, rl.NewRectangle(
-						buttonX,
-						buttonY+float32(len(retVal))*(buttonHeight+gap),
-						buttonWidth,
-						buttonHeight,
+						settings.BUTTON_X,
+						settings.BUTTON_Y+float32(len(retVal))*(settings.BUTTON_HEIGHT+settings.BUTTON_GAP),
+						settings.BUTTON_WIDTH,
+						settings.BUTTON_HEIGHT,
 					)))
 					break
 				}
@@ -113,24 +103,29 @@ func (window *Window) LoadSliceVarButtons() []VarButton {
 }
 
 func (window *Window) drawAllSlicesButtons() {
-	for _, val := range window.simulationSlicesVars {
-		drawSimulateButton(&val)
+	for _, val := range window.simulationVarButtons {
+		window.drawSimulateButton(&val)
 	}
 }
 
-func drawSimulateButton(vb *VarButton) {
-	rl.DrawRectangleRounded(vb.rect, 0.05, 10, settings.HELP_INNER_BORDER_COLOR)
-	textWidth := rl.MeasureTextEx(
+func (window *Window) drawSimulateButton(vb *VarButton) {
+	color := settings.BUTTON_COLOR
+	if vb.name == window.simulationVar {
+		color = settings.BUTTON_COLOR_SELECTED
+	}
+	rl.DrawRectangleRounded(vb.rect, 0.9, 10, color)
+	textSize := rl.MeasureTextEx(
 		settings.FONT,
-		vb.GetName(),
+		vb.name,
 		float32(settings.FONT_SIZE),
 		settings.FONT_SPACING,
-	).X
-	textOffset := vb.rect.X + vb.rect.Width/2 - textWidth/2
+	)
+	textOffsetX := vb.rect.X + vb.rect.Width/2 - textSize.X/2
+	textOffsetY := vb.rect.Y + vb.rect.Height/2 - textSize.Y/2
 	rl.DrawTextEx(
 		settings.FONT,
-		vb.GetName(),
-		rl.NewVector2(textOffset, vb.rect.Y),
+		vb.name,
+		rl.NewVector2(textOffsetX, textOffsetY),
 		float32(settings.FONT_SIZE),
 		settings.FONT_SPACING,
 		settings.FONT_COLOR,
@@ -144,6 +139,9 @@ func (window *Window) drawCurrentSlice() error {
 	slices, err := window.diagram.GetAllSlicesKVP()
 	if err != nil {
 		return err
+	}
+	if !window.diagram.ContainsVar(window.simulationVar) {
+		return nil
 	}
 	var highPos float64 = settings.WINDOW_HEIGHT - 10 - settings.CONSOLE_HEIGHT
 	var lowPos float64 = 10
@@ -216,9 +214,8 @@ func (window *Window) drawValueFromSlice(
 func (window *Window) flushSimulate() {
 	window.simulationStarted = false
 	window.simulationMode = NOT_SELECTED
-	window.simulationSlicesVars = make([]VarButton, 0)
+	window.simulationVarButtons = make([]VarButton, 0)
 	window.simulationVar = ""
-	window.simulationPrecompiled = false
 	window.clearConsole()
 	window.em.Clear()
 }

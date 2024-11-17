@@ -58,10 +58,12 @@ func (window *Window) changeModeEvent() {
 		window.currentMode = REMOVE
 		break
 	case rl.KeyS, rl.KeyFour:
+		window.flushSimulate()
+		window.diagram.FlushVars()
+		errs := window.preSimulationCompile()
+		window.em.AppendNewErrors(errs)
+		window.appendErrorsToConsole(errs)
 		window.currentMode = SIMULATE
-		break
-	default:
-		// fmt.Print("Mode not implemented")
 		break
 	}
 }
