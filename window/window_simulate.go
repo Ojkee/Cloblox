@@ -41,10 +41,19 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 	}
 	window.SelectVarButtonOnClick(mousePos)
 
+	var err error
 	if window.simulationMode == CONTINUOUSLY {
-		window.ContinuousSimulation()
+		err = window.SimulationStep()
+	} else if window.simulationMode == STEP_BY_STEP {
+		keyPressed := rl.GetKeyPressed()
+		if keyPressed == rl.KeyRight {
+			err = window.SimulationStep()
+		}
 	}
-	return nil
+	if err == nil {
+		return nil
+	}
+	return []error{err}
 }
 
 func (window *Window) SelectVarButtonOnClick(mousePos *rl.Vector2) {
@@ -57,7 +66,7 @@ func (window *Window) SelectVarButtonOnClick(mousePos *rl.Vector2) {
 	}
 }
 
-func (window *Window) ContinuousSimulation() {
+func (window *Window) SimulationStep() error {
 	finished, consoleMessage, err := window.diagram.MakeStep()
 	if consoleMessage != "" {
 		window.consoleLines = append(
@@ -80,6 +89,7 @@ func (window *Window) ContinuousSimulation() {
 	} else {
 		time.Sleep(time.Millisecond * settings.SIMULATION_TIME_STEP_MS)
 	}
+	return err
 }
 
 func (window *Window) preSimulationCompile() []error {

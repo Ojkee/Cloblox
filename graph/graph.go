@@ -327,12 +327,12 @@ func (graph *Graph) evaluateCurrent() (finished bool, logMessage string, err err
 		keys := currentBlock.GetKeys()
 		kvp, err := graph.GetKvpByKeys(&keys)
 		if err != nil {
-			return false, err.Error(), err
+			return false, "", err
 		}
 		currentBlock.SetActionKVP(&kvp)
 		updateKVP, mess, err := currentBlock.PerformGetUpdateKVP()
 		if err != nil {
-			return false, err.Error(), err
+			return false, "", err
 		}
 		if mess != "" {
 			logMessage = mess
@@ -545,7 +545,8 @@ func (graph *Graph) getValIfValid(key string) (float64, error) {
 	case int:
 		return float64(v), nil
 	}
-	return 0, errors.New("Value isn't number")
+	errMess := fmt.Sprintf("Value '%s' isn't number", key)
+	return 0, errors.New(errMess)
 }
 
 func (graph *Graph) UpdateVarsFromKVPAny(newVars *map[string]any) error {
