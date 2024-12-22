@@ -70,3 +70,11 @@ func (conn *Connection) SetCloserToRight(isCloser bool) {
 func (conn *Connection) IsCloserToRigth() bool {
 	return conn.closerToRight
 }
+
+func (conn *Connection) GetInShapeId() int {
+	return conn.inShapeId
+}
+
+func (conn *Connection) GetOutShapeId() int {
+	return conn.outShapeId
+}

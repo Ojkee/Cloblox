@@ -5,6 +5,7 @@ import (
 
 	"Cloblox/functools"
 	"Cloblox/settings"
+	"fmt"
 )
 
 type SHAPE_TYPE uint
@@ -180,4 +181,27 @@ func (shape *ShapeDefault) getHighlightRect() rl.Rectangle {
 	hwidth := shape.width + 2*settings.HIGHLIGHT_PAD
 	hheight := shape.height + 2*settings.HIGHLIGHT_PAD
 	return rl.NewRectangle(hx, hy, hwidth, hheight)
+}
+
+func (shape *ShapeDefault) Draw() {
+
+}
+
+func (shape *ShapeDefault) Info() string {
+	return fmt.Sprintf("Shape Type: %v, Content: %v", shape.shapeType, shape.content)
+}
+
+func (shape *ShapeDefault) SetName(name string) {
+	shape.name = name
+}
+
+func (shape *ShapeDefault) GetName() string {
+	return shape.name
+}
+
+//	func (shape *ShapeDefault) GetShapeType() SHAPE_TYPE {
+//		return shape.shapeType
+//	}
+func (shape *ShapeDefault) GetShapeType(shapeType SHAPE_TYPE) {
+	shape.shapeType = shapeType
 }
