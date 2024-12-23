@@ -263,3 +263,6 @@ func (window *Window) flushSimulate() {
 func (window *Window) clearConsole() {
 	window.consoleLines = make([]ConsoleLine, 0)
 }
+
+func (window *Window) drawSimulateModeButton() {
+}

@@ -1,23 +1,20 @@
-package functools
+package save_to_text
 
 import (
-	"Cloblox/shapes"
-	"Cloblox/window"
 	"fmt"
 	"os"
+
+	"Cloblox/shapes"
+	"Cloblox/window"
 )
 
-// SaveToTxt zapisuje schemat blokowy do pliku .txt
 func SaveToTxt(filename string, blocks []shapes.Shape, connections []*window.Connection) error {
-
-	// Otwórzenie pliku do zapisu
 	file, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("błąd tworzenia pliku: %v", err)
+		return fmt.Errorf("Error creating new file: %v\n", err)
 	}
 	defer file.Close()
 
-	// Mapowanie typów bloczków na znaczniki
 	tags := map[shapes.SHAPE_TYPE]string{
 		shapes.START:    "h1",
 		shapes.STOP:     "h2",
@@ -26,46 +23,38 @@ func SaveToTxt(filename string, blocks []shapes.Shape, connections []*window.Con
 		shapes.ACTION:   "a",
 	}
 
-	// Zapisz bloki
-	_, err = file.WriteString("Bloki:\n")
+	_, err = file.WriteString("Blocks:\n")
 	if err != nil {
 		return fmt.Errorf("błąd zapisu do pliku: %v", err)
 	}
 	for _, block := range blocks {
-		// Pobierz zawartość i typ bloczka
 		content := block.GetContent()
 		blockID := block.GetBlockId()
 		blockType := block.GetType()
-
-		// Pobierz odpowiedni znacznik
 		tag, exists := tags[blockType]
 		if !exists {
-			tag = "unknown" // Domyślny znacznik dla nieznanego typu
+			tag = "unknown"
 		}
-
-		// Sformatuj zawartość bloczka jako tekst w odpowiednich znacznikach
 		for _, line := range content {
 			_, err = file.WriteString(fmt.Sprintf("<%s>\"%s\",%d</%s>\n", tag, line, blockID, tag))
 			if err != nil {
-				return fmt.Errorf("błąd zapisu bloku do pliku: %v", err)
+				return fmt.Errorf("Error saving to file: %v", err)
 			}
 		}
 	}
 
-	// Zapisz połączenia
-	_, err = file.WriteString("\nPołączenia:\n")
+	_, err = file.WriteString("\nConnections:\n")
 	if err != nil {
-		return fmt.Errorf("błąd zapisu do pliku: %v", err)
+		return fmt.Errorf("Error saving to file: %v\n", err)
 	}
 
 	for _, conn := range connections {
-		startID := conn.GetInShapeId() // ID bloku początkowego
-		stopID := conn.GetOutShapeId() // ID bloku końcowego
+		startID := conn.GetInShapeId()
+		stopID := conn.GetOutShapeId()
 		_, err = file.WriteString(fmt.Sprintf("<c>%d,%d</c>\n", startID, stopID))
 		if err != nil {
-			return fmt.Errorf("błąd zapisu połączenia do pliku: %v", err)
+			return fmt.Errorf("Error saving to file: %v\n", err)
 		}
 	}
-
 	return nil
 }
