@@ -15,13 +15,13 @@ func TestSaveToTxt(t *testing.T) {
 	block1.SetBlockId(1)
 	block1.SetName("Start")
 	block1.SetContent(&[]string{"Start"})
-	block1.GetShapeType(shapes.START)
+	block1.SetShapeType(shapes.START)
 
 	block2 := &shapes.ShapeDefault{}
 	block2.SetBlockId(2)
 	block2.SetName("Stop")
 	block2.SetContent(&[]string{"Stop"})
-	block2.GetShapeType(shapes.STOP)
+	block2.SetShapeType(shapes.STOP)
 
 	blocks := []shapes.Shape{block1, block2}
 

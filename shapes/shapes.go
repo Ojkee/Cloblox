@@ -1,11 +1,12 @@
 package shapes
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"Cloblox/functools"
 	"Cloblox/settings"
-	"fmt"
 )
 
 type SHAPE_TYPE uint
@@ -183,10 +184,6 @@ func (shape *ShapeDefault) getHighlightRect() rl.Rectangle {
 	return rl.NewRectangle(hx, hy, hwidth, hheight)
 }
 
-func (shape *ShapeDefault) Draw() {
-
-}
-
 func (shape *ShapeDefault) Info() string {
 	return fmt.Sprintf("Shape Type: %v, Content: %v", shape.shapeType, shape.content)
 }
@@ -199,9 +196,6 @@ func (shape *ShapeDefault) GetName() string {
 	return shape.name
 }
 
-//	func (shape *ShapeDefault) GetShapeType() SHAPE_TYPE {
-//		return shape.shapeType
-//	}
-func (shape *ShapeDefault) GetShapeType(shapeType SHAPE_TYPE) {
+func (shape *ShapeDefault) SetShapeType(shapeType SHAPE_TYPE) {
 	shape.shapeType = shapeType
 }
