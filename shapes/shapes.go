@@ -184,6 +184,11 @@ func (shape *ShapeDefault) getHighlightRect() rl.Rectangle {
 	return rl.NewRectangle(hx, hy, hwidth, hheight)
 }
 
+// do not delete becuse the test for saving txt do not work!!
+func (shape *ShapeDefault) Draw() {
+
+}
+
 func (shape *ShapeDefault) Info() string {
 	return fmt.Sprintf("Shape Type: %v, Content: %v", shape.shapeType, shape.content)
 }

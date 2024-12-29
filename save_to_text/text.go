@@ -23,10 +23,6 @@ func SaveToTxt(filename string, blocks []shapes.Shape, connections []*window.Con
 		shapes.ACTION:   "a",
 	}
 
-<<<<<<< HEAD
-=======
-	// Zapisz bloki
->>>>>>> 00c4032 (Testing saving to text)
 	_, err = file.WriteString("Blocks:\n")
 	if err != nil {
 		return fmt.Errorf("błąd zapisu do pliku: %v", err)
@@ -47,10 +43,6 @@ func SaveToTxt(filename string, blocks []shapes.Shape, connections []*window.Con
 		}
 	}
 
-<<<<<<< HEAD
-=======
-	// Zapisz połączenia
->>>>>>> 00c4032 (Testing saving to text)
 	_, err = file.WriteString("\nConnections:\n")
 	if err != nil {
 		return fmt.Errorf("Error saving to file: %v\n", err)
