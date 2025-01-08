@@ -35,6 +35,10 @@ func (window *Window) currentConnectionEvent(mousePos *rl.Vector2) error {
 			if err := window.connectBlocksByConnection(window.currentConnection); err != nil {
 				return err
 			}
+			window.removeOutConnectionIfExists(
+				window.currentConnection.GetOutShapeId(),
+				window.currentConnection.closerToRight,
+			)
 			window.connections = append(window.connections, *window.currentConnection)
 			window.resetCurrentConnection()
 		}
@@ -43,6 +47,18 @@ func (window *Window) currentConnectionEvent(mousePos *rl.Vector2) error {
 		window.resetCurrentConnection()
 	}
 	return nil
+}
+
+func (window *Window) removeOutConnectionIfExists(outId int, closerToRight bool) {
+	newConnections := make([]Connection, 0)
+	for _, conn := range window.connections {
+		if conn.GetOutShapeId() != outId {
+			newConnections = append(newConnections, conn)
+		} else if conn.multipleOut && conn.closerToRight != closerToRight {
+			newConnections = append(newConnections, conn)
+		}
+	}
+	window.connections = newConnections
 }
 
 func (window *Window) updateCurrentConnection(mousePos *rl.Vector2) {

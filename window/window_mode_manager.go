@@ -44,7 +44,7 @@ func (window *Window) changeModeEvent() {
 		}
 	}
 
-	// TODO REMOVE
+	// TODO: REMOVE
 	if window.currentMode == SIMULATE && window.simulationMode != FINISHED {
 		if keyPressed == rl.KeyTab {
 			window.simulationMode = (window.simulationMode + 1) % 5 // 5 modes

@@ -12,7 +12,7 @@ const (
 var (
 	DEBUG_BLOCKS_POINTERS = true
 	DEBUG_SHAPE_CONTENT   = false
-	DEBUG_DIAGRAM_DETAILS = true
+	DEBUG_DIAGRAM_DETAILS = false
 	DEBUG_ERRORS          = false
 )
 
