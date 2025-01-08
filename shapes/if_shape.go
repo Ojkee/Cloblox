@@ -58,7 +58,7 @@ func (shape *IfShape) GetOutPosFalse() (float32, float32) {
 }
 
 // Works always upon click within Rect so Right is always
-// greater or equal than mousePol, similarly left is always
+// greater or equal than mousePos, similarly left is always
 // less than mousePos
 func (shape *IfShape) CloserToRight(mousePos rl.Vector2) bool {
 	// dR = x + w - mx          - distance to Right
@@ -79,6 +79,10 @@ func (shape *IfShape) Info() string {
     t[i] < d || t[5] > 2
     a < y
     x >= 8
+
+  This block has two different outputs, the output on the
+  right side means 'True'.
+  Similarly left side means 'False'.
 
   Throws error if array or variable wasn't declared.
   `

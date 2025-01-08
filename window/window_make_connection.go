@@ -12,6 +12,9 @@ func (window *Window) currentConnectionEvent(mousePos *rl.Vector2) error {
 		if !rl.CheckCollisionPointRec(*mousePos, shape.GetRect()) {
 			continue
 		}
+		if shape.GetType() == shapes.STOP && !window.clickedConnection {
+			continue
+		}
 		clickedAnyShape = true
 		if !window.clickedConnection {
 			shapeX, shapeY, multipleOut, closerToRight := window.getShapeOutPos(
