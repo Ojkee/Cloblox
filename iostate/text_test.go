@@ -1,16 +1,16 @@
-package to_json_test
+package iostate_test
 
 import (
 	"io/ioutil"
 	"os"
 	"testing"
 
+	iostate "Cloblox/iostate"
 	"Cloblox/shapes"
-	"Cloblox/to_json"
 	"Cloblox/window"
 )
 
-func TestSaveToJson(t *testing.T) {
+func TestSaveToTxt(t *testing.T) {
 	block1 := &shapes.ShapeDefault{}
 	block1.SetBlockId(1)
 	block1.SetName("Start")
@@ -29,12 +29,12 @@ func TestSaveToJson(t *testing.T) {
 		window.NewConnection(0, 0, 1, 1, 1, 2, false, false),
 	}
 
-	tmpFile, err := ioutil.TempFile("", "test_save_to_json")
+	tmpFile, err := ioutil.TempFile("", "test_save_to_txt")
 	if err != nil {
 		t.Fatalf("Temp file err: %v\n", err)
 	}
 	defer os.Remove(tmpFile.Name())
-	err = to_json.SaveToJson(tmpFile.Name(), blocks, connections)
+	err = iostate.SaveToTxt(tmpFile.Name(), blocks, connections)
 	if err != nil {
 		t.Fatalf("Error saving to file\n: %v", err)
 	}
@@ -44,71 +44,25 @@ func TestSaveToJson(t *testing.T) {
 		t.Fatalf("Error reading from file: %v", err)
 	}
 
-	expectedContent :=
-		`nodes: (start)1 {"Start"},(stop)2 {"Stop"},
-adjacency: 
-[[0,1],
-[0,0]]`
+	expectedContent := `Blocks:
+<h1>"Start",1</h1>
+<h2>"Stop",2</h2>
+
+Connections:
+<c>1,2</c>
+`
 
 	// Checking if the expected content is the same as the content
 	if string(data) != expectedContent {
-		t.Errorf("Nieprawidłowa zawartość pliku.\nOczekiwano:\n%s\nOtrzymano:\n%s", expectedContent, string(data))
+		t.Errorf(
+			"Nieprawidłowa zawartość pliku.\nOczekiwano:\n%s\nOtrzymano:\n%s",
+			expectedContent,
+			string(data),
+		)
 	}
 }
 
-func TestSaveToJson1(t *testing.T) {
-	// Tworzenie bloków
-	block1 := &shapes.ShapeDefault{}
-	block1.SetBlockId(1)
-	block1.SetName("Start")
-	block1.SetContent(&[]string{"Start"})
-	block1.SetShapeType(shapes.START)
-
-	block2 := &shapes.ShapeDefault{}
-	block2.SetBlockId(2)
-	block2.SetName("Stop")
-	block2.SetContent(&[]string{"Stop"})
-	block2.SetShapeType(shapes.STOP)
-
-	blocks := []shapes.Shape{block1, block2}
-
-	// Tworzenie połączeń
-	connections := []*window.Connection{
-		window.NewConnection(0, 0, 1, 1, 1, 2, false, false),
-	}
-
-	// Tworzenie pliku w bieżącym katalogu
-	fileName := "test_output.json"
-	defer func() {
-		// Można zakomentować poniższą linię, aby plik nie był usuwany
-		// os.Remove(fileName)
-	}()
-
-	err := to_json.SaveToJson(fileName, blocks, connections)
-	if err != nil {
-		t.Fatalf("Błąd podczas zapisu do pliku: %v", err)
-	}
-
-	// Odczyt danych z pliku
-	data, err := os.ReadFile(fileName)
-	if err != nil {
-		t.Fatalf("Błąd podczas odczytu z pliku: %v", err)
-	}
-
-	// Oczekiwana zawartość
-	expectedContent :=
-		`nodes: (start)1 {"Start"},(stop)2 {"Stop"},
-adjacency: 
-[[0,1],
-[0,0]]`
-
-	// Sprawdzenie zawartości pliku
-	if string(data) != expectedContent {
-		t.Errorf("Nieprawidłowa zawartość pliku.\nOczekiwano:\n%s\nOtrzymano:\n%s", expectedContent, string(data))
-	}
-}
-
-func TestSaveToJsonBubble1(t *testing.T) {
+func TestSaveToTxtBubbleSort(t *testing.T) {
 	// Creating blocks for bubble sort
 	block1 := &shapes.ShapeDefault{}
 	block1.SetBlockId(1)
@@ -167,38 +121,47 @@ func TestSaveToJsonBubble1(t *testing.T) {
 		window.NewConnection(0, 0, 3, 3, 3, 7, false, true),
 	}
 
-	// Tworzenie pliku w bieżącym katalogu
-	fileName := "test_output_bub.json"
-	defer func() {
-		// Można zakomentować poniższą linię, aby plik nie był usuwany
-		// os.Remove(fileName)
-	}()
-
-	err := to_json.SaveToJson(fileName, blocks, connections)
+	tmpFile, err := ioutil.TempFile("", "test_save_to_txt_bubble_sort")
 	if err != nil {
-		t.Fatalf("Błąd podczas zapisu do pliku: %v", err)
+		t.Fatalf("Temp file err: %v\n", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	err = iostate.SaveToTxt(tmpFile.Name(), blocks, connections)
+	if err != nil {
+		t.Fatalf("Error saving to file\n: %v", err)
 	}
 
-	// Odczyt danych z pliku
-	data, err := os.ReadFile(fileName)
+	data, err := ioutil.ReadFile(tmpFile.Name())
 	if err != nil {
-		t.Fatalf("Błąd podczas odczytu z pliku: %v", err)
+		t.Fatalf("Error reading from file: %v", err)
 	}
 
-	// Oczekiwana zawartość
-	expectedContent :=
-		`nodes: (start)1 {"Start"},(action)2 {"int i, j;"},(variable)3 {"for i = 0 to n-1"},(variable)4 {"for j = 0 to n-i-1"},(if)5 {"if arr[j] > arr[j+1]"},(action)6 {"swap(arr[j], arr[j+1])"},(stop)7 {"Stop"},
-adjacency: 
-[[0,1,0,0,0,0,0],
-[0,0,1,0,0,0,0],
-[0,0,0,1,0,0,1],
-[0,0,1,0,1,0,0],
-[0,0,0,1,0,1,0],
-[0,0,0,1,0,0,0],
-[0,0,0,0,0,0,0]]`
+	// Expected content of the txt
+	expectedContent := `Blocks:
+<h1>"Start",1</h1>
+<a>"int i, j;",2</a>
+<v>"for i = 0 to n-1",3</v>
+<v>"for j = 0 to n-i-1",4</v>
+<f>"if arr[j] > arr[j+1]",5</f>
+<a>"swap(arr[j], arr[j+1])",6</a>
+<h2>"Stop",7</h2>
 
-	// Sprawdzenie zawartości pliku
+Connections:
+<c>1,2</c>
+<c>2,3</c>
+<c>3,4</c>
+<c>4,5</c>
+<c>5,6</c>
+<c>5,4</c>
+<c>6,4</c>
+<c>4,3</c>
+<c>3,7</c>
+`
 	if string(data) != expectedContent {
-		t.Errorf("Nieprawidłowa zawartość pliku.\nOczekiwano:\n%s\nOtrzymano:\n%s", expectedContent, string(data))
+		t.Errorf(
+			"Expected:\n%s\nGiven:\n%s",
+			expectedContent,
+			string(data),
+		)
 	}
 }

@@ -1,6 +1,7 @@
-package read_from_text
+package iostate
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/sqweek/dialog"
 
+	"Cloblox/blocks"
 	"Cloblox/graph"
 	"Cloblox/window"
 )
@@ -67,7 +69,7 @@ func ReadFromTxt(blocks *[]graph.Graph, connections *[]*window.Connection) error
 		}
 
 		// Call NewBlockFromTag
-		block1, err := graph.NewBlockFromTag(tag, params)
+		block1, err := NewBlockFromTag(tag, params)
 		if err != nil {
 			log.Printf("Error creating block (tag: %s): %v\n", tag, err)
 			continue
@@ -94,4 +96,49 @@ func ReadFromTxt(blocks *[]graph.Graph, connections *[]*window.Connection) error
 
 	fmt.Println("File loaded successfully.")
 	return nil
+}
+
+func NewBlockFromTag(tag string, params map[string]any) (blocks.Block, error) {
+	if strings.TrimSpace(tag) == "" {
+		return nil, errors.New("Tag cannot be empty")
+	}
+
+	switch tag {
+	case "Start":
+		return &blocks.StartBlock{}, nil
+	case "Stop":
+		return &blocks.StopBlock{}, nil
+	case "If":
+		conditionInput, ok := params["condition"].(string)
+		if !ok {
+			return nil, errors.New("Missing or invalid condition parameter for If block")
+		}
+		conditionBlock := blocks.NewIfBlock()
+		for err := range conditionInput {
+			conditionBlock.SetConditionExpr(name)
+		}
+		return conditionBlock, nil
+	case "Action":
+		actionInput, ok := params["action"].(string)
+		if !ok {
+			return nil, errors.New("Missing or invalid action parameter for Action block")
+		}
+		actionBlock := blocks.NewActionBlock()
+		if err := actionBlock.ParseFromUserInput(actionInput); err != nil {
+			return nil, err
+		}
+		return actionBlock, nil
+	case "Variable":
+		variables, ok := params["variables"].(map[string]float64)
+		if !ok {
+			return nil, errors.New("Missing or invalid variables parameter for Variable block")
+		}
+		variableBlock := blocks.NewVariableBlock()
+		for name, value := range variables {
+			variableBlock.AddVariable(name, value)
+		}
+		return variableBlock, nil
+	default:
+		return nil, fmt.Errorf("Unknown block type: %s", tag)
+	}
 }

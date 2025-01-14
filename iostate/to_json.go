@@ -1,4 +1,4 @@
-package to_json
+package iostate
 
 import (
 	"fmt"
@@ -65,7 +65,13 @@ func SaveToJson(filename string, blocks []shapes.Shape, connections []*window.Co
 func serializeAdjacencyMatrix(matrix [][]int) string {
 	var rows []string
 	for _, row := range matrix {
-		rows = append(rows, fmt.Sprintf("[%s]", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(row)), ","), "[]")))
+		rows = append(
+			rows,
+			fmt.Sprintf(
+				"[%s]",
+				strings.Trim(strings.Join(strings.Fields(fmt.Sprint(row)), ","), "[]"),
+			),
+		)
 	}
 	return fmt.Sprintf("[%s]", strings.Join(rows, ",\n"))
 }
