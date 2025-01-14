@@ -65,6 +65,12 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 			if sb.InRange(mousePos) && window.simulationMode != FINISHED {
 				window.simulationMode = sb.simulateType
 				sb.selected = true
+				if window.simulationMode == STEP_BY_STEP {
+					err := window.SimulationStep()
+					if err != nil {
+						window.errorManager.AppendNew(err)
+					}
+				}
 			}
 		}
 	}
