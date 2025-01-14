@@ -11,6 +11,7 @@ import (
 	"Cloblox/blocks"
 	"Cloblox/functools"
 	"Cloblox/settings"
+	"Cloblox/shapes"
 )
 
 type SIMULATE_MODE int
@@ -332,6 +333,16 @@ func (window *Window) drawTriangle(offsetX, offsetY float32, color rl.Color) {
 		),
 		color,
 	)
+}
+
+func (window *Window) highlightStart() {
+	for _, shape := range window.diagramShapes {
+		if shape.GetType() == shapes.START {
+			shape.SetHighlight(true)
+		} else {
+			shape.SetHighlight(false)
+		}
+	}
 }
 
 func (window *Window) flushSimulate() {

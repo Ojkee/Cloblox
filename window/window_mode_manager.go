@@ -39,16 +39,10 @@ func (window *Window) changeModeEvent() {
 	if window.currentMode == INSERT {
 		if keyPressed == rl.KeyEscape {
 			window.currentMode = BUILD
+		} else {
+			return
 		}
 	}
-
-	// TODO: REMOVE
-	if window.currentMode == SIMULATE && window.simulationMode != FINISHED {
-		if keyPressed == rl.KeyTab {
-			window.simulationMode = (window.simulationMode + 1) % 5 // 5 modes
-		}
-	}
-	// END REMOVE
 
 	switch keyPressed {
 	case
@@ -70,6 +64,7 @@ func (window *Window) changeModeEvent() {
 		window.diagram.FlushCache()
 
 		errs := window.preSimulationCompile()
+		window.highlightStart()
 		window.errorManager.AppendNewErrors(errs)
 		window.appendErrorsToConsole(errs)
 		window.currentMode = SIMULATE
