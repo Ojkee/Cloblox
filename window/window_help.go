@@ -58,7 +58,7 @@ func (window *Window) defaultHelpMessage() string {
 	retVal := `
 	Controls 
   Press key suggested within [ * ] to enter mode.
-  In upper right conrent You can find information about
+  In upper right corner You can find information about
   current mode.
 
 	Building

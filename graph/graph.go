@@ -714,7 +714,6 @@ func (graph *Graph) ContainsVar(name string) bool {
 }
 
 func NewBlockFromTag(tag string, params map[string]any) (blocks.Block, error) {
-	// Sprawdź, czy tag nie jest pusty
 	if strings.TrimSpace(tag) == "" {
 		return nil, errors.New("Tag cannot be empty")
 	}

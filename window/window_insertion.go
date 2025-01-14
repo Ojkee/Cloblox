@@ -247,29 +247,33 @@ func (window *Window) drawCursor() {
 		}
 	}
 
+	cursorPos := window.getCursorPosVec(shapeRect, content)
+	cursorColor := settings.FONT_COLOR
+	sizeVec := rl.NewVector2(float32(settings.FONT_SIZE)/2, float32(settings.FONT_SIZE))
+	rl.DrawRectangleV(
+		cursorPos,
+		sizeVec,
+		cursorColor,
+	)
+	rl.DrawTextEx(
+		settings.FONT,
+		currentChar,
+		cursorPos,
+		float32(settings.FONT_SIZE),
+		settings.FONT_SPACING,
+		reverseColor(&cursorColor),
+	)
+}
+
+func (window *Window) getCursorPosVec(shapeRect rl.Rectangle, content []string) rl.Vector2 {
 	posY := shapeRect.Y + float32(window.insertCursorY)*float32(settings.FONT_SIZE)
 	offsetX := shapeRect.X + shapeRect.Width/2
 	offsetText := functools.TextSizeEx(content[window.insertCursorY]).X / 2
 	textTillCursor := content[window.insertCursorY][:window.insertCursorX]
 	offsetCurrentPosText := functools.TextSizeEx(textTillCursor).X
 	posX := offsetX - offsetText + offsetCurrentPosText
-
-	rectColor := settings.FONT_COLOR
 	posVec := rl.NewVector2(posX, posY)
-	sizeVec := rl.NewVector2(float32(settings.FONT_SIZE)/2, float32(settings.FONT_SIZE))
-	rl.DrawRectangleV(
-		posVec,
-		sizeVec,
-		rectColor,
-	)
-	rl.DrawTextEx(
-		settings.FONT,
-		currentChar,
-		posVec,
-		float32(settings.FONT_SIZE),
-		settings.FONT_SPACING,
-		reverseColor(&rectColor),
-	)
+	return posVec
 }
 
 func reverseColor(color *rl.Color) rl.Color {

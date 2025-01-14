@@ -35,18 +35,45 @@ func NewVarButton(name string, rect rl.Rectangle) *VarButton {
 	}
 }
 
+type SimulateButton struct {
+	rect         rl.Rectangle
+	simulateType SIMULATE_MODE
+	selected     bool
+}
+
+func NewSimulateButton(rect rl.Rectangle, simulateType SIMULATE_MODE) *SimulateButton {
+	return &SimulateButton{
+		rect:         rect,
+		simulateType: simulateType,
+		selected:     false,
+	}
+}
+
+func (sb *SimulateButton) InRange(v *rl.Vector2) bool {
+	return rl.CheckCollisionPointRec(*v, sb.rect)
+}
+
 func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
-	if window.em.ContainsStongError() {
+	if window.errorManager.ContainsStongError() {
 		return nil
 	}
 	window.SelectVarButtonOnClick(mousePos)
+
+	for _, sb := range window.simulateModeButton {
+		if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+			if sb.InRange(mousePos) && window.simulationMode != FINISHED {
+				window.simulationMode = sb.simulateType
+				sb.selected = true
+			}
+		}
+	}
 
 	var err error
 	if window.simulationMode == CONTINUOUSLY {
 		err = window.SimulationStep()
 		time.Sleep(time.Millisecond * settings.SIMULATION_TIME_STEP_MS)
 	} else if window.simulationMode == STEP_BY_STEP {
-		if rl.IsKeyDown(rl.KeyRight) {
+		if rl.IsKeyPressed(rl.KeyRight) {
 			err = window.SimulationStep()
 		}
 	}
@@ -69,10 +96,7 @@ func (window *Window) SelectVarButtonOnClick(mousePos *rl.Vector2) {
 func (window *Window) SimulationStep() error {
 	finished, consoleMessage, err := window.diagram.MakeStep()
 	if consoleMessage != "" {
-		window.consoleLines = append(
-			window.consoleLines,
-			*NewConsoleLine(consoleMessage, settings.FONT_COLOR),
-		)
+		window.appendTextToConsole(consoleMessage)
 	}
 	current := window.diagram.GetCurrent()
 	currentId := (*current).GetId()
@@ -83,7 +107,7 @@ func (window *Window) SimulationStep() error {
 			window.diagramShapes[i].SetHighlight(false)
 		}
 	}
-	window.em.AppendNew(err)
+	window.errorManager.AppendNew(err)
 	if finished {
 		window.simulationMode = FINISHED
 	}
@@ -145,12 +169,12 @@ func (window *Window) LoadSliceVarButtons() []VarButton {
 }
 
 func (window *Window) drawAllSlicesButtons() {
-	for _, val := range window.simulationVarButtons {
-		window.drawSimulateButton(&val)
+	for _, vb := range window.simulationVarButtons {
+		window.drawSimulateVariableButton(&vb)
 	}
 }
 
-func (window *Window) drawSimulateButton(vb *VarButton) {
+func (window *Window) drawSimulateVariableButton(vb *VarButton) {
 	color := settings.BUTTON_COLOR
 	if vb.name == window.simulationVar {
 		color = settings.BUTTON_COLOR_SELECTED
@@ -253,16 +277,71 @@ func (window *Window) drawValueFromSlice(
 	)
 }
 
+func (window *Window) drawSimulateButton(sb *SimulateButton) {
+	rl.DrawRectangleRounded(
+		sb.rect,
+		0.5,
+		10,
+		settings.SIMULATE_BUTTON_COLOR,
+	)
+	var color rl.Color
+	if sb.selected {
+		color = settings.SIMULATE_BUTTON_ATTRIB_COLOR_SELECTED
+	} else {
+		color = settings.SIMULATE_BUTTON_ATTRIB_COLOR
+	}
+	switch sb.simulateType {
+	case PAUSE:
+		rl.DrawRectangle(
+			int32(sb.rect.X+sb.rect.Width/2-settings.SIMULATE_BUTTON_PAUSE_SIZE/2),
+			int32(sb.rect.Y+sb.rect.Height/2-settings.SIMULATE_BUTTON_PAUSE_SIZE/2),
+			settings.SIMULATE_BUTTON_PAUSE_SIZE,
+			settings.SIMULATE_BUTTON_PAUSE_SIZE,
+			color,
+		)
+		break
+	case STEP_BY_STEP:
+		window.drawTriangle(sb.rect.X+sb.rect.Width/2, sb.rect.Y+sb.rect.Height/2, color)
+		break
+	case CONTINUOUSLY:
+		window.drawTriangle(
+			sb.rect.X+sb.rect.Width/2-settings.SIMULATE_BUTTON_TRIANGLE_SIZE/4,
+			sb.rect.Y+sb.rect.Height/2,
+			color,
+		)
+		window.drawTriangle(
+			sb.rect.X+sb.rect.Width/2+settings.SIMULATE_BUTTON_TRIANGLE_SIZE/4,
+			sb.rect.Y+sb.rect.Height/2,
+			color,
+		)
+		break
+	default:
+		break
+	}
+}
+
+func (window *Window) drawTriangle(offsetX, offsetY float32, color rl.Color) {
+	offsetX -= settings.SIMULATE_BUTTON_TRIANGLE_SIZE / 4
+	offsetY -= settings.SIMULATE_BUTTON_TRIANGLE_SIZE / 2
+	rl.DrawTriangle(
+		rl.NewVector2(offsetX, offsetY),
+		rl.NewVector2(offsetX, offsetY+settings.SIMULATE_BUTTON_TRIANGLE_SIZE),
+		rl.NewVector2(
+			offsetX+settings.SIMULATE_BUTTON_TRIANGLE_SIZE/2,
+			offsetY+settings.SIMULATE_BUTTON_TRIANGLE_SIZE/2,
+		),
+		color,
+	)
+}
+
 func (window *Window) flushSimulate() {
+	window.simulationMode = NOT_SELECTED
 	window.simulationVarButtons = make([]VarButton, 0)
 	window.simulationVar = ""
 	window.clearConsole()
-	window.em.Clear()
+	window.errorManager.Clear()
 }
 
 func (window *Window) clearConsole() {
 	window.consoleLines = make([]ConsoleLine, 0)
-}
-
-func (window *Window) drawSimulateModeButton() {
 }

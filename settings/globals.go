@@ -26,22 +26,26 @@ var (
 
 // COLORS
 var (
-	BACKGROUND_COLOR        = rl.NewColor(51, 51, 51, 255)
-	FONT_COLOR              = rl.NewColor(255, 248, 231, 255)
-	FONT_ERROR_COLOR        = rl.NewColor(243, 170, 154, 255)
-	FONT_ERROR_STRONG_COLOR = rl.NewColor(230, 92, 76, 255)
-	IF_COLOR                = rl.NewColor(171, 110, 164, 255)
-	START_STOP_COLOR        = rl.NewColor(118, 105, 126, 255)
-	VARIABLE_COLOR          = rl.NewColor(153, 141, 153, 255)
-	PRINT_COLOR             = rl.NewColor(102, 96, 102, 255)
-	CONNECTION_COLOR        = rl.NewColor(77, 74, 77, 255)
-	HIGHLIGHT_COLOR         = rl.NewColor(204, 199, 186, 255)
-	POSITIVE_VAL_COLOR      = rl.NewColor(54, 227, 130, 255)
-	NEGATIVE_VAL_COLOR      = rl.NewColor(165, 61, 40, 255)
-	HELP_OUTER_BORDER_COLOR = rl.NewColor(81, 81, 81, 255)
-	HELP_INNER_BORDER_COLOR = rl.NewColor(31, 31, 31, 255)
-	BUTTON_COLOR            = rl.NewColor(31, 31, 31, 255)
-	BUTTON_COLOR_SELECTED   = rl.NewColor(71, 71, 71, 255)
+	DEBUG_COLOR                           = rl.NewColor(253, 87, 87, 255)
+	BACKGROUND_COLOR                      = rl.NewColor(51, 51, 51, 255)
+	FONT_COLOR                            = rl.NewColor(255, 248, 231, 255)
+	FONT_ERROR_COLOR                      = rl.NewColor(243, 170, 154, 255)
+	FONT_ERROR_STRONG_COLOR               = rl.NewColor(230, 92, 76, 255)
+	IF_COLOR                              = rl.NewColor(171, 110, 164, 255)
+	START_STOP_COLOR                      = rl.NewColor(118, 105, 126, 255)
+	VARIABLE_COLOR                        = rl.NewColor(153, 141, 153, 255)
+	PRINT_COLOR                           = rl.NewColor(102, 96, 102, 255)
+	CONNECTION_COLOR                      = rl.NewColor(77, 74, 77, 255)
+	HIGHLIGHT_COLOR                       = rl.NewColor(204, 199, 186, 255)
+	POSITIVE_VAL_COLOR                    = rl.NewColor(54, 227, 130, 255)
+	NEGATIVE_VAL_COLOR                    = rl.NewColor(165, 61, 40, 255)
+	HELP_OUTER_BORDER_COLOR               = rl.NewColor(81, 81, 81, 255)
+	HELP_INNER_BORDER_COLOR               = rl.NewColor(31, 31, 31, 255)
+	BUTTON_COLOR                          = rl.NewColor(31, 31, 31, 255)
+	BUTTON_COLOR_SELECTED                 = rl.NewColor(71, 71, 71, 255)
+	SIMULATE_BUTTON_COLOR                 = rl.NewColor(31, 31, 31, 255)
+	SIMULATE_BUTTON_ATTRIB_COLOR          = rl.NewColor(100, 100, 100, 255)
+	SIMULATE_BUTTON_ATTRIB_COLOR_SELECTED = FONT_COLOR
 )
 
 // SHAPES
@@ -87,4 +91,24 @@ const (
 	SIMULATION_TIME_STEP_MS     = 500
 	SIMULATION_TIME_STEP_MS_MIN = 40
 	SIMULATION_TIME_STEP_MS_MAX = 4000
+)
+
+// SIMULATION SLICE
+const (
+	SLICE_UP_MARGIN     = 10
+	SLICE_BOTTON_MARGIN = 10
+	SLICE_HIGH_POS      = WINDOW_HEIGHT - SLICE_BOTTON_MARGIN - CONSOLE_HEIGHT
+	SLICE_LOW_POS       = SLICE_UP_MARGIN
+)
+
+// SIMULATE BUTTONS
+const (
+	SIMULATE_BUTTON_GAP    = 10
+	SIMULATE_BUTTON_WIDTH  = 70
+	SIMULATE_BUTTON_HEIGHT = 40
+	SIMULATE_BUTTON_POS_X  = WINDOW_WIDTH/2 - 3*SIMULATE_BUTTON_WIDTH - 2*SIMULATE_BUTTON_GAP - 40
+	SIMULATE_BUTTON_POS_Y  = WINDOW_HEIGHT - CONSOLE_HEIGHT - SIMULATE_BUTTON_HEIGHT
+
+	SIMULATE_BUTTON_PAUSE_SIZE    = 16
+	SIMULATE_BUTTON_TRIANGLE_SIZE = 16
 )

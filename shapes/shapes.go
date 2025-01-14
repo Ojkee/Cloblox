@@ -42,6 +42,7 @@ type Shape interface {
 type ShapeSingleOut interface {
 	GetOutPos() (float32, float32)
 }
+
 type ShapeManyOut interface {
 	GetOutPosTrue() (float32, float32)
 	GetOutPosFalse() (float32, float32)
@@ -186,7 +187,6 @@ func (shape *ShapeDefault) getHighlightRect() rl.Rectangle {
 
 // do not delete becuse the test for saving txt do not work!!
 func (shape *ShapeDefault) Draw() {
-
 }
 
 func (shape *ShapeDefault) Info() string {

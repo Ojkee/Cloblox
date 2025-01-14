@@ -17,8 +17,9 @@ type ConsoleLine struct {
 
 func NewConsoleLine(line string, color rl.Color) *ConsoleLine {
 	return &ConsoleLine{
-		line:  line,
-		color: color,
+		isStrongError: false,
+		line:          line,
+		color:         color,
 	}
 }
 
@@ -27,7 +28,7 @@ func (window *Window) appendErrorsToConsole(errs []error) {
 		for _, err := range errs {
 			newLines := make([]ConsoleLine, 0)
 			color := settings.FONT_ERROR_COLOR
-			if window.em.IsStrong(err) {
+			if window.errorManager.IsStrong(err) {
 				color = settings.FONT_ERROR_STRONG_COLOR
 				for _, line := range functools.SplitLine(err.Error(), settings.CONSOLE_MAX_LINE_WIDTH) {
 					cl := *NewConsoleLine(line, color)
@@ -46,6 +47,10 @@ func (window *Window) appendErrorsToConsole(errs []error) {
 	}
 }
 
+func (window *Window) appendTextToConsole(text string) {
+	window.consoleLines = append(window.consoleLines, *NewConsoleLine(text, settings.FONT_COLOR))
+}
+
 func (window *Window) drawConsole() {
 	var margin float32 = 10
 	var roundFactor float32 = 0.18
@@ -54,7 +59,7 @@ func (window *Window) drawConsole() {
 		rl.NewRectangle(
 			margin,
 			offsetY,
-			settings.WINDOW_WIDTH/2-2*margin,
+			settings.CONSOLE_WIDTH-2*margin,
 			settings.CONSOLE_HEIGHT-margin,
 		),
 		roundFactor,

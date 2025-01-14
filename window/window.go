@@ -18,7 +18,7 @@ type Window struct {
 
 	currentMode MODE
 
-	em functools.ErrorManager
+	errorManager functools.ErrorManager
 
 	// BUILD
 	buildingShapes   []shapes.Shape
@@ -35,6 +35,7 @@ type Window struct {
 	// SIMULATE
 	simulationMode       SIMULATE_MODE
 	simulationVarButtons []VarButton
+	simulateModeButton   []SimulateButton
 	simulationVar        string
 	consoleLines         []ConsoleLine
 	consoleInnerRect     rl.Rectangle
@@ -54,7 +55,7 @@ func NewWindow(name string, height, width int32) *Window {
 
 		currentMode: BUILD,
 
-		em: *functools.NewErrorManager(nil),
+		errorManager: *functools.NewErrorManager(nil),
 
 		backgroundColor: settings.BACKGROUND_COLOR,
 		fontColor:       settings.FONT_COLOR,
@@ -71,14 +72,43 @@ func NewWindow(name string, height, width int32) *Window {
 
 		simulationMode:       NOT_SELECTED,
 		simulationVarButtons: make([]VarButton, 0),
-		simulationVar:        "",
-		consoleLines:         make([]ConsoleLine, 0),
+		simulateModeButton: []SimulateButton{
+			*NewSimulateButton(
+				rl.NewRectangle(
+					settings.SIMULATE_BUTTON_POS_X,
+					settings.SIMULATE_BUTTON_POS_Y,
+					settings.SIMULATE_BUTTON_WIDTH,
+					settings.SIMULATE_BUTTON_HEIGHT,
+				),
+				STEP_BY_STEP,
+			),
+			*NewSimulateButton(
+				rl.NewRectangle(
+					settings.SIMULATE_BUTTON_POS_X+settings.SIMULATE_BUTTON_WIDTH+10,
+					settings.SIMULATE_BUTTON_POS_Y,
+					settings.SIMULATE_BUTTON_WIDTH,
+					settings.SIMULATE_BUTTON_HEIGHT,
+				),
+				CONTINUOUSLY,
+			),
+			*NewSimulateButton(
+				rl.NewRectangle(
+					settings.SIMULATE_BUTTON_POS_X+2*(settings.SIMULATE_BUTTON_WIDTH+10),
+					settings.SIMULATE_BUTTON_POS_Y,
+					settings.SIMULATE_BUTTON_WIDTH,
+					settings.SIMULATE_BUTTON_HEIGHT,
+				),
+				PAUSE,
+			),
+		},
+		simulationVar: "",
+		consoleLines:  make([]ConsoleLine, 0),
 		consoleInnerRect: rl.NewRectangle(
 			settings.CONSOLE_MARGIN+settings.CONSOLE_BORDER_WIDTH,
 			float32(settings.WINDOW_HEIGHT-settings.CONSOLE_HEIGHT)+settings.CONSOLE_BORDER_WIDTH,
 			settings.WINDOW_WIDTH/2-2*(settings.CONSOLE_MARGIN+settings.CONSOLE_BORDER_WIDTH),
 			settings.CONSOLE_HEIGHT-2*settings.CONSOLE_BORDER_WIDTH-settings.CONSOLE_MARGIN,
-		),
+		), // TODO CLEAN
 
 		connections:       make([]Connection, 0),
 		clickedConnection: false,
@@ -110,7 +140,7 @@ func (window *Window) MainLoop() {
 				window.diagram.DebugDiagramDetails()
 			}
 			if settings.DEBUG_ERRORS {
-				window.em.PrintAllErrors()
+				window.errorManager.PrintAllErrors()
 			}
 		}
 	}
@@ -155,6 +185,9 @@ func (window *Window) draw() {
 		window.drawConsole()
 		window.drawCurrentSlice()
 		window.drawAllSlicesButtons()
+		for _, sb := range window.simulateModeButton {
+			window.drawSimulateButton(&sb)
+		}
 	}
 	for _, conn := range window.connections {
 		conn.Draw()
