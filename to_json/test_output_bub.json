@@ -1,0 +1,9 @@
+nodes: (start)1 {"Start"},(action)2 {"int i, j;"},(variable)3 {"for i = 0 to n-1"},(variable)4 {"for j = 0 to n-i-1"},(if)5 {"if arr[j] > arr[j+1]"},(action)6 {"swap(arr[j], arr[j+1])"},(stop)7 {"Stop"},
+adjacency: 
+[[0,1,0,0,0,0,0],
+[0,0,1,0,0,0,0],
+[0,0,0,1,0,0,1],
+[0,0,1,0,1,0,0],
+[0,0,0,1,0,1,0],
+[0,0,0,1,0,0,0],
+[0,0,0,0,0,0,0]]

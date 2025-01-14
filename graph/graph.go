@@ -728,9 +728,9 @@ func NewBlockFromTag(tag string, params map[string]any) (blocks.Block, error) {
 		if !ok {
 			return nil, errors.New("Missing or invalid condition parameter for If block")
 		}
-		conditionBlock := blocks.NewActionBlock()
-		if err := conditionBlock.ParseFromUserInput(conditionInput); err != nil {
-			return nil, err
+		conditionBlock := blocks.NewIfBlock()
+		for err := range conditionInput {
+			conditionBlock.SetConditionExpr(name)
 		}
 		return conditionBlock, nil
 	case "Action":

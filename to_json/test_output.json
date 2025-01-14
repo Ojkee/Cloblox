@@ -1,0 +1,4 @@
+nodes: (start)1 {"Start"},(stop)2 {"Stop"},
+adjacency: 
+[[0,1],
+[0,0]]

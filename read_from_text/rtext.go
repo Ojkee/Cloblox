@@ -44,9 +44,9 @@ func ReadFromTxt(blocks *[]graph.Graph, connections *[]*window.Connection) error
 		case "Start", "Stop":
 			// No additional parameters for Start and Stop blocks
 		case "If":
-			params["condition"] = content // Assuming `content` holds the condition
+			params["condition"] = content
 		case "Action":
-			params["action"] = content // Assuming `content` holds the action description
+			params["action"] = content
 		case "Variable":
 			// Parse variables from content, e.g., "x=5,y=10"
 			variables := make(map[string]float64)

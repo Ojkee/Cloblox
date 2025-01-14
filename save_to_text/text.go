@@ -25,7 +25,7 @@ func SaveToTxt(filename string, blocks []shapes.Shape, connections []*window.Con
 
 	_, err = file.WriteString("Blocks:\n")
 	if err != nil {
-		return fmt.Errorf("błąd zapisu do pliku: %v", err)
+		return fmt.Errorf("Error saving to file: %v", err)
 	}
 	for _, block := range blocks {
 		content := block.GetContent()
