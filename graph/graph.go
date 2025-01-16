@@ -518,17 +518,17 @@ func (graph *Graph) getValFromSliceIfValid(valSlice any, idxer int) (float64, er
 	idxErr := errors.New("Invalid index of the array")
 	switch s := valSlice.(type) {
 	case []float64:
-		if idxer >= 0 && idxer <= len(s) {
+		if idxer >= 0 && idxer < len(s) {
 			return s[idxer], nil
 		}
 		return 0, idxErr
 	case []float32:
-		if idxer >= 0 && idxer <= len(s) {
+		if idxer >= 0 && idxer < len(s) {
 			return float64(s[idxer]), nil
 		}
 		return 0, idxErr
 	case []int:
-		if idxer >= 0 && idxer <= len(s) {
+		if idxer >= 0 && idxer < len(s) {
 			return float64(s[idxer]), nil
 		}
 		return 0, idxErr
