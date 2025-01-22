@@ -25,7 +25,7 @@ func TestSaveToJson(t *testing.T) {
 
 	blocks := []shapes.Shape{block1, block2}
 
-	connections := []*window.Connection{
+	connections := []shapes.Connection{
 		window.NewConnection(0, 0, 1, 1, 1, 2, false, false),
 	}
 
@@ -161,16 +161,16 @@ func TestSaveToJsonBubble1(t *testing.T) {
 	blocks := []shapes.Shape{block1, block2, block3, block4, block5, block6, block7}
 
 	// Connections for bubble sort
-	connections := []*window.Connection{
-		window.NewConnection(0, 0, 1, 1, 1, 2, false, false),
-		window.NewConnection(0, 0, 2, 2, 2, 3, false, false),
-		window.NewConnection(0, 0, 3, 3, 3, 4, false, false),
-		window.NewConnection(0, 0, 4, 4, 4, 5, false, false),
-		window.NewConnection(0, 0, 5, 5, 5, 6, true, false), // True branch
-		window.NewConnection(0, 0, 5, 5, 5, 4, false, true), // False branch
-		window.NewConnection(0, 0, 6, 6, 6, 4, false, false),
-		window.NewConnection(0, 0, 4, 4, 4, 3, false, true),
-		window.NewConnection(0, 0, 3, 3, 3, 7, false, true),
+	connections := []shapes.Connection{
+		*shapes.NewConnection(0, 0, 1, 1, 1, 2, false, false),
+		*shapes.NewConnection(0, 0, 2, 2, 2, 3, false, false),
+		*shapes.NewConnection(0, 0, 3, 3, 3, 4, false, false),
+		*shapes.NewConnection(0, 0, 4, 4, 4, 5, false, false),
+		*shapes.NewConnection(0, 0, 5, 5, 5, 6, true, false), // True branch
+		*shapes.NewConnection(0, 0, 5, 5, 5, 4, false, true), // False branch
+		*shapes.NewConnection(0, 0, 6, 6, 6, 4, false, false),
+		*shapes.NewConnection(0, 0, 4, 4, 4, 3, false, true),
+		*shapes.NewConnection(0, 0, 3, 3, 3, 7, false, true),
 	}
 
 	// Tworzenie pliku w bieżącym katalogu

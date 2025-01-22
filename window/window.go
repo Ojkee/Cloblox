@@ -40,9 +40,13 @@ type Window struct {
 	consoleLines         []ConsoleLine
 	consoleInnerRect     rl.Rectangle
 
-	connections       []Connection
+	connections       []shapes.Connection
 	clickedConnection bool
-	currentConnection *Connection
+	currentConnection *shapes.Connection
+
+	// FUNC BUTTONS
+	saveStateButton FuncButton
+	saveCodeButton  FuncButton
 
 	diagram graph.Graph
 }
@@ -110,9 +114,28 @@ func NewWindow(name string, height, width int32) *Window {
 			settings.CONSOLE_HEIGHT-2*settings.CONSOLE_BORDER_WIDTH-settings.CONSOLE_MARGIN,
 		), // TODO CLEAN
 
-		connections:       make([]Connection, 0),
+		connections:       make([]shapes.Connection, 0),
 		clickedConnection: false,
 		currentConnection: nil,
+
+		saveStateButton: *NewFuncButton(
+			"save blocks",
+			rl.NewRectangle(
+				settings.SIMULATE_BUTTON_OFFSET,
+				settings.SIMULATE_BUTTON_POS_Y,
+				settings.SIMULATE_BUTTON_WIDTH,
+				settings.SIMULATE_BUTTON_HEIGHT,
+			),
+		),
+		saveCodeButton: *NewFuncButton(
+			"save as python",
+			rl.NewRectangle(
+				settings.SIMULATE_BUTTON_WIDTH+settings.SIMULATE_BUTTON_OFFSET+settings.SIMULATE_BUTTON_GAP,
+				settings.SIMULATE_BUTTON_POS_Y,
+				settings.SIMULATE_BUTTON_WIDTH,
+				settings.SIMULATE_BUTTON_HEIGHT,
+			),
+		),
 
 		diagram: *graph.NewGraph(nil),
 	}
@@ -188,6 +211,8 @@ func (window *Window) draw() {
 		for _, sb := range window.simulateModeButton {
 			window.drawSimulateButton(&sb)
 		}
+		window.saveStateButton.Draw()
+		window.saveCodeButton.Draw()
 	}
 	for _, conn := range window.connections {
 		conn.Draw()

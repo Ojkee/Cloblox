@@ -10,6 +10,7 @@ import (
 
 	"Cloblox/blocks"
 	"Cloblox/functools"
+	"Cloblox/iostate"
 	"Cloblox/settings"
 	"Cloblox/shapes"
 )
@@ -84,6 +85,24 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 	}
 	if err == nil {
 		return nil
+	}
+
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+		if window.saveStateButton.InRect(*mousePos) {
+			fmt.Println("CLICKED SAVE STATE")
+			iostate.SaveToTxt(
+				"../records/saves/save1.txt",
+				window.buildingShapes,
+				window.connections,
+			)
+			iostate.SaveToJson(
+				"../records/saves/save1.json",
+				window.buildingShapes,
+				window.connections,
+			)
+		} else if window.saveCodeButton.InRect(*mousePos) {
+			fmt.Println("CLICKED SAVE PYTHON")
+		}
 	}
 	return []error{err}
 }

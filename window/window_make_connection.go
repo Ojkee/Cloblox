@@ -21,23 +21,23 @@ func (window *Window) currentConnectionEvent(mousePos *rl.Vector2) error {
 				&shape,
 				mousePos,
 			)
-			window.currentConnection = NewConnection(
+			window.currentConnection = shapes.NewConnection(
 				shapeX, shapeY,
 				mousePos.X, mousePos.Y,
 				-1, shape.GetBlockId(),
 				multipleOut, closerToRight,
 			)
 			window.clickedConnection = true
-		} else if !window.connectionExistsOrSelf(shape.GetBlockId(), window.currentConnection.inShapeId) {
+		} else if !window.connectionExistsOrSelf(shape.GetBlockId(), window.currentConnection.GetInShapeId()) {
 			shapePosX, shapePosY := shape.GetInPos()
 			window.currentConnection.MoveOutPos(shapePosX, shapePosY)
-			window.currentConnection.inShapeId = shape.GetBlockId()
+			window.currentConnection.SetInShapeId(shape.GetBlockId())
 			if err := window.connectBlocksByConnection(window.currentConnection); err != nil {
 				return err
 			}
 			window.removeOutConnectionIfExists(
 				window.currentConnection.GetOutShapeId(),
-				window.currentConnection.closerToRight,
+				window.currentConnection.IsCloserToRigth(),
 			)
 			window.connections = append(window.connections, *window.currentConnection)
 			window.resetCurrentConnection()
@@ -50,11 +50,11 @@ func (window *Window) currentConnectionEvent(mousePos *rl.Vector2) error {
 }
 
 func (window *Window) removeOutConnectionIfExists(outId int, closerToRight bool) {
-	newConnections := make([]Connection, 0)
+	newConnections := make([]shapes.Connection, 0)
 	for _, conn := range window.connections {
 		if conn.GetOutShapeId() != outId {
 			newConnections = append(newConnections, conn)
-		} else if conn.multipleOut && conn.closerToRight != closerToRight {
+		} else if conn.IsMultipleOut() && conn.IsCloserToRigth() != closerToRight {
 			newConnections = append(newConnections, conn)
 		}
 	}
@@ -107,11 +107,11 @@ func (window *Window) connectionExistsOrSelf(id1, id2 int) bool {
 	return false
 }
 
-func (window *Window) connectBlocksByConnection(conn *Connection) error {
-	idOut := conn.outShapeId
-	idIn := conn.inShapeId
-	if conn.multipleOut {
-		err := window.diagram.ConnectByIds(idOut, idIn, conn.closerToRight)
+func (window *Window) connectBlocksByConnection(conn *shapes.Connection) error {
+	idOut := conn.GetOutShapeId()
+	idIn := conn.GetInShapeId()
+	if conn.IsMultipleOut() {
+		err := window.diagram.ConnectByIds(idOut, idIn, conn.IsCloserToRigth())
 		return err
 	}
 	err := window.diagram.ConnectByIds(idOut, idIn)

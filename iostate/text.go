@@ -5,11 +5,10 @@ import (
 	"os"
 
 	"Cloblox/shapes"
-	"Cloblox/window"
 )
 
-func SaveToTxt(filename string, blocks []shapes.Shape, connections []*window.Connection) error {
-	file, err := os.Create(filename)
+func SaveToTxt(path string, blocks []shapes.Shape, connections []shapes.Connection) error {
+	file, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("Error creating new file: %v\n", err)
 	}

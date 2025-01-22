@@ -2,6 +2,7 @@ package graph_to_code
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"Cloblox/blocks"
@@ -9,7 +10,7 @@ import (
 )
 
 // taki loop chyba zadziala? nie jestem pewien bo nie wiem do konca jak to przetesotowac
-func ConvertGraphToPython(g *graph.Graph) string {
+func ConvertGraphToPython(path string, g *graph.Graph) error {
 	var pythonCode strings.Builder
 
 	pythonCode.WriteString("def algorythm():\n")
@@ -40,7 +41,16 @@ func ConvertGraphToPython(g *graph.Graph) string {
 		}
 	}
 
-	return pythonCode.String()
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("Error creating new file: %v\n", err)
+	}
+	defer file.Close()
+	_, err = file.WriteString(pythonCode.String())
+	if err != nil {
+		return fmt.Errorf("Error saving to file: %v\n", err)
+	}
+	return nil
 }
 
 // action bloki (to jest jakies ai generated gowno, narazie to olej xd)

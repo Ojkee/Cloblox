@@ -6,10 +6,9 @@ import (
 	"strings"
 
 	"Cloblox/shapes"
-	"Cloblox/window"
 )
 
-func SaveToJson(filename string, blocks []shapes.Shape, connections []*window.Connection) error {
+func SaveToJson(filename string, blocks []shapes.Shape, connections []shapes.Connection) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("Error creating file: %v", err)
@@ -77,7 +76,7 @@ func serializeAdjacencyMatrix(matrix [][]int) string {
 }
 
 // Tworzenie macierzy sąsiedztwa na podstawie węzłów i połączeń
-func buildAdjacencyMatrix(blocks []shapes.Shape, connections []*window.Connection) [][]int {
+func buildAdjacencyMatrix(blocks []shapes.Shape, connections []shapes.Connection) [][]int {
 	// Mapa węzłów na indeksy w macierzy
 	nodeIndexMap := make(map[int]int)
 	for i, block := range blocks {
