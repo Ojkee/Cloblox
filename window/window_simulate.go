@@ -10,6 +10,7 @@ import (
 
 	"Cloblox/blocks"
 	"Cloblox/functools"
+	"Cloblox/graph_to_code"
 	"Cloblox/iostate"
 	"Cloblox/settings"
 	"Cloblox/shapes"
@@ -74,6 +75,7 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 		}
 	}
 
+	errs := make([]error, 0)
 	var err error
 	if window.simulationMode == CONTINUOUSLY {
 		err = window.SimulationStep()
@@ -83,28 +85,38 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 			err = window.SimulationStep()
 		}
 	}
-	if err == nil {
-		return nil
+	if err != nil {
+		errs = append(errs, err)
 	}
 
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		if window.saveStateButton.InRect(*mousePos) {
 			fmt.Println("CLICKED SAVE STATE")
-			iostate.SaveToTxt(
+			if errStateTxt := iostate.SaveToTxt(
 				"../records/saves/save1.txt",
 				window.buildingShapes,
 				window.connections,
-			)
-			iostate.SaveToJson(
+			); errStateTxt != nil {
+				errs = append(errs, errStateTxt)
+			}
+			if errStateJSON := iostate.SaveToJson(
 				"../records/saves/save1.json",
 				window.buildingShapes,
 				window.connections,
-			)
+			); errStateJSON != nil {
+				errs = append(errs, errStateJSON)
+			}
 		} else if window.saveCodeButton.InRect(*mousePos) {
-			fmt.Println("CLICKED SAVE PYTHON")
+			if errGraphToCode := graph_to_code.ConvertGraphToPython(
+				"../records/code/save1.py",
+				&window.diagram,
+			); errGraphToCode != nil {
+				errs = append(errs, errGraphToCode)
+			}
 		}
 	}
-	return []error{err}
+
+	return errs
 }
 
 func (window *Window) SelectVarButtonOnClick(mousePos *rl.Vector2) {
