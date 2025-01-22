@@ -1,8 +1,6 @@
 package window
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"Cloblox/settings"
@@ -40,7 +38,6 @@ func NewConnection(
 func (conn *Connection) MoveInPos(newX, newY float32) {
 	conn.inPosX = newX
 	conn.inPosY = newY
-	fmt.Println(conn.inPosX, conn.inPosY)
 }
 
 func (conn *Connection) MoveOutPos(newX, newY float32) {
@@ -52,6 +49,10 @@ func (conn *Connection) Draw() {
 	inPos := rl.NewVector2(conn.inPosX, conn.inPosY)
 	outPos := rl.NewVector2(conn.outPosX, conn.outPosY)
 	rl.DrawLineBezier(inPos, outPos, 2, settings.FONT_COLOR)
+}
+
+func (conn *Connection) IsInId(id int) bool {
+	return conn.inShapeId == id
 }
 
 func (conn *Connection) HasId(id int) bool {
