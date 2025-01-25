@@ -1,5 +1,8 @@
 package iostate
 
+//sudo apt update && sudo apt install texlive-base texlive-xetex texlive-latex-extra texlive-pictures
+//Required packages for the code to work
+
 import (
 	"bufio"
 	"fmt"
@@ -33,7 +36,12 @@ func parseGraph(filePath string) Graph {
 	if err != nil {
 		log.Fatalf("Failed to open file: %v", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Fatalf("Failed to close file: %v", err)
+		}
+	}(file)
 
 	scanner := bufio.NewScanner(file)
 
@@ -245,7 +253,12 @@ func saveTikZToFile(tikz string, filename string) {
 	if err != nil {
 		log.Fatalf("Failed to create file: %v", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Fatalf("Failed to close file: %v", err)
+		}
+	}(file)
 
 	_, err = file.WriteString(tikz)
 	if err != nil {
@@ -276,18 +289,14 @@ func compileTexToPDF(texFile string) {
 	// Clean up auxiliary files
 	auxFile := strings.Replace(texFile, ".tex", ".aux", 1)
 	logFile := strings.Replace(texFile, ".tex", ".log", 1)
-	os.Remove(auxFile)
-	os.Remove(logFile)
+	_ = os.Remove(auxFile)
+	_ = os.Remove(logFile)
 
 	log.Printf("PDF successfully generated from %s", texFile)
 }
 
 // processInput processes the input file to generate a graph, convert it to TikZ code,
 // save the TikZ code to a .tex file, and compile the .tex file to a .pdf file.
-//
-// Main function of this section, it processes the input file to generate a graph, convert it to TikZ code, save the TikZ code to a .tex file, and compile the .tex file to a .pdf file.
-//
-// Use: processInput("input.json")
 //
 // Parameters:
 // - filePath: A string specifying the path to the input file.
