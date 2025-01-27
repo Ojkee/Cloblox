@@ -74,3 +74,7 @@ func findReplaceArrayKeys(input, replaceKey string) (string, map[string]string) 
 	}
 	return input, retVal
 }
+
+func (b *BlockDefault) SetName(name string) {
+	b.name = name
+}

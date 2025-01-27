@@ -7,7 +7,6 @@ import (
 
 	iostate "Cloblox/iostate"
 	"Cloblox/shapes"
-	"Cloblox/window"
 )
 
 func TestSaveToJson(t *testing.T) {
@@ -26,7 +25,7 @@ func TestSaveToJson(t *testing.T) {
 	blocks := []shapes.Shape{block1, block2}
 
 	connections := []shapes.Connection{
-		window.NewConnection(0, 0, 1, 1, 1, 2, false, false),
+		*shapes.NewConnection(0, 0, 1, 1, 1, 2, false, false),
 	}
 
 	tmpFile, err := ioutil.TempFile("", "test_save_to_json")
@@ -76,8 +75,8 @@ func TestSaveToJson1(t *testing.T) {
 	blocks := []shapes.Shape{block1, block2}
 
 	// Tworzenie połączeń
-	connections := []*window.Connection{
-		window.NewConnection(0, 0, 1, 1, 1, 2, false, false),
+	connections := []shapes.Connection{
+		*shapes.NewConnection(0, 0, 1, 1, 1, 2, false, false),
 	}
 
 	// Tworzenie pliku w bieżącym katalogu
@@ -198,7 +197,7 @@ adjacency:
 [0,0,1,0,0,0,0],
 [0,0,0,1,0,0,1],
 [0,0,1,0,1,0,0],
-[0,0,0,1,0,1,0],
+[0,0,0,3,0,2,0],
 [0,0,0,1,0,0,0],
 [0,0,0,0,0,0,0]]`
 

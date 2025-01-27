@@ -47,12 +47,40 @@ func SaveToTxt(path string, blocks []shapes.Shape, connections []shapes.Connecti
 		return fmt.Errorf("Error saving to file: %v\n", err)
 	}
 
+	// Mapa wezlow na indeksy w macierzy
+	nodeIndexMap := make(map[int]int)
+	for i, block := range blocks {
+		nodeIndexMap[block.GetBlockId()] = i
+	}
+
 	for _, conn := range connections {
-		startID := conn.GetInShapeId()
-		stopID := conn.GetOutShapeId()
-		_, err = file.WriteString(fmt.Sprintf("<c>%d,%d</c>\n", startID, stopID))
-		if err != nil {
-			return fmt.Errorf("Error saving to file: %v\n", err)
+		inID := conn.GetInShapeId()
+		outID := conn.GetOutShapeId()
+
+		inIndex, okIn := nodeIndexMap[inID]
+
+		if okIn {
+			inShape := blocks[inIndex]
+			var prefix string = "s"
+
+			// Sprawdzenie, czy blok wejściowy to IF
+			if inShape.GetType() == shapes.IF {
+				if conn.IsCloserToRigth() {
+					prefix = "l" // Lewa strona - nie
+				} else {
+					prefix = "r" // Prawa strona - tak
+				}
+			}
+
+			// Zapis do pliku z odpowiednim prefiksem
+			_, err := file.WriteString(fmt.Sprintf("<c>%s%d,%d</c>\n", prefix, inID, outID))
+			if err != nil {
+				fmt.Printf("Error saving connection %d -> %d: %v\n", inID, outID, err)
+				return fmt.Errorf("error saving connection: %v", err)
+			}
+		} else {
+			// Obsługa błędów, gdy indeksy nie zostaną znalezione
+			fmt.Printf("Error: indices not found for connection %d -> %d\n", inID, outID)
 		}
 	}
 	return nil

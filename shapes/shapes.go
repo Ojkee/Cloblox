@@ -37,6 +37,7 @@ type Shape interface {
 	GetColor() rl.Color
 	SetHighlight(flag bool)
 	Info() string
+	GetName() string
 }
 
 type ShapeSingleOut interface {

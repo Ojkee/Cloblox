@@ -75,7 +75,7 @@ func serializeAdjacencyMatrix(matrix [][]int) string {
 	return fmt.Sprintf("[%s]", strings.Join(rows, ",\n"))
 }
 
-// Tworzenie macierzy sąsiedztwa na podstawie węzłów i połączeń
+// Tworzenie macierzy sasiedztwa na podstawie wezlow i polaczen
 func buildAdjacencyMatrix(blocks []shapes.Shape, connections []shapes.Connection) [][]int {
 	// Mapa węzłów na indeksy w macierzy
 	nodeIndexMap := make(map[int]int)
@@ -90,7 +90,7 @@ func buildAdjacencyMatrix(blocks []shapes.Shape, connections []shapes.Connection
 		edgeMatrix[i] = make([]int, N)
 	}
 
-	// Dodawanie połączeń do macierzy
+	// Dodawanie polaczen do macierzy
 	for _, conn := range connections {
 		inID := conn.GetInShapeId()
 		outID := conn.GetOutShapeId()
@@ -99,9 +99,18 @@ func buildAdjacencyMatrix(blocks []shapes.Shape, connections []shapes.Connection
 		outIndex, okOut := nodeIndexMap[outID]
 
 		if okIn && okOut {
-			edgeMatrix[inIndex][outIndex] = 1
+			inShape := blocks[inIndex]
+			if inShape.GetType() == shapes.IF {
+				if conn.IsCloserToRigth() {
+					edgeMatrix[inIndex][outIndex] = 3 // polaczenie true, czyli mamy tak wiec w prawo
+				} else {
+					edgeMatrix[inIndex][outIndex] = 2 // polaczenie false, czyli mamy nie wiec w lewo
+				}
+			} else {
+				edgeMatrix[inIndex][outIndex] = 1 // reszta polaczen
+			}
 		} else {
-			fmt.Printf("Błąd: Nie znaleziono indeksów dla połączenia %d -> %d\n", inID, outID)
+			fmt.Printf("Error indices not found for connection %d -> %d\n", inID, outID)
 		}
 	}
 
