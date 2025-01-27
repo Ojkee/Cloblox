@@ -14,23 +14,23 @@ import (
 	"strings"
 )
 
-type Node struct {
+type NodePDF struct {
 	ID    int
 	Type  string
 	Label string
 }
 
-type Graph struct {
-	Nodes     []Node
+type GraphPDF struct {
+	Nodes     []NodePDF
 	Adjacency [][]int
 }
 
-// parseGraph reads a graph definition from a file and returns a Graph struct.
+// parseGraph reads a graph definition from a file and returns a GraphPDF struct.
 // The file is expected to have a specific format:
 // - The first line contains node definitions in the format: (type)ID {label}, ...
 // - The second line contains the header "adjacency:"
 // - The remaining lines contain the adjacency matrix in the format: [row1],[row2],...
-func parseGraph(filePath string) Graph {
+func parseGraph(filePath string) GraphPDF {
 	// Open the file for reading
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -50,7 +50,7 @@ func parseGraph(filePath string) Graph {
 		log.Fatalf("Failed to read the first line for nodes")
 	}
 	nodesLine := scanner.Text()
-	nodes := []Node{}
+	nodes := []NodePDF{}
 	var currentNode strings.Builder
 	openBraces := 0
 	for _, char := range nodesLine {
@@ -124,7 +124,7 @@ func parseGraph(filePath string) Graph {
 		adjacency = append(adjacency, rowInt)
 	}
 
-	return Graph{
+	return GraphPDF{
 		Nodes:     nodes,
 		Adjacency: adjacency,
 	}
@@ -136,8 +136,8 @@ func parseGraph(filePath string) Graph {
 //
 // Parameters:
 // - entry: A string representing a node entry in the format (type)ID {label}.
-// - nodes: A pointer to a slice of Node structs where the parsed node will be appended.
-func parseNodeEntry(entry string, nodes *[]Node) {
+// - nodes: A pointer to a slice of NodePDF structs where the parsed node will be appended.
+func parseNodeEntry(entry string, nodes *[]NodePDF) {
 	// Compile a regular expression to match the node entry format
 	nodeRegex := regexp.MustCompile(`\((.*?)\)(\d+) \{(.*)\}`)
 
@@ -156,7 +156,7 @@ func parseNodeEntry(entry string, nodes *[]Node) {
 	}
 
 	// Append the parsed node to the nodes slice
-	*nodes = append(*nodes, Node{
+	*nodes = append(*nodes, NodePDF{
 		ID:    id,
 		Type:  matches[1],
 		Label: strings.TrimSpace(matches[3]),
@@ -167,11 +167,11 @@ func parseNodeEntry(entry string, nodes *[]Node) {
 // It constructs a LaTeX document with TikZ code to visualize the graph.
 //
 // Parameters:
-// - graph: A Graph struct containing nodes and adjacency matrix.
+// - graph: A GraphPDF struct containing nodes and adjacency matrix.
 //
 // Returns:
 // - A string containing the LaTeX document with TikZ code.
-func generateTikZ(graph Graph) string {
+func generateTikZ(graph GraphPDF) string {
 	var tikz string
 
 	// Add LaTeX document preamble and TikZ styles
