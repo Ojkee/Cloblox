@@ -27,10 +27,12 @@ func NewFuncButton(content string, rect rl.Rectangle) *FuncButton {
 }
 
 func (fb *FuncButton) Draw() {
+	var roundness float32 = 0.5
+	var segments int32 = 10
 	rl.DrawRectangleRounded(
 		fb.rect,
-		0.5,
-		10,
+		roundness,
+		segments,
 		settings.SIMULATE_BUTTON_COLOR,
 	)
 	rl.DrawTextEx(

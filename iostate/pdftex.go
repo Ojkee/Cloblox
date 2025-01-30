@@ -25,6 +25,26 @@ type GraphPDF struct {
 	Adjacency [][]int
 }
 
+// processInput processes the input file to generate a graph, convert it to TikZ code,
+// save the TikZ code to a .tex file, and compile the .tex file to a .pdf file.
+//
+// Parameters:
+// - filePath: A string specifying the path to the JSON file.
+func SavePDF(srcPathJSON, dstPathPDF string) {
+	// Parse the graph from the input JSON file
+	graph := parseGraph(srcPathJSON)
+
+	// Generate TikZ code
+	tikz := generateTikZ(graph)
+
+	// Save the TikZ code to a .tex file
+	texFilename := "output.tex"
+	saveTikZToFile(tikz, texFilename)
+
+	// Compile the .tex file to a .pdf file
+	compileTexToPDF(texFilename, dstPathPDF)
+}
+
 // parseGraph reads a graph definition from a file and returns a GraphPDF struct.
 // The file is expected to have a specific format:
 // - The first line contains node definitions in the format: (type)ID {label}, ...
@@ -285,12 +305,12 @@ func saveTikZToFile(tikz string, filename string) {
 //
 // Parameters:
 // - texFile: A string specifying the path to the TeX file to be compiled.
-func compileTexToPDF(texFile string) {
+func compileTexToPDF(texPath, pdfPath string) {
 	if _, err := exec.LookPath("pdflatex"); err != nil {
 		log.Fatalf("pdflatex not found: %v", err)
 	}
-
-	cmd := exec.Command("pdflatex", texFile)
+	outArg := "--output-directory=pdfPath"
+	cmd := exec.Command("pdflatex", outArg, texPath)
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 
@@ -299,30 +319,10 @@ func compileTexToPDF(texFile string) {
 	}
 
 	// Clean up auxiliary files
-	auxFile := strings.Replace(texFile, ".tex", ".aux", 1)
-	logFile := strings.Replace(texFile, ".tex", ".log", 1)
+	auxFile := strings.Replace(texPath, ".tex", ".aux", 1)
+	logFile := strings.Replace(texPath, ".tex", ".log", 1)
 	_ = os.Remove(auxFile)
 	_ = os.Remove(logFile)
 
-	log.Printf("PDF successfully generated from %s", texFile)
-}
-
-// processInput processes the input file to generate a graph, convert it to TikZ code,
-// save the TikZ code to a .tex file, and compile the .tex file to a .pdf file.
-//
-// Parameters:
-// - filePath: A string specifying the path to the input file.
-func processInput(filePath string) {
-	// Parse the graph from the input JSON file
-	graph := parseGraph(filePath)
-
-	// Generate TikZ code
-	tikz := generateTikZ(graph)
-
-	// Save the TikZ code to a .tex file
-	texFilename := "output.tex"
-	saveTikZToFile(tikz, texFilename)
-
-	// Compile the .tex file to a .pdf file
-	compileTexToPDF(texFilename)
+	log.Printf("PDF successfully generated from %s", texPath)
 }

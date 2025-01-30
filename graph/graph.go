@@ -239,9 +239,9 @@ func (graph *Graph) GetKvpByKeys(keys *[]string) (map[string]float64, error) {
 	for _, key := range *keys {
 		if arrayKey, idxer, found := getIfArrayKey(&key); found {
 			if !graph.isKeyInVars(arrayKey) {
-				concoleMess := "Variable not declared"
-				debugMess := fmt.Sprintf("graph.go/GetKvpByKeys() fail: %s", concoleMess)
-				return nil, functools.NewStrongError(concoleMess, debugMess)
+				consoleMess := "Variable not declared"
+				debugMess := fmt.Sprintf("graph.go/GetKvpByKeys() fail: %s", consoleMess)
+				return nil, functools.NewStrongError(consoleMess, debugMess)
 			}
 			idxParsed, err := graph.parseArrayIdxer(idxer)
 			if err != nil {

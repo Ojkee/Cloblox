@@ -47,6 +47,7 @@ type Window struct {
 	// FUNC BUTTONS
 	saveStateButton FuncButton
 	saveCodeButton  FuncButton
+	savePDFButton   FuncButton
 
 	diagram graph.Graph
 }
@@ -136,6 +137,15 @@ func NewWindow(name string, height, width int32) *Window {
 				settings.SIMULATE_BUTTON_HEIGHT,
 			),
 		),
+		savePDFButton: *NewFuncButton(
+			"save as PDF",
+			rl.NewRectangle(
+				settings.SIMULATE_BUTTON_WIDTH*2+settings.SIMULATE_BUTTON_OFFSET+settings.SIMULATE_BUTTON_GAP*2,
+				settings.SIMULATE_BUTTON_POS_Y,
+				settings.SIMULATE_BUTTON_WIDTH,
+				settings.SIMULATE_BUTTON_HEIGHT,
+			),
+		),
 
 		diagram: *graph.NewGraph(nil),
 	}
@@ -164,6 +174,9 @@ func (window *Window) MainLoop() {
 			}
 			if settings.DEBUG_ERRORS {
 				window.errorManager.PrintAllErrors()
+			}
+			if settings.DEBUG_DIAGRAM_WINDOW_SIDE_DETAILS {
+				window.debugWindowSideContent()
 			}
 		}
 	}
@@ -213,6 +226,7 @@ func (window *Window) draw() {
 		}
 		window.saveStateButton.Draw()
 		window.saveCodeButton.Draw()
+		window.savePDFButton.Draw()
 	}
 	for _, conn := range window.connections {
 		conn.Draw()

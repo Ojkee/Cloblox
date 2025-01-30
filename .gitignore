@@ -9,6 +9,8 @@ records/saves/*
 records/code/*
 !records/code/.gitkeep
 
+records/pdfs/*
+!records/pdfs/.gitkeep
 
 # Binaries for programs and plugins
 *.exe

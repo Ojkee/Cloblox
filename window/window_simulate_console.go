@@ -48,7 +48,10 @@ func (window *Window) appendErrorsToConsole(errs []error) {
 }
 
 func (window *Window) appendTextToConsole(text string) {
-	window.consoleLines = append(window.consoleLines, *NewConsoleLine(text, settings.FONT_COLOR))
+	window.consoleLines = append(
+		window.consoleLines,
+		*NewConsoleLine(text, settings.FONT_COLOR),
+	)
 }
 
 func (window *Window) drawConsole() {

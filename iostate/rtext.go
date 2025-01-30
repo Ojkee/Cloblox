@@ -66,7 +66,7 @@ func ReadFromTxt(path string) ([]blocks.Block, []shapes.Connection, error) {
 			}
 			params["variables"] = variables
 		case "a": // Action block
-			//fmt.Printf("Parsing Action block: content=%s\n", content) // Sprawdzenie czy dobrze pobiera bo wyrzucalo blad
+			// fmt.Printf("Parsing Action block: content=%s\n", content) // Sprawdzenie czy dobrze pobiera bo wyrzucalo blad
 			params["action"] = content
 
 		default:

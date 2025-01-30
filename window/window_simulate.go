@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -62,8 +63,9 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 	}
 	window.SelectVarButtonOnClick(mousePos)
 
-	for _, sb := range window.simulateModeButton {
-		if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+	errs := make([]error, 0)
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+		for _, sb := range window.simulateModeButton {
 			if sb.InRange(mousePos) && window.simulationMode != FINISHED {
 				window.simulationMode = sb.simulateType
 				sb.selected = true
@@ -73,9 +75,28 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 				}
 			}
 		}
+		if window.saveStateButton.InRect(*mousePos) {
+			errTxt := window.saveState(iostate.SaveToTxt, settings.PATH_TXT)
+			if errTxt != nil {
+				errs = append(errs, errTxt)
+			}
+			errState := window.saveState(iostate.SaveToJson, settings.PATH_JSON)
+			if errState != nil {
+				errs = append(errs, errState)
+			}
+		} else if window.saveCodeButton.InRect(*mousePos) {
+			errPython := window.saveToPython()
+			if errPython != nil {
+				errs = append(errs, errPython)
+			}
+		} else if window.savePDFButton.InRect(*mousePos) {
+			errPDF := window.saveToPdf()
+			if errPDF != nil {
+				errs = append(errs, errPDF)
+			}
+		}
 	}
 
-	errs := make([]error, 0)
 	var err error
 	if window.simulationMode == CONTINUOUSLY {
 		err = window.SimulationStep()
@@ -87,33 +108,6 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 	}
 	if err != nil {
 		errs = append(errs, err)
-	}
-
-	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-		if window.saveStateButton.InRect(*mousePos) {
-			fmt.Println("CLICKED SAVE STATE")
-			if errStateTxt := iostate.SaveToTxt(
-				"../records/saves/save1.txt",
-				window.buildingShapes,
-				window.connections,
-			); errStateTxt != nil {
-				errs = append(errs, errStateTxt)
-			}
-			if errStateJSON := iostate.SaveToJson(
-				"../records/saves/save1.json",
-				window.buildingShapes,
-				window.connections,
-			); errStateJSON != nil {
-				errs = append(errs, errStateJSON)
-			}
-		} else if window.saveCodeButton.InRect(*mousePos) {
-			if errGraphToCode := graph_to_code.ConvertGraphToPython(
-				"../records/code/save1.py",
-				&window.diagram,
-			); errGraphToCode != nil {
-				errs = append(errs, errGraphToCode)
-			}
-		}
 	}
 
 	return errs
@@ -390,4 +384,44 @@ func (window *Window) flushSimulate() {
 
 func (window *Window) clearConsole() {
 	window.consoleLines = make([]ConsoleLine, 0)
+}
+
+func (window *Window) saveState(
+	saver func(string, []shapes.Shape, []shapes.Connection) error,
+	path string,
+) error {
+	err := saver(
+		path,
+		window.buildingShapes,
+		window.connections,
+	)
+	if err != nil {
+		return err
+	}
+	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", path))
+	return nil
+}
+
+func (window *Window) saveToPython() error {
+	errPython := graph_to_code.ConvertGraphToPython(
+		settings.PATH_PYTHON,
+		&window.diagram,
+	)
+	if errPython != nil {
+		return errPython
+	}
+	window.appendTextToConsole(fmt.Sprintf("Saved code to '%s'", settings.PATH_PYTHON))
+	return nil
+}
+
+func (window *Window) saveToPdf() error {
+	errTempJSON := window.saveState(iostate.SaveToJson, settings.PATH_PDF_TEMP_JSON)
+	if errTempJSON != nil {
+		return errTempJSON
+	}
+	// Should handle errors
+	iostate.SavePDF(settings.PATH_PDF_TEMP_JSON, settings.PATH_PDF)
+	os.Remove(settings.PATH_PDF_TEMP_JSON)
+	window.appendTextToConsole(fmt.Sprintf("Saved PDF to '%s'", settings.PATH_PDF))
+	return nil
 }

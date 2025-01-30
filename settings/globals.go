@@ -10,10 +10,11 @@ const (
 
 // DEBUG
 var (
-	DEBUG_BLOCKS_POINTERS = true
-	DEBUG_SHAPE_CONTENT   = false
-	DEBUG_DIAGRAM_DETAILS = false
-	DEBUG_ERRORS          = false
+	DEBUG_BLOCKS_POINTERS             = false
+	DEBUG_SHAPE_CONTENT               = false
+	DEBUG_DIAGRAM_DETAILS             = false
+	DEBUG_DIAGRAM_WINDOW_SIDE_DETAILS = true
+	DEBUG_ERRORS                      = false
 )
 
 // FONT
@@ -113,4 +114,12 @@ const (
 
 	SIMULATE_BUTTON_PAUSE_SIZE    = 16
 	SIMULATE_BUTTON_TRIANGLE_SIZE = 16
+)
+
+const (
+	PATH_TXT           = "records/saves/save1.txt"
+	PATH_JSON          = "records/saves/save1.json"
+	PATH_PYTHON        = "records/code/save1.py"
+	PATH_PDF           = "records/pdfs/save1.pdf"
+	PATH_PDF_TEMP_JSON = "records/pdfs/save1.json"
 )

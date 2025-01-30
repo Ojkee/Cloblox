@@ -221,6 +221,18 @@ func (window *Window) debugContent() {
 	fmt.Println()
 }
 
+func (window *Window) debugWindowSideContent() {
+	fmt.Println("************WINDOW**SHAPES**CONNECTIONS*******************")
+	for _, shape := range window.diagramShapes {
+		fmt.Printf("%s\n", shape.GetName())
+	}
+	for _, conn := range window.connections {
+		fmt.Printf("%d %d\n", conn.GetOutShapeId(), conn.GetInShapeId())
+	}
+	fmt.Println()
+	fmt.Println()
+}
+
 func (window *Window) setCurrentInsertShape(shape *shapes.Shape) {
 	if shape == nil {
 		window.currentInsertShape = nil
