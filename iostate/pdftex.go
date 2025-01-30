@@ -1,7 +1,7 @@
 package iostate
 
-//sudo apt update && sudo apt install texlive-base texlive-xetex texlive-latex-extra texlive-pictures
-//Required packages for the code to work
+// sudo apt update && sudo apt install texlive-base texlive-xetex texlive-latex-extra texlive-pictures
+// Required packages for the code to work
 
 import (
 	"bufio"
@@ -200,7 +200,14 @@ func generateTikZ(graph GraphPDF) string {
 			style = "decision"
 			verticalPos -= 2
 		}
-		tikz += fmt.Sprintf("\\node[%s] (%d) at (%.2f, %.2f) {%s};\n", style, node.ID, horizontalOffset, verticalPos, node.Label)
+		tikz += fmt.Sprintf(
+			"\\node[%s] (%d) at (%.2f, %.2f) {%s};\n",
+			style,
+			node.ID,
+			horizontalOffset,
+			verticalPos,
+			node.Label,
+		)
 		if node.Type == "if" {
 			verticalPos -= 4
 		} else {
@@ -221,7 +228,12 @@ func generateTikZ(graph GraphPDF) string {
 
 				if graph.Nodes[i].Type == "if" {
 					if count == 0 {
-						tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.west) to (%d.north);\n", bendAmount, i+1, j+1)
+						tikz += fmt.Sprintf(
+							"\\draw[arrow, bend left=%d] (%d.west) to (%d.north);\n",
+							bendAmount,
+							i+1,
+							j+1,
+						)
 					} else {
 						tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.east) to (%d.north);\n", bendAmount, i+1, j+1)
 					}
