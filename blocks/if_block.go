@@ -103,6 +103,10 @@ func (block *IfBlock) SetConditionKVP(kvp *map[string]float64) {
 	block.conditionKVP = *kvp
 }
 
+func (block *IfBlock) GetConditionExprString() string {
+	return block.conditionExpr
+}
+
 func (block *IfBlock) IsEvalTrue() (bool, error) {
 	exprtkObj := exprtk.NewExprtk()
 	defer exprtkObj.Delete()

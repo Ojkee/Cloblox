@@ -102,7 +102,7 @@ func (block *ActionBlock) PerformGetUpdateKVP() (updateVars map[string]float64, 
 	return nil, "", errors.New("No action Type")
 }
 
-func (block *ActionBlock) getActionType(input *string) (ACTION_TYPE, error) {
+func (block *ActionBlock) GetActionType(input *string) (ACTION_TYPE, error) {
 	lowerInput := strings.ToLower(*input)
 	if strings.Contains(lowerInput, "swap") {
 		if err := block.parseKeysIfValidSwap(input); err != nil {
