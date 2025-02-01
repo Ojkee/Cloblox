@@ -20,7 +20,7 @@ func ConvertGraphToPython(path string, g *graph.Graph) error {
 		case *blocks.StartBlock:
 			pythonCode.WriteString(fmt.Sprintf("    # Start block (id: %d)\n", block.GetId()))
 		case *blocks.StopBlock:
-			pythonCode.WriteString(fmt.Sprintf("    # Stop block (id: %d)\n    return 0\n"))
+			pythonCode.WriteString(fmt.Sprintf("    # Stop block (id: %d)\n    return 0\n", block.GetId()))
 		case *blocks.ActionBlock:
 			pythonCode.WriteString(fmt.Sprintf("    # Action block (id: %d)\n", block.GetId()))
 			pythonCode.WriteString(fmt.Sprintf("    %s\n", generateActionCode(blockTyped)))
@@ -47,10 +47,9 @@ func ConvertGraphToPython(path string, g *graph.Graph) error {
 
 func generateActionCode(block *blocks.ActionBlock) string {
 	keys := block.GetKeys()
-
-	// GetActionType przyjmuje stringa
-	actionType, err := block.GetActionType()
-
+	var actionType blocks.ACTION_TYPE
+	blockRawContent := block.GetActionInputRaw()
+	actionType, err := block.GetActionType(&blockRawContent)
 	if err != nil {
 		return fmt.Sprintf("Error: %v", err)
 	}
@@ -71,8 +70,8 @@ func generateActionCode(block *blocks.ActionBlock) string {
 		code.WriteString(")\n")
 	case blocks.RAND:
 		code.WriteString(fmt.Sprintf("%s = random.random()\n", keys[0]))
-	//case blocks.MATH_OPERATIONS:
-	//code.WriteString(fmt.Sprintf("%s\n", block.actionInputRaw))
+	case blocks.MATH_OPERATIONS:
+		code.WriteString(fmt.Sprintf("%s\n", block.GetActionInputRaw()))
 	default:
 		code.WriteString("Unknown action type\n")
 	}
@@ -80,28 +79,28 @@ func generateActionCode(block *blocks.ActionBlock) string {
 	return code.String()
 }
 
+// not quite right yet but we'll get there
 func generateIfCode(block *blocks.IfBlock) string {
 	condition := block.GetConditionExprString()
+
 	var code strings.Builder
 
-	code.WriteString(fmt.Sprintf("if %s:\n", condition))
+	code.WriteString(fmt.Sprintf("    if %s:\n", condition))
 
 	if block.GetNextTrue() != nil {
-		code.WriteString("    # True branch\n")
-		code.WriteString("    ")
 		code.WriteString(generateBranchCode(block.GetNextTrue(), "    "))
 	} else {
-		code.WriteString("    # True branch is empty\n")
+		code.WriteString("        # True branch is empty\n")
+		code.WriteString("        pass\n")
 	}
 
 	if block.GetNextFalse() != nil {
-		code.WriteString("else:\n")
-		code.WriteString("    # False branch\n")
-		code.WriteString("    ")
+		code.WriteString("    else:\n")
 		code.WriteString(generateBranchCode(block.GetNextFalse(), "    "))
 	} else {
-		code.WriteString("else:\n")
-		code.WriteString("    # False branch is empty\n")
+		code.WriteString("    else:\n")
+		code.WriteString("        # False branch is empty\n")
+		code.WriteString("        pass\n")
 	}
 
 	return code.String()
@@ -113,8 +112,8 @@ func generateBranchCode(block *blocks.Block, indent string) string {
 	switch blockTyped := (*block).(type) {
 	case *blocks.IfBlock:
 		code.WriteString(indent + generateIfCode(blockTyped))
-	case *blocks.ActionBlock:
-		code.WriteString(indent + generateActionCode(blockTyped) + "\n")
+	// case *blocks.ActionBlock:
+	// 	code.WriteString(indent + generateActionCode(blockTyped) + "\n")
 	case *blocks.VariablesBlock:
 		code.WriteString(indent + generateVariableCode(blockTyped) + "\n")
 	default:

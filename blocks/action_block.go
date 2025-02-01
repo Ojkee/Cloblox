@@ -70,7 +70,7 @@ func (block *ActionBlock) ParseFromUserInput(input string) error {
 	block.Flush()
 	block.actionInputRaw = input
 	var err error
-	block.actionType, err = block.getActionType(&input)
+	block.actionType, err = block.GetActionType(&input)
 	return err
 }
 
@@ -80,6 +80,10 @@ func (block *ActionBlock) GetKeys() []string {
 
 func (block *ActionBlock) SetActionKVP(actionKVP *map[string]float64) {
 	block.actionKVP = *actionKVP
+}
+
+func (block *ActionBlock) GetActionInputRaw() string {
+	return block.actionInputRaw
 }
 
 func (block *ActionBlock) PerformGetUpdateKVP() (updateVars map[string]float64, logMessage string, err error) {
