@@ -363,3 +363,7 @@ func (block *ActionBlock) Flush() {
 	block.actionInputReplaced = ""
 	block.actionType = UNSIGNED
 }
+
+func (block *ActionBlock) GetConditionExprString() string {
+	return block.actionInputRaw
+}

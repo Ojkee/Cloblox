@@ -22,6 +22,10 @@ type IfBlock struct {
 	conditionExprReplaced string             // replaced with replaceKey and set rounding
 }
 
+func (block *IfBlock) IsCloserToRigth() bool {
+	panic("unimplemented")
+}
+
 func NewIfBlock() *IfBlock {
 	return &IfBlock{
 		BlockDefault: BlockDefault{
@@ -143,4 +147,8 @@ func (block *IfBlock) FlushCondition() {
 	block.conditionExprReplaced = ""
 	block.keys = []string{}
 	block.arrayKeys = make(map[string]string, 0)
+}
+
+func (block *IfBlock) GetConditionExprString() string {
+	return block.conditionExpr
 }
