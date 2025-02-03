@@ -147,8 +147,8 @@ func (window *Window) flushDiagramShapes() {
 
 func (window *Window) loadSavedState() error {
 	_blocks, _connections, err := iostate.ReadFromTxt(settings.PATH_TXT)
-	fmt.Printf("%v\n", _blocks)
-	fmt.Printf("%v\n", _connections)
+	// fmt.Printf("%v\n", _blocks)
+	// fmt.Printf("%v\n", _connections)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return err

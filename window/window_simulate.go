@@ -84,10 +84,6 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 			if errTxt != nil {
 				errs = append(errs, errTxt)
 			}
-			errState := window.saveStateJson()
-			if errState != nil {
-				errs = append(errs, errState)
-			}
 		} else if window.saveCodeButton.InRect(*mousePos) {
 			errPython := window.saveToPython()
 			if errPython != nil {
