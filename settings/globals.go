@@ -10,11 +10,11 @@ const (
 
 // DEBUG
 var (
-	DEBUG_BLOCKS_POINTERS             = false
-	DEBUG_SHAPE_CONTENT               = false
-	DEBUG_DIAGRAM_DETAILS             = false
+	DEBUG_BLOCKS_POINTERS             = true
+	DEBUG_SHAPE_CONTENT               = true
+	DEBUG_DIAGRAM_DETAILS             = true
 	DEBUG_DIAGRAM_WINDOW_SIDE_DETAILS = true
-	DEBUG_ERRORS                      = false
+	DEBUG_ERRORS                      = true
 )
 
 // FONT
@@ -50,8 +50,16 @@ var (
 	SIMULATE_BUTTON_ATTRIB_COLOR_SELECTED = FONT_COLOR
 )
 
+// BUILDING SHAPES
+const (
+	SHAPE_BUILD_GAP_X = 10
+	SHAPE_BUILD_GAP_Y = 16
+	SHAPE_BUILD_X     = WINDOW_WIDTH/2 + SHAPE_BUILD_GAP_X
+	SHAPE_BUILD_Y     = WINDOW_HEIGHT / 2
+)
+
 // SHAPES
-var (
+const (
 	SHAPE_MIN_WIDTH  float32 = 96
 	SHAPE_MIN_HEIGHT float32 = 32
 	SHAPE_TEXT_GAP   float32 = 10
@@ -85,7 +93,6 @@ const (
 	BUTTON_X      float32 = WINDOW_WIDTH/2 - BUTTON_WIDTH - BUTTON_MARGIN
 	BUTTON_Y      float32 = BUTTON_MARGIN
 	BUTTON_GAP    float32 = 4
-	BUTTON_LIMIT  int     = 10
 )
 
 // SIMULATION OPTIONS

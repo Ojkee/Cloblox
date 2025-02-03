@@ -1,9 +1,13 @@
 package window
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"Cloblox/blocks"
+	"Cloblox/graph"
+	"Cloblox/iostate"
 	"Cloblox/settings"
 	"Cloblox/shapes"
 )
@@ -11,6 +15,14 @@ import (
 func (window *Window) buildManager(mousePos *rl.Vector2) []error {
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) { // New Shape
 		window.buildNewShapeEvent(mousePos)
+		if window.cleanButton.InRect(*mousePos) {
+			window.flushAll()
+		} else if window.loadButton.InRect(*mousePos) {
+			errLoad := window.loadSavedState()
+			if errLoad != nil {
+				return []error{errLoad}
+			}
+		}
 	} else if rl.IsMouseButtonPressed(rl.MouseButtonRight) { // Connect
 		err := window.currentConnectionEvent(mousePos)
 		if err != nil {
@@ -20,16 +32,15 @@ func (window *Window) buildManager(mousePos *rl.Vector2) []error {
 	return nil
 }
 
-func initBuildingShapes(width, height int32) []shapes.Shape {
-	offsetX := float32(width/2.0 + 10)
-	gap := float32(settings.SHAPE_MIN_HEIGHT + 16)
-	offsetY := float32(height)/2.0 - gap*2.5
+func initBuildingShapes() []shapes.Shape {
+	gap := float32(settings.SHAPE_MIN_HEIGHT + settings.SHAPE_BUILD_GAP_Y)
+	offsetY := settings.SHAPE_BUILD_Y - gap*2.5
 	return []shapes.Shape{
-		shapes.NewStartShape(offsetX, offsetY),
-		shapes.NewVariableShape(offsetX, offsetY+gap),
-		shapes.NewIfShape(offsetX, offsetY+2*gap),
-		shapes.NewActionShape(offsetX, offsetY+3*gap),
-		shapes.NewStopShape(offsetX, offsetY+4*gap),
+		shapes.NewStartShape(settings.SHAPE_BUILD_X, offsetY),
+		shapes.NewVariableShape(settings.SHAPE_BUILD_X, offsetY+gap),
+		shapes.NewIfShape(settings.SHAPE_BUILD_X, offsetY+2*gap),
+		shapes.NewActionShape(settings.SHAPE_BUILD_X, offsetY+3*gap),
+		shapes.NewStopShape(settings.SHAPE_BUILD_X, offsetY+4*gap),
 	}
 }
 
@@ -128,4 +139,40 @@ func (window *Window) flushBuildShape() {
 	window.shapeClicked = false
 	window.currentShape = nil
 	window.currentShapeType = shapes.NONE
+}
+
+func (window *Window) flushDiagramShapes() {
+	window.diagramShapes = make([]shapes.Shape, 0)
+}
+
+func (window *Window) loadSavedState() error {
+	_blocks, _connections, err := iostate.ReadFromTxt(settings.PATH_TXT)
+	fmt.Printf("%v\n", _blocks)
+	fmt.Printf("%v\n", _connections)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return err
+	}
+	window.flushAll()
+	window.diagram = *graph.NewGraph(nil)
+	window.initNewGraph(_blocks, _connections)
+	return nil
+}
+
+func (window *Window) initNewGraph(_blocks []blocks.Block, _connections []shapes.Connection) {
+	window.diagram.SetAllBlocks(_blocks)
+	for _, conn := range _connections {
+		if conn.IsMultipleOut() {
+			window.diagram.ConnectByIds(
+				conn.GetInShapeId(),
+				conn.GetOutShapeId(),
+				conn.IsCloserToRigth(),
+			)
+		} else {
+			window.diagram.ConnectByIds(
+				conn.GetInShapeId(),
+				conn.GetOutShapeId(),
+			)
+		}
+	}
 }

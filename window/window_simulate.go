@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -439,7 +440,7 @@ func (window *Window) saveToPdf() error {
 	if errPDF != nil {
 		return errPDF
 	}
-	// os.Remove(settings.PATH_PDF_TEMP_JSON)
+	os.Remove(settings.PATH_PDF_TEMP_JSON)
 	window.appendTextToConsole(
 		fmt.Sprintf("Saved PDF to '%s'", settings.PATH_PDF),
 	)

@@ -117,3 +117,7 @@ func (window *Window) connectBlocksByConnection(conn *shapes.Connection) error {
 	err := window.diagram.ConnectByIds(idOut, idIn)
 	return err
 }
+
+func (window *Window) flushConnections() {
+	window.connections = make([]shapes.Connection, 0)
+}

@@ -27,6 +27,9 @@ type Window struct {
 	currentShape     shapes.Shape
 	currentShapeType shapes.SHAPE_TYPE
 
+	loadButton  FuncButton
+	cleanButton FuncButton
+
 	// INSERT
 	currentInsertShape *shapes.Shape
 	insertCursorX      int
@@ -65,11 +68,30 @@ func NewWindow(name string, height, width int32) *Window {
 		backgroundColor: settings.BACKGROUND_COLOR,
 		fontColor:       settings.FONT_COLOR,
 
-		buildingShapes:   initBuildingShapes(width, height),
+		buildingShapes:   initBuildingShapes(),
 		diagramShapes:    make([]shapes.Shape, 0),
 		shapeClicked:     false,
 		currentShape:     nil,
 		currentShapeType: shapes.NONE,
+
+		loadButton: *NewFuncButton(
+			"Load",
+			rl.NewRectangle(
+				settings.SHAPE_BUILD_X,
+				settings.WINDOW_HEIGHT-(settings.SHAPE_BUILD_GAP_Y+settings.SHAPE_MIN_HEIGHT)*2,
+				settings.SHAPE_MIN_WIDTH,
+				settings.SHAPE_MIN_HEIGHT,
+			),
+		),
+		cleanButton: *NewFuncButton(
+			"Clean",
+			rl.NewRectangle(
+				settings.SHAPE_BUILD_X,
+				settings.WINDOW_HEIGHT-(settings.SHAPE_BUILD_GAP_Y+settings.SHAPE_MIN_HEIGHT),
+				settings.SHAPE_MIN_WIDTH,
+				settings.SHAPE_MIN_HEIGHT,
+			),
+		),
 
 		currentInsertShape: nil,
 		insertCursorX:      -1,
@@ -228,6 +250,10 @@ func (window *Window) draw() {
 		window.saveCodeButton.Draw()
 		window.savePDFButton.Draw()
 	}
+
+	window.loadButton.Draw()
+	window.cleanButton.Draw()
+
 	for _, conn := range window.connections {
 		conn.Draw()
 	}
@@ -251,4 +277,14 @@ func (window *Window) draw() {
 	}
 
 	rl.EndDrawing()
+}
+
+func (window *Window) flushAll() {
+	window.flushSimulate()
+	window.flushBuildShape()
+	window.flushInsertShape()
+	window.diagram.FlushCache()
+	window.flushDiagramShapes()
+	window.diagram = *graph.NewGraph(nil)
+	window.flushConnections()
 }

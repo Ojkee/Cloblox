@@ -91,8 +91,11 @@ func (graph *Graph) GetCurrent() *blocks.Block {
 	return graph.current
 }
 
+func (graph *Graph) SetAllBlocks(blocks []blocks.Block) {
+	graph.blocksSlice = blocks
+}
+
 func (graph *Graph) GetAllBlocks() []blocks.Block {
-	//fmt.Printf("DEBUG: Returning %d blocks\n", len(graph.blocksSlice)) // 🔥
 	return graph.blocksSlice
 }
 
