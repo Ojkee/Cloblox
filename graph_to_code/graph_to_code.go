@@ -32,7 +32,14 @@ func ConvertGraphToPython(path string, g *graph.Graph) error {
 	return os.WriteFile(path, []byte(pythonCode.String()), 0644)
 }
 
-func processBlock(block blocks.Block, pythonCode *strings.Builder, indent string, visited map[blocks.Block]bool, order map[blocks.Block]int, parent *blocks.Block) error {
+func processBlock(
+	block blocks.Block,
+	pythonCode *strings.Builder,
+	indent string,
+	visited map[blocks.Block]bool,
+	order map[blocks.Block]int,
+	parent *blocks.Block,
+) error {
 	if visited[block] {
 		return nil
 	}
@@ -92,7 +99,14 @@ func hasBackwardConnection(block *blocks.IfBlock, order map[blocks.Block]int) bo
 	return false
 }
 
-func generateIfCode(block *blocks.IfBlock, pythonCode *strings.Builder, order map[blocks.Block]int, indent string, visited map[blocks.Block]bool, parent *blocks.Block) error {
+func generateIfCode(
+	block *blocks.IfBlock,
+	pythonCode *strings.Builder,
+	order map[blocks.Block]int,
+	indent string,
+	visited map[blocks.Block]bool,
+	parent *blocks.Block,
+) error {
 	trueBlock := block.GetNextTrue()
 	falseBlock := block.GetNextFalse()
 
