@@ -12,36 +12,106 @@ import (
 func ConvertGraphToPython(path string, g *graph.Graph) error {
 	var pythonCode strings.Builder
 
-	pythonCode.WriteString("def algorythm():\n")
+	pythonCode.WriteString("def algorithm():\n")
 	pythonCode.WriteString("    variables = {}\n\n")
 
-	for _, block := range g.GetAllBlocks() {
-		switch blockTyped := block.(type) {
-		case *blocks.StartBlock:
-			pythonCode.WriteString(fmt.Sprintf("    # Start block (id: %d)\n", block.GetId()))
-		case *blocks.StopBlock:
-			pythonCode.WriteString(fmt.Sprintf("    # Stop block (id: %d)\n    return 0\n", block.GetId()))
-		case *blocks.ActionBlock:
-			pythonCode.WriteString(fmt.Sprintf("    # Action block (id: %d)\n", block.GetId()))
-			pythonCode.WriteString(fmt.Sprintf("    %s\n", generateActionCode(blockTyped)))
-		case *blocks.IfBlock:
-			pythonCode.WriteString(fmt.Sprintf("    # If block (id: %d)\n", block.GetId()))
-			pythonCode.WriteString(generateIfCode(blockTyped))
-		case *blocks.VariablesBlock:
-			pythonCode.WriteString(fmt.Sprintf("    # Variables block (id: %d)\n", block.GetId()))
-			pythonCode.WriteString(generateVariableCode(blockTyped))
+	startBlock := g.GetHead()
+	if startBlock == nil {
+		return fmt.Errorf("no start block found")
+	}
+
+	visited := make(map[blocks.Block]bool)
+	order := make(map[blocks.Block]int)
+	err := processBlock(*startBlock, &pythonCode, "    ", visited, order, nil)
+	if err != nil {
+		return err
+	}
+
+	pythonCode.WriteString("    return variables\n")
+
+	return os.WriteFile(path, []byte(pythonCode.String()), 0644)
+}
+
+func processBlock(block blocks.Block, pythonCode *strings.Builder, indent string, visited map[blocks.Block]bool, order map[blocks.Block]int, parent *blocks.Block) error {
+	if visited[block] {
+		return nil
+	}
+	order[block] = len(order)
+	visited[block] = true
+
+	switch blockTyped := block.(type) {
+	case *blocks.StartBlock:
+		pythonCode.WriteString(fmt.Sprintf("%s# Start block (id: %d)\n", indent, block.GetId()))
+	case *blocks.StopBlock:
+		pythonCode.WriteString(fmt.Sprintf("%s# Stop block (id: %d)\n%s\n", indent, block.GetId(), indent))
+		visited[block] = false
+	case *blocks.ActionBlock:
+		pythonCode.WriteString(fmt.Sprintf("%s# Action block (id: %d)\n", indent, block.GetId()))
+		pythonCode.WriteString(fmt.Sprintf("%s%s\n", indent, generateActionCode(blockTyped)))
+	case *blocks.IfBlock:
+		pythonCode.WriteString(fmt.Sprintf("%s# If block (id: %d)\n", indent, block.GetId()))
+		if hasBackwardConnection(blockTyped, order) {
+			pythonCode.WriteString(fmt.Sprintf("%swhile %s:\n", indent, blockTyped.GetConditionExprString()))
+			indent += "    "
+		} else {
+			pythonCode.WriteString(fmt.Sprintf("%sif %s:\n", indent, blockTyped.GetConditionExprString()))
+		}
+		err := generateIfCode(blockTyped, pythonCode, order, indent, visited, parent)
+		if err != nil {
+			return err
+		}
+		indent = indent[:len(indent)-4]
+	case *blocks.VariablesBlock:
+		pythonCode.WriteString(fmt.Sprintf("%s# Variables block (id: %d)\n", indent, block.GetId()))
+		pythonCode.WriteString(fmt.Sprintf("%s%s\n", indent, generateVariableCode(blockTyped)))
+	default:
+		return fmt.Errorf("unsupported block type")
+	}
+
+	nextBlock, err := block.GetNext()
+	if err != nil {
+		return err
+	}
+	if nextBlock != nil {
+		return processBlock(*nextBlock, pythonCode, indent, visited, order, &block)
+	}
+
+	return nil
+}
+
+func hasBackwardConnection(block *blocks.IfBlock, order map[blocks.Block]int) bool {
+	trueBlock := block.GetNextTrue()
+	falseBlock := block.GetNextFalse()
+
+	if trueBlock != nil && order[*trueBlock] < order[block] {
+		return true
+	}
+	if falseBlock != nil && order[*falseBlock] < order[block] {
+		return true
+	}
+	return false
+}
+
+func generateIfCode(block *blocks.IfBlock, pythonCode *strings.Builder, order map[blocks.Block]int, indent string, visited map[blocks.Block]bool, parent *blocks.Block) error {
+	trueBlock := block.GetNextTrue()
+	falseBlock := block.GetNextFalse()
+
+	pythonCode.WriteString(fmt.Sprintf("%sif %s:\n", indent, block.GetConditionExprString()))
+	if trueBlock != nil {
+		err := processBlock(*trueBlock, pythonCode, indent+"    ", visited, order, parent)
+		if err != nil {
+			return err
 		}
 	}
 
-	file, err := os.Create(path)
-	if err != nil {
-		return fmt.Errorf("Error creating new file: %v\n", err)
+	if falseBlock != nil {
+		pythonCode.WriteString(fmt.Sprintf("%selse:\n", indent))
+		err := processBlock(*falseBlock, pythonCode, indent+"    ", visited, order, parent)
+		if err != nil {
+			return err
+		}
 	}
-	defer file.Close()
-	_, err = file.WriteString(pythonCode.String())
-	if err != nil {
-		return fmt.Errorf("Error saving to file: %v\n", err)
-	}
+
 	return nil
 }
 
@@ -79,55 +149,11 @@ func generateActionCode(block *blocks.ActionBlock) string {
 	return code.String()
 }
 
-// not quite right yet but we'll get there
-func generateIfCode(block *blocks.IfBlock) string {
-	condition := block.GetConditionExprString()
-
-	var code strings.Builder
-
-	code.WriteString(fmt.Sprintf("    if %s:\n", condition))
-
-	if block.GetNextTrue() != nil {
-		code.WriteString(generateBranchCode(block.GetNextTrue(), "    "))
-	} else {
-		code.WriteString("        # True branch is empty\n")
-		code.WriteString("        pass\n")
-	}
-
-	if block.GetNextFalse() != nil {
-		code.WriteString("    else:\n")
-		code.WriteString(generateBranchCode(block.GetNextFalse(), "    "))
-	} else {
-		code.WriteString("    else:\n")
-		code.WriteString("        # False branch is empty\n")
-		code.WriteString("        pass\n")
-	}
-
-	return code.String()
-}
-
-func generateBranchCode(block *blocks.Block, indent string) string {
-	var code strings.Builder
-
-	switch blockTyped := (*block).(type) {
-	case *blocks.IfBlock:
-		code.WriteString(indent + generateIfCode(blockTyped))
-	// case *blocks.ActionBlock:
-	// 	code.WriteString(indent + generateActionCode(blockTyped) + "\n")
-	case *blocks.VariablesBlock:
-		code.WriteString(indent + generateVariableCode(blockTyped) + "\n")
-	default:
-		code.WriteString(indent + "# Unsupported block type\n")
-	}
-
-	return code.String()
-}
-
 func generateVariableCode(block *blocks.VariablesBlock) string {
 	vars := block.GetVars()
 	var code strings.Builder
 	for key, value := range vars {
-		code.WriteString(fmt.Sprintf("    variables['%s'] = %v\n", key, value))
+		code.WriteString(fmt.Sprintf("variables['%s'] = %v\n    ", key, value))
 	}
 	return code.String()
 }
