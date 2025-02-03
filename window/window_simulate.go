@@ -402,6 +402,18 @@ func (window *Window) saveStateJson() error {
 	return nil
 }
 
+func (window *Window) saveStateJsonPdf() error {
+	err := iostate.SaveToJson(
+		settings.PATH_PDF_TEMP_JSON,
+		&window.diagram,
+	)
+	if err != nil {
+		return err
+	}
+	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", settings.PATH_TXT))
+	return nil
+}
+
 func (window *Window) saveStateTxt() error {
 	err := iostate.SaveToTxt(
 		settings.PATH_TXT,
@@ -427,9 +439,10 @@ func (window *Window) saveToPython() error {
 }
 
 func (window *Window) saveToPdf() error {
-	errTempJSON := window.saveStateJson()
+	errTempJSON := window.saveStateJsonPdf()
 	if errTempJSON != nil {
-		return errTempJSON
+		return errTempJSONpdflatex --version
+
 	}
 	// Should handle errors
 	iostate.SavePDF(settings.PATH_PDF_TEMP_JSON, settings.PATH_PDF)

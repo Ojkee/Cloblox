@@ -21,7 +21,7 @@ func SaveToJson(filename string, graph *graph.Graph) error {
 	blocksList := graph.GetAllBlocks()
 
 	// --- Zapis bloków ---
-	//_, err = file.WriteString("nodes: ")
+	_, err = file.WriteString("nodes: ")
 	if err != nil {
 		return fmt.Errorf("Error saving to file: %v", err)
 	}
