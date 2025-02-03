@@ -8,21 +8,14 @@ import (
 )
 
 type FuncButton struct {
-	content    string
-	rect       rl.Rectangle
-	contentPos rl.Vector2
+	content string
+	rect    rl.Rectangle
 }
 
 func NewFuncButton(content string, rect rl.Rectangle) *FuncButton {
-	contentSize := functools.TextSizeEx(content)
-	_contentPos := rl.NewVector2(
-		rect.X+(rect.Width-contentSize.X)/2,
-		rect.Y+(rect.Height-contentSize.Y)/2,
-	)
 	return &FuncButton{
-		content:    content,
-		rect:       rect,
-		contentPos: _contentPos,
+		content: content,
+		rect:    rect,
 	}
 }
 
@@ -35,10 +28,15 @@ func (fb *FuncButton) Draw() {
 		segments,
 		settings.SIMULATE_BUTTON_COLOR,
 	)
+	contentSize := functools.TextSizeEx(fb.content)
+	contentPos := rl.NewVector2(
+		fb.rect.X+(fb.rect.Width-contentSize.X)/2,
+		fb.rect.Y+(fb.rect.Height-contentSize.Y)/2,
+	)
 	rl.DrawTextEx(
 		settings.FONT,
 		fb.content,
-		fb.contentPos,
+		contentPos,
 		float32(settings.FONT_SIZE),
 		settings.FONT_SPACING,
 		settings.FONT_COLOR,

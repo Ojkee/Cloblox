@@ -142,7 +142,7 @@ func NewWindow(name string, height, width int32) *Window {
 		currentConnection: nil,
 
 		saveStateButton: *NewFuncButton(
-			"save blocks",
+			"Save",
 			rl.NewRectangle(
 				settings.SIMULATE_BUTTON_OFFSET,
 				settings.SIMULATE_BUTTON_POS_Y,
@@ -151,7 +151,7 @@ func NewWindow(name string, height, width int32) *Window {
 			),
 		),
 		saveCodeButton: *NewFuncButton(
-			"save as python",
+			"Python",
 			rl.NewRectangle(
 				settings.SIMULATE_BUTTON_WIDTH+settings.SIMULATE_BUTTON_OFFSET+settings.SIMULATE_BUTTON_GAP,
 				settings.SIMULATE_BUTTON_POS_Y,
@@ -160,7 +160,7 @@ func NewWindow(name string, height, width int32) *Window {
 			),
 		),
 		savePDFButton: *NewFuncButton(
-			"save as PDF",
+			"PDF",
 			rl.NewRectangle(
 				settings.SIMULATE_BUTTON_WIDTH*2+settings.SIMULATE_BUTTON_OFFSET+settings.SIMULATE_BUTTON_GAP*2,
 				settings.SIMULATE_BUTTON_POS_Y,
