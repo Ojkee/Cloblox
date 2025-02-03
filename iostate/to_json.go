@@ -5,53 +5,164 @@ import (
 	"os"
 	"strings"
 
-	"Cloblox/shapes"
+	"Cloblox/blocks"
+	"Cloblox/graph"
 )
 
-func SaveToJson(filename string, blocks []shapes.Shape, connections []shapes.Connection) error {
+// SaveToJson zapisuje strukturę grafu do pliku w formacie tekstowym
+func SaveToJson(filename string, graph *graph.Graph) error {
 	file, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("Error creating file: %v", err)
+		return err
 	}
 	defer file.Close()
 
-	tags := map[shapes.SHAPE_TYPE]string{
-		shapes.START:    "start",
-		shapes.STOP:     "stop",
-		shapes.IF:       "if",
-		shapes.VARIABLE: "variable",
-		shapes.ACTION:   "action",
-	}
+	// Bloki
+	blocksList := graph.GetAllBlocks()
 
+	// --- Zapis bloków ---
 	_, err = file.WriteString("nodes: ")
 	if err != nil {
 		return fmt.Errorf("Error saving to file: %v", err)
 	}
-	for _, block := range blocks {
-		content := block.GetContent()
-		blockID := block.GetBlockId()
-		blockType := block.GetType()
-		tag, exists := tags[blockType]
-		if !exists {
-			tag = "unknown"
-		}
-		for _, line := range content {
-			_, err = file.WriteString(fmt.Sprintf("(%s)%d {\"%s\"},", tag, blockID, line))
-			if err != nil {
-				return fmt.Errorf("Error saving to file: %v", err)
+
+	var blocksText []string
+	for _, block := range blocksList {
+		var tag, content string
+
+		// Określenie znacznika i zawartości
+		switch b := block.(type) {
+		case *blocks.StartBlock:
+			tag = "start"
+			content = "Start"
+		case *blocks.StopBlock:
+			tag = "stop"
+			content = "Stop"
+		case *blocks.IfBlock:
+			tag = "if"
+			content = b.GetConditionExprString()
+		case *blocks.VariablesBlock:
+			tag = "variable"
+			varsMap := b.GetVars()
+			if len(varsMap) == 0 {
+				content = "NO VARIABLES"
+			} else {
+				var varContent []string
+				for key, val := range varsMap {
+					varContent = append(varContent, fmt.Sprintf("%s = %v", key, val))
+				}
+				content = strings.Join(varContent, "; ")
 			}
+		case *blocks.ActionBlock:
+			tag = "action"
+			content = b.GetConditionExprString()
+		default:
+			tag = "unknown"
+			content = "UNKNOWN"
 		}
+
+		// Dodajemy blok do listy
+		blocksText = append(blocksText, fmt.Sprintf("(%s)%d {\"%s\"}", tag, block.GetId(), content))
 	}
 
-	edgeMatrix := buildAdjacencyMatrix(blocks, connections)
-	adjacencySerialized := serializeAdjacencyMatrix(edgeMatrix)
+	// Zapisujemy wszystkie bloki do pliku
+	_, err = file.WriteString(strings.Join(blocksText, ","))
+	if err != nil {
+		return fmt.Errorf("Error saving to file: %v", err)
+	}
 
+	// --- Zapis połączeń ---
 	_, err = file.WriteString("\nadjacency: \n")
 	if err != nil {
 		return fmt.Errorf("Error saving to file: %v", err)
 	}
 
-	_, err = file.WriteString(adjacencySerialized)
+	// Przygotowujemy macierz sąsiedztwa
+	N := len(blocksList)
+	edgeMatrix := make([][]int, N)
+	for i := 0; i < N; i++ {
+		edgeMatrix[i] = make([]int, N)
+	}
+
+	// Połączenia
+	addedConnections := make(map[string]bool)
+	var previousBlock *blocks.Block
+
+	// Iterujemy po każdym bloku w blocksList
+	for _, currentBlock := range blocksList {
+		inID := -1
+		if previousBlock != nil {
+			inID = (*previousBlock).GetId()
+		}
+		outID := currentBlock.GetId()
+
+		// // Ignorujemy połączenia wychodzące z bloków Stop
+		// if _, ok := currentBlock.(*blocks.StopBlock); ok {
+		// 	break
+		// }
+
+		// Dodajemy połączenie między blokami
+		if previousBlock != nil && inID != outID {
+			connectionKey := fmt.Sprintf("%d,%d", inID, outID)
+			if !addedConnections[connectionKey] {
+				edgeMatrix[inID][outID] = 1 // Zwykłe połączenie
+				addedConnections[connectionKey] = true
+			}
+		}
+
+		// Sprawdzamy, czy blok jest typu 'IfBlock'
+		if block, ok := currentBlock.(*blocks.IfBlock); ok {
+			if block.GetNextTrue() != nil {
+				trueBlock := block.GetNextTrue()
+				connectionKey := fmt.Sprintf("%d,%d", outID, (*trueBlock).GetId())
+				if !addedConnections[connectionKey] {
+					edgeMatrix[outID][(*trueBlock).GetId()] = 3 // Połączenie prawdziwe (w prawo)
+					addedConnections[connectionKey] = true
+				}
+			}
+
+			if block.GetNextFalse() != nil {
+				falseBlock := block.GetNextFalse()
+				connectionKey := fmt.Sprintf("%d,%d", outID, (*falseBlock).GetId())
+				if !addedConnections[connectionKey] {
+					edgeMatrix[outID][(*falseBlock).GetId()] = 2 // Połączenie fałszywe (w lewo)
+					addedConnections[connectionKey] = true
+				}
+			}
+		} else {
+			// Dodajemy standardowe połączenia (dla innych bloków)
+			if previousBlock != nil && inID != outID {
+				connectionKey := fmt.Sprintf("%d,%d", inID, outID)
+				if !addedConnections[connectionKey] {
+					edgeMatrix[inID][outID] = 1 // Zwykłe połączenie
+					addedConnections[connectionKey] = true
+				}
+			}
+		}
+
+		// Przechodzimy do kolejnego bloku
+		previousBlock = &currentBlock
+	}
+
+	// Zapisujemy macierz sąsiedztwa do pliku w wymaganym formacie
+	_, err = file.WriteString("[\n")
+	if err != nil {
+		return fmt.Errorf("Error saving to file: %v", err)
+	}
+
+	for i, row := range edgeMatrix {
+		_, err = file.WriteString(fmt.Sprintf("[%s]", strings.Join(intArrayToString(row), ",")))
+		if err != nil {
+			return fmt.Errorf("Error saving to file: %v", err)
+		}
+		if i < len(edgeMatrix)-1 {
+			_, err = file.WriteString(",\n")
+		} else {
+			_, err = file.WriteString("\n")
+		}
+	}
+
+	_, err = file.WriteString("]\n")
 	if err != nil {
 		return fmt.Errorf("Error saving to file: %v", err)
 	}
@@ -60,59 +171,11 @@ func SaveToJson(filename string, blocks []shapes.Shape, connections []shapes.Con
 	return nil
 }
 
-// Serialization of matrix to one line
-func serializeAdjacencyMatrix(matrix [][]int) string {
-	var rows []string
-	for _, row := range matrix {
-		rows = append(
-			rows,
-			fmt.Sprintf(
-				"[%s]",
-				strings.Trim(strings.Join(strings.Fields(fmt.Sprint(row)), ","), "[]"),
-			),
-		)
+// Funkcja pomocnicza do zamiany tablicy intów na formatowany string
+func intArrayToString(arr []int) []string {
+	var result []string
+	for _, v := range arr {
+		result = append(result, fmt.Sprintf("%d", v))
 	}
-	return fmt.Sprintf("[%s]", strings.Join(rows, ",\n"))
-}
-
-// Tworzenie macierzy sasiedztwa na podstawie wezlow i polaczen
-func buildAdjacencyMatrix(blocks []shapes.Shape, connections []shapes.Connection) [][]int {
-	// Mapa węzłów na indeksy w macierzy
-	nodeIndexMap := make(map[int]int)
-	for i, block := range blocks {
-		nodeIndexMap[block.GetBlockId()] = i
-	}
-
-	// Tworzenie pustej macierzy NxN
-	N := len(blocks)
-	edgeMatrix := make([][]int, N)
-	for i := 0; i < N; i++ {
-		edgeMatrix[i] = make([]int, N)
-	}
-
-	// Dodawanie polaczen do macierzy
-	for _, conn := range connections {
-		inID := conn.GetInShapeId()
-		outID := conn.GetOutShapeId()
-
-		inIndex, okIn := nodeIndexMap[inID]
-		outIndex, okOut := nodeIndexMap[outID]
-
-		if okIn && okOut {
-			inShape := blocks[inIndex]
-			if inShape.GetType() == shapes.IF {
-				if conn.IsCloserToRigth() {
-					edgeMatrix[inIndex][outIndex] = 3 // polaczenie true, czyli mamy tak wiec w prawo
-				} else {
-					edgeMatrix[inIndex][outIndex] = 2 // polaczenie false, czyli mamy nie wiec w lewo
-				}
-			} else {
-				edgeMatrix[inIndex][outIndex] = 1 // reszta polaczen
-			}
-		} else {
-			fmt.Printf("Error indices not found for connection %d -> %d\n", inID, outID)
-		}
-	}
-
-	return edgeMatrix
+	return result
 }

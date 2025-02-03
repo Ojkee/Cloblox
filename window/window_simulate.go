@@ -76,11 +76,15 @@ func (window *Window) simulateManager(mousePos *rl.Vector2) []error {
 			}
 		}
 		if window.saveStateButton.InRect(*mousePos) {
-			errTxt := window.saveState(iostate.SaveToTxt, settings.PATH_TXT)
+			shapesList := make([]shapes.Shape, len(window.buildingShapes))
+			for _, shape := range window.buildingShapes {
+				shapesList = append(shapesList, shape)
+			}
+			errTxt := window.saveStateTxt()
 			if errTxt != nil {
 				errs = append(errs, errTxt)
 			}
-			errState := window.saveState(iostate.SaveToJson, settings.PATH_JSON)
+			errState := window.saveStateJson()
 			if errState != nil {
 				errs = append(errs, errState)
 			}
@@ -386,19 +390,39 @@ func (window *Window) clearConsole() {
 	window.consoleLines = make([]ConsoleLine, 0)
 }
 
-func (window *Window) saveState(
-	saver func(string, []shapes.Shape, []shapes.Connection) error,
-	path string,
-) error {
-	err := saver(
-		path,
-		window.buildingShapes,
-		window.connections,
+func (window *Window) saveStateJson() error {
+	err := iostate.SaveToJson(
+		settings.PATH_JSON,
+		&window.diagram,
 	)
 	if err != nil {
 		return err
 	}
-	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", path))
+	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", settings.PATH_TXT))
+	return nil
+}
+
+func (window *Window) saveStateJsonPdf() error {
+	err := iostate.SaveToJson(
+		settings.PATH_PDF_TEMP_JSON,
+		&window.diagram,
+	)
+	if err != nil {
+		return err
+	}
+	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", settings.PATH_TXT))
+	return nil
+}
+
+func (window *Window) saveStateTxt() error {
+	err := iostate.SaveToTxt(
+		settings.PATH_TXT,
+		&window.diagram,
+	)
+	if err != nil {
+		return err
+	}
+	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", settings.PATH_TXT))
 	return nil
 }
 
@@ -415,9 +439,10 @@ func (window *Window) saveToPython() error {
 }
 
 func (window *Window) saveToPdf() error {
-	errTempJSON := window.saveState(iostate.SaveToJson, settings.PATH_PDF_TEMP_JSON)
+	errTempJSON := window.saveStateJsonPdf()
 	if errTempJSON != nil {
-		return errTempJSON
+		return errTempJSONpdflatex --version
+
 	}
 	// Should handle errors
 	iostate.SavePDF(settings.PATH_PDF_TEMP_JSON, settings.PATH_PDF)

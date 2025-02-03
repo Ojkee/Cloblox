@@ -92,6 +92,7 @@ func (graph *Graph) GetCurrent() *blocks.Block {
 }
 
 func (graph *Graph) GetAllBlocks() []blocks.Block {
+	//fmt.Printf("DEBUG: Returning %d blocks\n", len(graph.blocksSlice)) // 🔥
 	return graph.blocksSlice
 }
 
