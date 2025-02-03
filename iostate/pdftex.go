@@ -41,7 +41,7 @@ func SavePDF(srcPathJSON, dstPathPDF string) error {
 	tikz := generateTikZ(graph)
 
 	// Save the TikZ code to a .tex file
-	texFilename := "output.tex"
+	texFilename := "records/pdfs/output.tex"
 	if err := saveTikZToFile(tikz, texFilename); err != nil {
 		return fmt.Errorf("failed to save TikZ to file: %w", err)
 	}
@@ -148,7 +148,12 @@ func parseGraph(filePath string) (GraphPDF, error) {
 		for j, num := range numbers {
 			value, err := strconv.Atoi(strings.TrimSpace(num))
 			if err != nil {
-				return GraphPDF{}, fmt.Errorf("invalid adjacency matrix value at row %d, column %d: %s", i+1, j+1, num)
+				return GraphPDF{}, fmt.Errorf(
+					"invalid adjacency matrix value at row %d, column %d: %s",
+					i+1,
+					j+1,
+					num,
+				)
 			}
 			rowInt = append(rowInt, value)
 		}

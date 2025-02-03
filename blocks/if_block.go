@@ -152,7 +152,3 @@ func (block *IfBlock) FlushCondition() {
 	block.keys = []string{}
 	block.arrayKeys = make(map[string]string, 0)
 }
-
-func (block *IfBlock) GetConditionExprString() string {
-	return block.conditionExpr
-}

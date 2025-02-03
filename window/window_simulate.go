@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"os"
 	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -398,31 +397,21 @@ func (window *Window) saveStateJson() error {
 	if err != nil {
 		return err
 	}
-	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", settings.PATH_TXT))
-	return nil
-}
-
-func (window *Window) saveStateJsonPdf() error {
-	err := iostate.SaveToJson(
-		settings.PATH_PDF_TEMP_JSON,
-		&window.diagram,
-	)
-	if err != nil {
-		return err
-	}
-	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", settings.PATH_TXT))
+	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", settings.PATH_JSON))
 	return nil
 }
 
 func (window *Window) saveStateTxt() error {
-	err := iostate.SaveToTxt(
+	errTxt := iostate.SaveToTxt(
 		settings.PATH_TXT,
 		&window.diagram,
 	)
-	if err != nil {
-		return err
+	if errTxt != nil {
+		return errTxt
 	}
-	window.appendTextToConsole(fmt.Sprintf("Saved state to '%s'", settings.PATH_TXT))
+	window.appendTextToConsole(
+		fmt.Sprintf("Saved state to '%s'", settings.PATH_TXT),
+	)
 	return nil
 }
 
@@ -434,19 +423,25 @@ func (window *Window) saveToPython() error {
 	if errPython != nil {
 		return errPython
 	}
-	window.appendTextToConsole(fmt.Sprintf("Saved code to '%s'", settings.PATH_PYTHON))
+	window.appendTextToConsole(
+		fmt.Sprintf("Saved code to '%s'", settings.PATH_PYTHON),
+	)
 	return nil
 }
 
 func (window *Window) saveToPdf() error {
-	errTempJSON := window.saveStateJsonPdf()
+	errTempJSON := iostate.SaveToJson(settings.PATH_PDF_TEMP_JSON, &window.diagram)
 	if errTempJSON != nil {
-		return errTempJSONpdflatex --version
-
+		return errTempJSON
 	}
-	// Should handle errors
-	iostate.SavePDF(settings.PATH_PDF_TEMP_JSON, settings.PATH_PDF)
-	os.Remove(settings.PATH_PDF_TEMP_JSON)
-	window.appendTextToConsole(fmt.Sprintf("Saved PDF to '%s'", settings.PATH_PDF))
+
+	errPDF := iostate.SavePDF(settings.PATH_PDF_TEMP_JSON, settings.PATH_PDF)
+	if errPDF != nil {
+		return errPDF
+	}
+	// os.Remove(settings.PATH_PDF_TEMP_JSON)
+	window.appendTextToConsole(
+		fmt.Sprintf("Saved PDF to '%s'", settings.PATH_PDF),
+	)
 	return nil
 }
