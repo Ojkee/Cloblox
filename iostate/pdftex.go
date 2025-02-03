@@ -317,8 +317,9 @@ func compileTexToPDF(texPath, pdfPath string) error {
 	if _, err := exec.LookPath("pdflatex"); err != nil {
 		return fmt.Errorf("pdflatex not found: %w", err)
 	}
-	outArg := "--output-directory=" + pdfPath
-	cmd := exec.Command("pdflatex", outArg, texPath)
+	// outArg := "--output-directory=" + pdfPath
+	// cmd := exec.Command("pdflatex", outArg, texPath)
+	cmd := exec.Command("pdflatex", texPath)
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 
