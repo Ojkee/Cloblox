@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -40,8 +41,16 @@ func SavePDF(srcPathJSON, dstPathPDF string) error {
 	// Generate TikZ code
 	tikz := generateTikZ(graph)
 
-	// Save the TikZ code to a .tex file
-	texFilename := "records/pdfs/output.tex"
+	// Extract the directory from dstPathPDF
+	outputDir := filepath.Dir(dstPathPDF)
+
+	// Create the output directory if it doesn't exist
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Save the TikZ code to a .tex file in the same directory as the PDF
+	texFilename := filepath.Join(outputDir, "output.tex")
 	if err := saveTikZToFile(tikz, texFilename); err != nil {
 		return fmt.Errorf("failed to save TikZ to file: %w", err)
 	}
@@ -317,19 +326,30 @@ func compileTexToPDF(texPath, pdfPath string) error {
 	if _, err := exec.LookPath("pdflatex"); err != nil {
 		return fmt.Errorf("pdflatex not found: %w", err)
 	}
-	// outArg := "--output-directory=" + pdfPath
-	// cmd := exec.Command("pdflatex", outArg, texPath)
-	cmd := exec.Command("pdflatex", texPath)
-	cmd.Stdout = nil
-	cmd.Stderr = nil
+
+	if err := os.MkdirAll(filepath.Dir(pdfPath), 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	texPathForLaTeX := filepath.ToSlash(texPath)
+
+	outDir := filepath.ToSlash(filepath.Dir(pdfPath))
+	cmd := exec.Command("pdflatex", "-output-directory="+outDir, texPathForLaTeX)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to compile TeX to PDF: %w", err)
 	}
 
-	// Clean up auxiliary files
-	auxFile := strings.Replace(texPath, ".tex", ".aux", 1)
-	logFile := strings.Replace(texPath, ".tex", ".log", 1)
+	generatedPDF := filepath.Join(outDir, strings.Replace(filepath.Base(texPath), ".tex", ".pdf", 1))
+	if err := os.Rename(generatedPDF, pdfPath); err != nil {
+		return fmt.Errorf("failed to move generated PDF to destination: %w", err)
+	}
+
+	auxFile := filepath.Join(outDir, strings.Replace(filepath.Base(texPath), ".tex", ".aux", 1))
+	logFile := filepath.Join(outDir, strings.Replace(filepath.Base(texPath), ".tex", ".log", 1))
 	_ = os.Remove(auxFile)
 	_ = os.Remove(logFile)
 
