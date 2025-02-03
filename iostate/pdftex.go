@@ -1,12 +1,8 @@
 package iostate
 
-// sudo apt update && sudo apt install texlive-base texlive-xetex texlive-latex-extra texlive-pictures
-// Required packages for the code to work
-
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -25,49 +21,51 @@ type GraphPDF struct {
 	Adjacency [][]int
 }
 
-// processInput processes the input file to generate a graph, convert it to TikZ code,
+// SavePDF processes the input file to generate a graph, convert it to TikZ code,
 // save the TikZ code to a .tex file, and compile the .tex file to a .pdf file.
 //
 // Parameters:
-// - filePath: A string specifying the path to the JSON file.
-func SavePDF(srcPathJSON, dstPathPDF string) {
+// - srcPathJSON: A string specifying the path to the JSON file.
+// - dstPathPDF: A string specifying the path to save the resulting PDF file.
+//
+// Returns:
+// - An error if any step in the process fails.
+func SavePDF(srcPathJSON, dstPathPDF string) error {
 	// Parse the graph from the input JSON file
-	graph := parseGraph(srcPathJSON)
+	graph, err := parseGraph(srcPathJSON)
+	if err != nil {
+		return fmt.Errorf("Error parsing graph: %v", err)
+	}
 
 	// Generate TikZ code
 	tikz := generateTikZ(graph)
 
 	// Save the TikZ code to a .tex file
 	texFilename := "output.tex"
-	saveTikZToFile(tikz, texFilename)
+	if err := saveTikZToFile(tikz, texFilename); err != nil {
+		return fmt.Errorf("Error saving TikZ to file: %v", err)
+	}
 
 	// Compile the .tex file to a .pdf file
-	compileTexToPDF(texFilename, dstPathPDF)
+	if err := compileTexToPDF(texFilename, dstPathPDF); err != nil {
+		return fmt.Errorf("Error compiling TeX to PDF: %v", err)
+	}
+
+	return nil
 }
 
-// parseGraph reads a graph definition from a file and returns a GraphPDF struct.
-// The file is expected to have a specific format:
-// - The first line contains node definitions in the format: (type)ID {label}, ...
-// - The second line contains the header "adjacency:"
-// - The remaining lines contain the adjacency matrix in the format: [row1],[row2],...
-func parseGraph(filePath string) GraphPDF {
-	// Open the file for reading
+// parseGraph reads a graph definition from a file and returns a GraphPDF struct and an error.
+func parseGraph(filePath string) (GraphPDF, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Fatalf("Failed to open file: %v", err)
+		return GraphPDF{}, fmt.Errorf("Error opening file: %v", err)
 	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			log.Fatalf("Failed to close file: %v", err)
-		}
-	}(file)
+	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 
-	// Read the first line for node definitions
 	if !scanner.Scan() {
-		log.Fatalf("Failed to read the first line for nodes")
+		return GraphPDF{}, fmt.Errorf("Error reading the first line for nodes: file is empty")
 	}
 	nodesLine := scanner.Text()
 	nodes := []NodePDF{}
@@ -85,7 +83,11 @@ func parseGraph(filePath string) GraphPDF {
 			if openBraces == 0 {
 				entry := strings.TrimSpace(currentNode.String())
 				if entry != "" {
-					parseNodeEntry(entry, &nodes)
+					node, err := parseNodeEntry(entry)
+					if err != nil {
+						return GraphPDF{}, fmt.Errorf("Error parsing node entry: %v", err)
+					}
+					nodes = append(nodes, node)
 				}
 				currentNode.Reset()
 			} else {
@@ -98,20 +100,22 @@ func parseGraph(filePath string) GraphPDF {
 	if currentNode.Len() > 0 {
 		entry := strings.TrimSpace(currentNode.String())
 		if entry != "" {
-			parseNodeEntry(entry, &nodes)
+			node, err := parseNodeEntry(entry)
+			if err != nil {
+				return GraphPDF{}, fmt.Errorf("Error parsing node entry: %v", err)
+			}
+			nodes = append(nodes, node)
 		}
 	}
 
-	// Read the second line for the adjacency matrix header
 	if !scanner.Scan() {
-		log.Fatalf("Failed to read the second line for adjacency header")
+		return GraphPDF{}, fmt.Errorf("Error reading the second line for adjacency header: file is incomplete")
 	}
 	adjacencyHeader := scanner.Text()
 	if !strings.HasPrefix(adjacencyHeader, "adjacency:") {
-		log.Fatalf("Invalid input: expected 'adjacency:' on the second line")
+		return GraphPDF{}, fmt.Errorf("Error parsing adjacency header: expected 'adjacency:' on the second line")
 	}
 
-	// Read the remaining lines for the adjacency matrix
 	matrixBuilder := strings.Builder{}
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -121,11 +125,10 @@ func parseGraph(filePath string) GraphPDF {
 	}
 	matrixData := matrixBuilder.String()
 
-	// Validate and parse the adjacency matrix
 	if strings.HasPrefix(matrixData, "[") && strings.HasSuffix(matrixData, "]") {
 		matrixData = strings.Trim(matrixData, "[] ")
 	} else {
-		log.Fatalf("Invalid adjacency matrix format: missing outer brackets")
+		return GraphPDF{}, fmt.Errorf("Error parsing adjacency matrix: missing outer brackets")
 	}
 
 	rows := strings.Split(matrixData, "],[")
@@ -137,7 +140,7 @@ func parseGraph(filePath string) GraphPDF {
 		for j, num := range numbers {
 			value, err := strconv.Atoi(strings.TrimSpace(num))
 			if err != nil {
-				log.Fatalf("Invalid adjacency matrix value at row %d, column %d: %s", i+1, j+1, num)
+				return GraphPDF{}, fmt.Errorf("Error parsing adjacency matrix value at row %d, column %d: %v", i+1, j+1, err)
 			}
 			rowInt = append(rowInt, value)
 		}
@@ -147,54 +150,33 @@ func parseGraph(filePath string) GraphPDF {
 	return GraphPDF{
 		Nodes:     nodes,
 		Adjacency: adjacency,
-	}
+	}, nil
 }
 
-// parseNodeEntry parses a single node entry from a string and appends it to the nodes slice.
-// The entry string is expected to be in the format: (type)ID {label}
-// If the entry does not match the expected format, the function logs a fatal error.
-//
-// Parameters:
-// - entry: A string representing a node entry in the format (type)ID {label}.
-// - nodes: A pointer to a slice of NodePDF structs where the parsed node will be appended.
-func parseNodeEntry(entry string, nodes *[]NodePDF) {
-	// Compile a regular expression to match the node entry format
+// parseNodeEntry parses a single node entry from a string and returns a NodePDF and an error.
+func parseNodeEntry(entry string) (NodePDF, error) {
 	nodeRegex := regexp.MustCompile(`\((.*?)\)(\d+) \{(.*)\}`)
-
-	// Find submatches in the entry string
 	matches := nodeRegex.FindStringSubmatch(entry)
-
-	// Check if the entry matches the expected format
 	if len(matches) != 4 {
-		log.Fatalf("Invalid node entry: %s", entry)
+		return NodePDF{}, fmt.Errorf("Error parsing node entry: invalid format in '%s'", entry)
 	}
 
-	// Convert the node ID from string to integer
 	id, err := strconv.Atoi(matches[2])
 	if err != nil {
-		log.Fatalf("Invalid node ID: %s", matches[2])
+		return NodePDF{}, fmt.Errorf("Error parsing node ID: %v", err)
 	}
 
-	// Append the parsed node to the nodes slice
-	*nodes = append(*nodes, NodePDF{
+	return NodePDF{
 		ID:    id,
 		Type:  matches[1],
 		Label: strings.TrimSpace(matches[3]),
-	})
+	}, nil
 }
 
 // generateTikZ generates a TikZ representation of the given graph.
-// It constructs a LaTeX document with TikZ code to visualize the graph.
-//
-// Parameters:
-// - graph: A GraphPDF struct containing nodes and adjacency matrix.
-//
-// Returns:
-// - A string containing the LaTeX document with TikZ code.
 func generateTikZ(graph GraphPDF) string {
 	var tikz string
 
-	// Add LaTeX document preamble and TikZ styles
 	tikz += `\documentclass{article}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows}
@@ -210,7 +192,6 @@ func generateTikZ(graph GraphPDF) string {
 	verticalPos := 0.0
 	horizontalOffset := 0.0
 
-	// Add nodes to the TikZ picture
 	for _, node := range graph.Nodes {
 		style := "process"
 		switch node.Type {
@@ -220,14 +201,7 @@ func generateTikZ(graph GraphPDF) string {
 			style = "decision"
 			verticalPos -= 2
 		}
-		tikz += fmt.Sprintf(
-			"\\node[%s] (%d) at (%.2f, %.2f) {%s};\n",
-			style,
-			node.ID,
-			horizontalOffset,
-			verticalPos,
-			node.Label,
-		)
+		tikz += fmt.Sprintf("\\node[%s] (%d) at (%.2f, %.2f) {%s};\n", style, node.ID, horizontalOffset, verticalPos, node.Label)
 		if node.Type == "if" {
 			verticalPos -= 4
 		} else {
@@ -237,7 +211,6 @@ func generateTikZ(graph GraphPDF) string {
 
 	lastNode := len(graph.Nodes)
 
-	// Add edges to the TikZ picture based on the adjacency matrix
 	for i := 0; i < lastNode; i++ {
 		for j, count := 0, 0; j < lastNode; j++ {
 			if graph.Adjacency[i][j] == 1 {
@@ -248,12 +221,7 @@ func generateTikZ(graph GraphPDF) string {
 
 				if graph.Nodes[i].Type == "if" {
 					if count == 0 {
-						tikz += fmt.Sprintf(
-							"\\draw[arrow, bend left=%d] (%d.west) to (%d.north);\n",
-							bendAmount,
-							i+1,
-							j+1,
-						)
+						tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.west) to (%d.north);\n", bendAmount, i+1, j+1)
 					} else {
 						tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.east) to (%d.north);\n", bendAmount, i+1, j+1)
 					}
@@ -267,55 +235,40 @@ func generateTikZ(graph GraphPDF) string {
 		}
 	}
 
-	// End TikZ picture and LaTeX document
 	tikz += "\\end{tikzpicture}\n"
 	tikz += "\\end{document}\n"
 
 	return tikz
 }
 
-// saveTikZToFile saves the given TikZ code to a file with the specified filename.
-// If the file cannot be created or written to, the function logs a fatal error.
-//
-// Parameters:
-// - tikz: A string containing the TikZ code to be saved.
-// - filename: A string specifying the name of the file to save the TikZ code to.
-func saveTikZToFile(tikz string, filename string) {
+// saveTikZToFile saves the given TikZ code to a file with the specified filename and returns an error.
+func saveTikZToFile(tikz string, filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
-		log.Fatalf("Failed to create file: %v", err)
+		return fmt.Errorf("Error saving to file: %v", err)
 	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			log.Fatalf("Failed to close file: %v", err)
-		}
-	}(file)
+	defer file.Close()
 
 	_, err = file.WriteString(tikz)
 	if err != nil {
-		log.Fatalf("Failed to write to file: %v", err)
+		return fmt.Errorf("Error writing to file: %v", err)
 	}
-	log.Printf("TikZ code saved to %s", filename)
+	return nil
 }
 
-// compileTexToPDF compiles a TeX file to a PDF using the pdflatex command.
-// It checks if pdflatex is available in the system's PATH, runs the command,
-// and cleans up auxiliary files generated during the compilation.
-//
-// Parameters:
-// - texFile: A string specifying the path to the TeX file to be compiled.
-func compileTexToPDF(texPath, pdfPath string) {
+// compileTexToPDF compiles a TeX file to a PDF using the pdflatex command and returns an error.
+func compileTexToPDF(texPath, pdfPath string) error {
 	if _, err := exec.LookPath("pdflatex"); err != nil {
-		log.Fatalf("pdflatex not found: %v", err)
+		return fmt.Errorf("Error finding pdflatex: %v", err)
 	}
-	outArg := "--output-directory=pdfPath"
+
+	outArg := fmt.Sprintf("--output-directory=%s", pdfPath)
 	cmd := exec.Command("pdflatex", outArg, texPath)
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 
 	if err := cmd.Run(); err != nil {
-		log.Fatalf("Failed to compile TeX to PDF: %v", err)
+		return fmt.Errorf("Error compiling TeX to PDF: %v", err)
 	}
 
 	// Clean up auxiliary files
@@ -324,5 +277,5 @@ func compileTexToPDF(texPath, pdfPath string) {
 	_ = os.Remove(auxFile)
 	_ = os.Remove(logFile)
 
-	log.Printf("PDF successfully generated from %s", texPath)
+	return nil
 }
