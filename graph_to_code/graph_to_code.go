@@ -13,7 +13,7 @@ func ConvertGraphToPython(path string, g *graph.Graph) error {
 	var pythonCode strings.Builder
 
 	pythonCode.WriteString("def algorithm():\n")
-	pythonCode.WriteString("    variables = {}\n\n")
+	// pythonCode.WriteString("    variables = {}\n\n")
 
 	startBlock := g.GetHead()
 	if startBlock == nil {
@@ -29,14 +29,17 @@ func ConvertGraphToPython(path string, g *graph.Graph) error {
 
 	pythonCode.WriteString("    return variables\n")
 
-	// transformedCode := transformCode(pythonCode.String())
-	// pythonCode.Reset()
-	// pythonCode.WriteString(transformedCode)
-
 	return os.WriteFile(path, []byte(pythonCode.String()), 0644)
 }
 
-func processBlock(block blocks.Block, pythonCode *strings.Builder, indent string, visited map[blocks.Block]bool, order map[blocks.Block]int, parent *blocks.Block) error {
+func processBlock(
+	block blocks.Block,
+	pythonCode *strings.Builder,
+	indent string,
+	visited map[blocks.Block]bool,
+	order map[blocks.Block]int,
+	parent *blocks.Block,
+) error {
 	if visited[block] {
 		return nil
 	}
@@ -96,7 +99,14 @@ func hasBackwardConnection(block *blocks.IfBlock, order map[blocks.Block]int) bo
 	return false
 }
 
-func generateIfCode(block *blocks.IfBlock, pythonCode *strings.Builder, order map[blocks.Block]int, indent string, visited map[blocks.Block]bool, parent *blocks.Block) error {
+func generateIfCode(
+	block *blocks.IfBlock,
+	pythonCode *strings.Builder,
+	order map[blocks.Block]int,
+	indent string,
+	visited map[blocks.Block]bool,
+	parent *blocks.Block,
+) error {
 	trueBlock := block.GetNextTrue()
 	falseBlock := block.GetNextFalse()
 
@@ -157,87 +167,7 @@ func generateVariableCode(block *blocks.VariablesBlock) string {
 	vars := block.GetVars()
 	var code strings.Builder
 	for key, value := range vars {
-		code.WriteString(fmt.Sprintf("variables['%s'] = %v\n    ", key, value))
+		code.WriteString(fmt.Sprintf("%s = %v\n    ", key, value))
 	}
 	return code.String()
 }
-
-// func transformCode(input string) string {
-// 	lines := strings.Split(input, "\n")
-// 	var result []string
-// 	insideWhile := false
-// 	var whileBlock []string
-// 	var elseBlock []string
-// 	var ifBlock []string
-// 	insideIf := false
-// 	insideElse := false
-// 	indentation := ""
-
-// 	for _, line := range lines {
-// 		trimmed := strings.TrimSpace(line)
-
-// 		if strings.HasPrefix(trimmed, "while") {
-// 			insideWhile = true
-// 			indentation = line[:len(line)-len(trimmed)]
-// 			result = append(result, line)
-// 			continue
-// 		}
-
-// 		if insideWhile {
-// 			if strings.HasPrefix(trimmed, "if") && !insideIf && !insideElse {
-// 				insideIf = true
-// 				continue
-// 			}
-
-// 			if insideIf {
-// 				if strings.HasPrefix(trimmed, "else") {
-// 					insideIf = false
-// 					insideElse = true
-// 					continue
-// 				}
-
-// 				if len(trimmed) == 0 || !strings.HasPrefix(line, indentation+"    ") {
-// 					insideIf = false
-// 					whileBlock = append(whileBlock, ifBlock...)
-// 					ifBlock = nil
-// 					continue
-// 				}
-
-// 				ifBlock = append(ifBlock, line)
-// 				continue
-// 			}
-
-// 			if insideElse {
-// 				if len(trimmed) == 0 || !strings.HasPrefix(line, indentation+"    ") {
-// 					insideElse = false
-// 					insideWhile = false
-// 					result = append(result, whileBlock...)
-// 					whileBlock = nil
-// 					for _, elseLine := range elseBlock {
-// 						result = append(result, elseLine[len(indentation):])
-// 					}
-// 					elseBlock = nil
-// 					result = append(result, line)
-// 					continue
-// 				}
-
-// 				elseBlock = append(elseBlock, line)
-// 				continue
-// 			}
-
-// 			whileBlock = append(whileBlock, line)
-// 			continue
-// 		}
-
-// 		result = append(result, line)
-// 	}
-
-// 	if insideWhile {
-// 		result = append(result, whileBlock...)
-// 		for _, elseLine := range elseBlock {
-// 			result = append(result, elseLine[len(indentation):])
-// 		}
-// 	}
-
-// 	return strings.Join(result, "\n")
-// }
