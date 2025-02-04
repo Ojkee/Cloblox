@@ -13,7 +13,7 @@ func ConvertGraphToPython(path string, g *graph.Graph) error {
 	var pythonCode strings.Builder
 
 	pythonCode.WriteString("def algorithm():\n")
-	pythonCode.WriteString("    variables = {}\n\n")
+	// pythonCode.WriteString("    variables = {}\n\n")
 
 	startBlock := g.GetHead()
 	if startBlock == nil {
@@ -167,7 +167,7 @@ func generateVariableCode(block *blocks.VariablesBlock) string {
 	vars := block.GetVars()
 	var code strings.Builder
 	for key, value := range vars {
-		code.WriteString(fmt.Sprintf("variables['%s'] = %v\n    ", key, value))
+		code.WriteString(fmt.Sprintf("%s = %v\n    ", key, value))
 	}
 	return code.String()
 }
