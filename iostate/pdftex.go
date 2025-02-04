@@ -343,7 +343,10 @@ func compileTexToPDF(texPath, pdfPath string) error {
 		return fmt.Errorf("failed to compile TeX to PDF: %w", err)
 	}
 
-	generatedPDF := filepath.Join(outDir, strings.Replace(filepath.Base(texPath), ".tex", ".pdf", 1))
+	generatedPDF := filepath.Join(
+		outDir,
+		strings.Replace(filepath.Base(texPath), ".tex", ".pdf", 1),
+	)
 	if err := os.Rename(generatedPDF, pdfPath); err != nil {
 		return fmt.Errorf("failed to move generated PDF to destination: %w", err)
 	}
