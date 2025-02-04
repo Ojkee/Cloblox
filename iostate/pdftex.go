@@ -243,7 +243,7 @@ func generateTikZ(graph GraphPDF) string {
 		tikz += fmt.Sprintf(
 			"\\node[%s] (%d) at (%.2f, %.2f) {%s};\n",
 			style,
-			node.ID,
+			node.ID, // Use node.ID directly
 			horizontalOffset,
 			verticalPos,
 			node.Label,
@@ -270,17 +270,17 @@ func generateTikZ(graph GraphPDF) string {
 						tikz += fmt.Sprintf(
 							"\\draw[arrow, bend left=%d] (%d.west) to (%d.north);\n",
 							bendAmount,
-							i+1,
-							j+1,
+							i, // Use i instead of i+1
+							j, // Use j instead of j+1
 						)
 					} else {
-						tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.east) to (%d.north);\n", bendAmount, i+1, j+1)
+						tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.east) to (%d.north);\n", bendAmount, i, j)
 					}
 					count++
 				} else if graph.Nodes[j].Type == "stop" {
-					tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.east) to (%d.north);\n", bendAmount, i+1, j+1)
+					tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.east) to (%d.north);\n", bendAmount, i, j)
 				} else {
-					tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.south) to (%d.north);\n", bendAmount, i+1, j+1)
+					tikz += fmt.Sprintf("\\draw[arrow, bend left=%d] (%d.south) to (%d.north);\n", bendAmount, i, j)
 				}
 			}
 		}
@@ -343,10 +343,7 @@ func compileTexToPDF(texPath, pdfPath string) error {
 		return fmt.Errorf("failed to compile TeX to PDF: %w", err)
 	}
 
-	generatedPDF := filepath.Join(
-		outDir,
-		strings.Replace(filepath.Base(texPath), ".tex", ".pdf", 1),
-	)
+	generatedPDF := filepath.Join(outDir, strings.Replace(filepath.Base(texPath), ".tex", ".pdf", 1))
 	if err := os.Rename(generatedPDF, pdfPath); err != nil {
 		return fmt.Errorf("failed to move generated PDF to destination: %w", err)
 	}
